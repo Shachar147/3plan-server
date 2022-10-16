@@ -1,0 +1,36 @@
+import { BaseEntity } from 'typeorm';
+import { PlayerPosition } from './player-position.enum';
+import { Team } from '../team/team.entity';
+import { OneOnOne } from '../records/one-on-one/one-on-one.entity';
+import { Random } from '../records/random/random.entity';
+import { StopwatchShootout } from '../records/stopwatch-shootout/stopwatch-shootout.entity';
+import { Tournament } from '../records/tournament/tournament.entity';
+export declare class Player extends BaseEntity {
+    id: number;
+    name: string;
+    picture: string;
+    position: PlayerPosition;
+    height_feet: number;
+    height_meters: number;
+    height_inches: number;
+    weight_pounds: number;
+    weight_kgs: number;
+    jersey: number;
+    debut_year: number;
+    _2k_rating: number;
+    team: Team;
+    oneOnOneHomeEntities: OneOnOne[];
+    oneOnOneAwayEntities: OneOnOne[];
+    lastSyncAt: Date;
+    last2KSyncAt: Date;
+    randomMVPs: Random[];
+    mvpTournaments: Tournament[];
+    draft_pick: number;
+    date_of_birth: string;
+    college_name: string;
+    country: string;
+    draft_round: number;
+    isActive: boolean;
+    stopwatchShootoutPlayerEntities: StopwatchShootout[];
+    allStarTeam: Team;
+}

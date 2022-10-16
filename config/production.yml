@@ -1,0 +1,13 @@
+db:
+  host: 'ec2-54-205-187-125.compute-1.amazonaws.com'
+  username: 'vabxilvoywxzdl'
+  password: 'c730cc3a4282371b260277bc76cc2e3ea91ed61ff13adefb08bd15eed22b341b'
+  port: 5432,
+  database: 'd228sahvtncltd'
+  synchronize: true
+  extra:
+    ssl:
+      rejectUnauthorized: false
+
+jwt:
+  secret: 'topSecret21'
