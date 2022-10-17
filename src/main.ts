@@ -34,6 +34,6 @@ async function bootstrap() {
     customCss: 'input { max-width: unset !important; }',
   });
 
-  await app.listen(process.env.PORT || 3000);
+  await app.listen(process.env.PORT || 3001);
 }
 bootstrap();

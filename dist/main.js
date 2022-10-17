@@ -19,7 +19,7 @@ async function bootstrap() {
     swagger_1.SwaggerModule.setup('/api/doc', app, document, {
         customCss: 'input { max-width: unset !important; }',
     });
-    await app.listen(process.env.PORT || 3000);
+    await app.listen(process.env.PORT || 3001);
 }
 bootstrap();
 //# sourceMappingURL=main.js.map
