@@ -1,9 +1,0 @@
-export declare enum TeamDivision {
-    ATLANTIC = "ATLANTIC",
-    CENTRAL = "CENTRAL",
-    SOUTHEAST = "SOUTHEAST",
-    NORTHWEST = "NORTHWEST",
-    PACIFIC = "PACIFIC",
-    SOUTHWEST = "SOUTHWEST",
-    ALLSTAR = "ALLSTAR"
-}

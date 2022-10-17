@@ -9,7 +9,7 @@ const rl = readline.createInterface({
 
 const rimraf = require('rimraf');
 
-const allowedTypes = ['string', 'float', 'timestamp', 'number']; // if adding more, modify rewrite Dto func
+const allowedTypes = ['string', 'float', 'timestamp', 'number', 'json']; // if adding more, modify rewrite Dto func
 
 // consts
 const templatesDir = '../../route_templates';

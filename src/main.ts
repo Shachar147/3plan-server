@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import * as config from 'config';
+import * as bodyParser from 'body-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: true });
@@ -33,6 +34,10 @@ async function bootstrap() {
   SwaggerModule.setup('/api/doc', app, document, {
     customCss: 'input { max-width: unset !important; }',
   });
+
+
+  app.use(bodyParser.json({limit: '50mb'}));
+  app.use(bodyParser.urlencoded({limit: '50mb', extended: true}));
 
   await app.listen(process.env.PORT || 3001);
 }
