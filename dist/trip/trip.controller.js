@@ -43,6 +43,9 @@ let TripController = class TripController {
     updateTrip(id, updateTripDto) {
         return this.tripService.updateTrip(id, updateTripDto);
     }
+    updateTripByName(name, updateTripDto) {
+        return this.tripService.updateTripByName(name, updateTripDto);
+    }
     deleteTrip(id) {
         return this.tripService.deleteTrip(id);
     }
@@ -112,6 +115,23 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], TripController.prototype, "updateTrip", null);
 __decorate([
+    swagger_1.ApiOperation({ summary: 'Update Trip By Name', description: 'Update trip by name' }),
+    swagger_1.ApiParam({
+        name: 'name',
+        description: 'trip name',
+        required: true,
+        type: 'string',
+    }),
+    common_1.Put('/name/:name'),
+    common_1.UsePipes(new common_1.ValidationPipe({ transform: true })),
+    common_1.UseGuards(passport_1.AuthGuard()),
+    __param(0, common_1.Param('name')),
+    __param(1, common_1.Body()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, update_trip_dto_1.UpdateTripDto]),
+    __metadata("design:returntype", void 0)
+], TripController.prototype, "updateTripByName", null);
+__decorate([
     swagger_1.ApiOperation({ summary: 'Delete Trip', description: 'Delete trip by id' }),
     swagger_1.ApiParam({
         name: 'id',
@@ -127,12 +147,12 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], TripController.prototype, "deleteTrip", null);
 __decorate([
-    swagger_1.ApiOperation({ summary: 'Delete Trip', description: 'Delete trip by id' }),
+    swagger_1.ApiOperation({ summary: 'Delete Trip By Name', description: 'Delete trip by name' }),
     swagger_1.ApiParam({
-        name: 'id',
-        description: 'trip id',
+        name: 'name',
+        description: 'trip name',
         required: true,
-        type: 'number',
+        type: 'string',
     }),
     common_1.Delete('/name/:name'),
     common_1.UseGuards(passport_1.AuthGuard()),

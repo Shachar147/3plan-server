@@ -59,6 +59,10 @@ let TripService = class TripService {
         const trip = await this.getTrip(id);
         return this.tripRepository.updateTrip(updateTripDto, trip);
     }
+    async updateTripByName(name, updateTripDto) {
+        const trip = await this.getTripByName(name);
+        return this.tripRepository.updateTrip(updateTripDto, trip);
+    }
     async deleteTrip(id) {
         const result = await this.tripRepository.delete({ id: id });
         if (result.affected === 0) {

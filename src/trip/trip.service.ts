@@ -82,6 +82,21 @@ export class TripService {
     return this.tripRepository.updateTrip(updateTripDto, trip);
   }
 
+  async updateTripByName(name: string, updateTripDto: UpdateTripDto) {
+    const trip = await this.getTripByName(name);
+
+    // if (
+    //   !updateTripDto.name &&
+    //   !updateTripDto.logo &&
+    //   !updateTripDto.division &&
+    //   !updateTripDto.conference
+    // ) {
+    //   throw new NotFoundException(`You have to pass fields to update`);
+    // }
+
+    return this.tripRepository.updateTrip(updateTripDto, trip);
+  }
+
   async deleteTrip(id: number) {
     const result = await this.tripRepository.delete({ id: id });
     if (result.affected === 0) {

@@ -89,6 +89,23 @@ export class TripController {
     return this.tripService.updateTrip(id, updateTripDto);
   }
 
+  @ApiOperation({ summary: 'Update Trip By Name', description: 'Update trip by name' })
+  @ApiParam({
+    name: 'name',
+    description: 'trip name',
+    required: true,
+    type: 'string',
+  })
+  @Put('/name/:name')
+  @UsePipes(new ValidationPipe({ transform: true }))
+  @UseGuards(AuthGuard())
+  updateTripByName(
+      @Param('name') name,
+      @Body() updateTripDto: UpdateTripDto,
+  ) {
+    return this.tripService.updateTripByName(name, updateTripDto);
+  }
+
   @ApiOperation({ summary: 'Delete Trip', description: 'Delete trip by id' })
   @ApiParam({
     name: 'id',
@@ -102,12 +119,12 @@ export class TripController {
     return this.tripService.deleteTrip(id);
   }
 
-  @ApiOperation({ summary: 'Delete Trip', description: 'Delete trip by id' })
+  @ApiOperation({ summary: 'Delete Trip By Name', description: 'Delete trip by name' })
   @ApiParam({
-    name: 'id',
-    description: 'trip id',
+    name: 'name',
+    description: 'trip name',
     required: true,
-    type: 'number',
+    type: 'string',
   })
   @Delete('/name/:name')
   @UseGuards(AuthGuard())

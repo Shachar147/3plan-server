@@ -13,6 +13,7 @@ export declare class TripService {
     createTrip(createTripDto: CreateTripDto): Promise<import("./trip.entity").Trip>;
     upsertTrip(createTripDto: CreateTripDto): Promise<import("./trip.entity").Trip>;
     updateTrip(id: number, updateTripDto: UpdateTripDto): Promise<import("./trip.entity").Trip>;
+    updateTripByName(name: string, updateTripDto: UpdateTripDto): Promise<import("./trip.entity").Trip>;
     deleteTrip(id: number): Promise<import("typeorm").DeleteResult>;
     deleteTripByName(name: string): Promise<import("typeorm").DeleteResult>;
 }

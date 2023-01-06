@@ -9,8 +9,8 @@ async function bootstrap() {
     process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
     app.enableCors();
     const swaggerConfig = new swagger_1.DocumentBuilder()
-        .setTitle('NBA21 API Documentation')
-        .setDescription('This is the official documentation of NBA21.')
+        .setTitle('Triplan API Documentation')
+        .setDescription('This is the official documentation of triplan.')
         .setVersion('1.0')
         .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, 'JWT')
         .build();

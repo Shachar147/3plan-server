@@ -3787,13 +3787,13 @@
         "affectsGlobalScope": false
       },
       "../src/trip/trip.service.ts": {
-        "version": "4a4854f632b23dfd8041e4923662e101636330fb0d20ed72a31865bf204a92d9",
-        "signature": "c9faf7472b5e83e90f9f71798098695e07fad05e0d0c9a5f5a6ec531eb5685a1",
+        "version": "383d0e082dc3100594ed37c6da50162044d5e9d452d599d424cb071c2c5535f8",
+        "signature": "1f95562e24ca314c10e9ee38b874f92933de4920fe17b55fd6e649ee9f0e8909",
         "affectsGlobalScope": false
       },
       "../src/trip/trip.controller.ts": {
-        "version": "c5d79a3aed5000147bf377651393986a174a82ecfcd320e3c1a73e1510213a3d",
-        "signature": "7fda83ac814d3e374cbfce703036cfe0c641af226127722ee6b48e13e2bf68b9",
+        "version": "ea0f4cb3039b3e2775a28e3fa26afce21c9c306c6f2f5f9267a43f0097fb5a46",
+        "signature": "42472aea911eff522cec650530b8483fee9a3c1ff255aef73f8fdae9bb3322ea",
         "affectsGlobalScope": false
       },
       "../src/trip/trip.module.ts": {
@@ -3997,7 +3997,7 @@
         "affectsGlobalScope": false
       },
       "../src/main.ts": {
-        "version": "a510c1c9102fc0db0a57fdd1fe7e869f4cce2697c0373d2d10e86843e49c19ae",
+        "version": "c9e542dabab4f790edf21ad746dd1e0d175677c1694def2555b6733193f029bb",
         "signature": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881",
         "affectsGlobalScope": false
       },

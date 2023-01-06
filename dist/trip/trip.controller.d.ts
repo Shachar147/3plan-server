@@ -15,6 +15,7 @@ export declare class TripController {
     createTrip(createTripDto: CreateTripDto): Promise<Trip>;
     upsertTrip(createTripDto: CreateTripDto): Promise<Trip>;
     updateTrip(id: any, updateTripDto: UpdateTripDto): Promise<Trip>;
+    updateTripByName(name: any, updateTripDto: UpdateTripDto): Promise<Trip>;
     deleteTrip(id: any): Promise<DeleteResult>;
     deleteTripByName(name: any): Promise<DeleteResult>;
 }
