@@ -12,6 +12,7 @@ export declare class TripController {
         data: Trip[];
     }>;
     getTrip(id: any): Promise<Trip>;
+    getTripByName(name: any): Promise<Trip>;
     createTrip(createTripDto: CreateTripDto): Promise<Trip>;
     upsertTrip(createTripDto: CreateTripDto): Promise<Trip>;
     updateTrip(id: any, updateTripDto: UpdateTripDto): Promise<Trip>;

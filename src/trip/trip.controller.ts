@@ -56,6 +56,19 @@ export class TripController {
     return this.tripService.getTrip(id);
   }
 
+  @ApiOperation({ summary: 'Get Trip By Name', description: 'Get specific trip by name' })
+  @ApiParam({
+    name: 'name',
+    description: 'trip name',
+    required: true,
+    type: 'string',
+  })
+  @Get('/name/:name')
+  @UseGuards(AuthGuard())
+  getTripByName(@Param('name') name): Promise<Trip> {
+    return this.tripService.getTripByName(name);
+  }
+
   @ApiOperation({ summary: 'Create Trip', description: 'Create a trip.' })
   @Post()
   @UsePipes(new ValidationPipe({ transform: true }))

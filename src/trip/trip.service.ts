@@ -39,6 +39,10 @@ export class TripService {
   }
 
   async getTripByName(name: string) {
+
+    // debug - simulate long load
+    // await new Promise(r => setTimeout(r, 10000)); // todo remove
+
     // const found = await this.tripRepository.createQueryBuilder('trip').where("LOWER(trip.name) = LOWER(:name)", { name }).leftJoinAndSelect('trip.players', 'player').getOne();
     const found = await this.tripRepository._getTripByName(name);
     if (!found) {

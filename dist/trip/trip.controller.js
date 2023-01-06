@@ -34,6 +34,9 @@ let TripController = class TripController {
     getTrip(id) {
         return this.tripService.getTrip(id);
     }
+    getTripByName(name) {
+        return this.tripService.getTripByName(name);
+    }
     createTrip(createTripDto) {
         return this.tripService.createTrip(createTripDto);
     }
@@ -77,6 +80,21 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], TripController.prototype, "getTrip", null);
+__decorate([
+    swagger_1.ApiOperation({ summary: 'Get Trip By Name', description: 'Get specific trip by name' }),
+    swagger_1.ApiParam({
+        name: 'name',
+        description: 'trip name',
+        required: true,
+        type: 'string',
+    }),
+    common_1.Get('/name/:name'),
+    common_1.UseGuards(passport_1.AuthGuard()),
+    __param(0, common_1.Param('name')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], TripController.prototype, "getTripByName", null);
 __decorate([
     swagger_1.ApiOperation({ summary: 'Create Trip', description: 'Create a trip.' }),
     common_1.Post(),

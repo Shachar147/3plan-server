@@ -3787,13 +3787,13 @@
         "affectsGlobalScope": false
       },
       "../src/trip/trip.service.ts": {
-        "version": "383d0e082dc3100594ed37c6da50162044d5e9d452d599d424cb071c2c5535f8",
+        "version": "b002bd3902cc669da8da812e733629302b67bf67ab89004edf74c32a4a81f8b0",
         "signature": "1f95562e24ca314c10e9ee38b874f92933de4920fe17b55fd6e649ee9f0e8909",
         "affectsGlobalScope": false
       },
       "../src/trip/trip.controller.ts": {
-        "version": "ea0f4cb3039b3e2775a28e3fa26afce21c9c306c6f2f5f9267a43f0097fb5a46",
-        "signature": "42472aea911eff522cec650530b8483fee9a3c1ff255aef73f8fdae9bb3322ea",
+        "version": "2c2e523d9f3b933bf71d781ddb2f16ca43d5943546b6d45640b86a83464c0aed",
+        "signature": "ed96b1e66a4dced5049aa772d3eac008499b8d94afbbdee0886a40338493cbfc",
         "affectsGlobalScope": false
       },
       "../src/trip/trip.module.ts": {
