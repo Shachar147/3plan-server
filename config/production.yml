@@ -1,9 +1,9 @@
 db:
-  host: 'ec2-54-205-187-125.compute-1.amazonaws.com'
-  username: 'vabxilvoywxzdl'
-  password: 'c730cc3a4282371b260277bc76cc2e3ea91ed61ff13adefb08bd15eed22b341b'
+  host: 'ec2-3-217-251-77.compute-1.amazonaws.com'
+  username: 'wgrczzhmdsuhsi'
+  password: '57d7d8531ef77a6298725aaf10cdcd7ca20e1c205cf18791ebdc96ca659eba04'
   port: 5432,
-  database: 'd228sahvtncltd'
+  database: 'd3uo96btivr69d'
   synchronize: true
   extra:
     ssl:
