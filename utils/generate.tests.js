@@ -753,14 +753,6 @@ function getParams(serviceDetails, file, functionName, dtoExample = "extended") 
     return iter;
   });
 
-  // custom
-  if (
-    functionName === 'listRecords' &&
-    file === 'three-points-contest.service'
-  ) {
-    params[0]['winner_name'] = 'some string';
-  }
-
   return params;
 }
 

@@ -10,8 +10,8 @@ async function bootstrap() {
   app.enableCors();
 
   const swaggerConfig = new DocumentBuilder()
-    .setTitle('NBA21 API Documentation')
-    .setDescription('This is the official documentation of NBA21.')
+    .setTitle('Triplan API Documentation')
+    .setDescription('This is the official documentation of triplan.')
     .setVersion('1.0')
     .addBearerAuth(
       { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },

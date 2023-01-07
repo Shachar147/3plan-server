@@ -13,10 +13,10 @@ const trip_entity_1 = require("./trip.entity");
 let TripRepository = class TripRepository extends typeorm_1.Repository {
     constructor() {
         super(...arguments);
-        this.logger = new common_1.Logger('TripRepository');
+        this.logger = new common_1.Logger("TripRepository");
     }
-    async createTrip(createTripDto) {
-        const { name, dateRange, categories, calendarEvents, sidebarEvents, allEvents, calendarLocale } = createTripDto;
+    async createTrip(createTripDto, user) {
+        const { name, dateRange, categories, calendarEvents, sidebarEvents, allEvents, calendarLocale, } = createTripDto;
         const trip = new trip_entity_1.Trip();
         trip.name = name;
         trip.dateRange = dateRange;
@@ -25,12 +25,13 @@ let TripRepository = class TripRepository extends typeorm_1.Repository {
         trip.sidebarEvents = sidebarEvents;
         trip.allEvents = allEvents;
         trip.calendarLocale = calendarLocale;
+        trip.user = user;
         try {
             await trip.save();
         }
         catch (error) {
             if (Number(error.code) === 23505) {
-                throw new common_1.ConflictException('Trip already exists');
+                throw new common_1.ConflictException("Trip already exists");
             }
             else {
                 throw new common_1.InternalServerErrorException();
@@ -38,18 +39,21 @@ let TripRepository = class TripRepository extends typeorm_1.Repository {
         }
         return trip;
     }
-    async upsertTrip(createTripDto) {
+    async upsertTrip(createTripDto, user) {
         const { name } = createTripDto;
-        const query = this.createQueryBuilder('trip');
-        query.andWhere('trip.name = :name', { name });
+        const query = this.createQueryBuilder("trip");
+        query.andWhere("trip.name = :name", { name });
+        query.andWhere("(trip.userId = :userId)", {
+            userId: user.id,
+        });
         const trips = await query.getMany();
         if (trips.length == 0)
-            return await this.createTrip(createTripDto);
+            return await this.createTrip(createTripDto, user);
         else
-            return await this.updateTrip(createTripDto, trips[0]);
+            return await this.updateTrip(createTripDto, trips[0], user);
     }
-    async updateTrip(updateTripDto, trip) {
-        const { name, dateRange, categories, calendarEvents, sidebarEvents, allEvents, calendarLocale } = updateTripDto;
+    async updateTrip(updateTripDto, trip, user) {
+        const { name, dateRange, categories, calendarEvents, sidebarEvents, allEvents, calendarLocale, } = updateTripDto;
         if (name)
             trip.name = name;
         if (dateRange)
@@ -64,13 +68,15 @@ let TripRepository = class TripRepository extends typeorm_1.Repository {
             trip.allEvents = allEvents;
         if (calendarLocale)
             trip.calendarLocale = calendarLocale;
+        if (user)
+            trip.user = user;
         trip.lastUpdateAt = new Date();
         try {
             await trip.save();
         }
         catch (error) {
             if (Number(error.code) === 23505) {
-                throw new common_1.ConflictException('Trip already exists');
+                throw new common_1.ConflictException("Trip already exists");
             }
             else {
                 throw new common_1.InternalServerErrorException();
@@ -78,11 +84,14 @@ let TripRepository = class TripRepository extends typeorm_1.Repository {
         }
         return trip;
     }
-    async getTrips(filterDto) {
+    async getTrips(filterDto, user) {
         const { search } = filterDto;
-        const query = this.createQueryBuilder('trip');
+        const query = this.createQueryBuilder("trip");
         if (search)
-            query.where('(trip.name LIKE :search)', { search: `%${search}%` });
+            query.where("(trip.name LIKE :search)", { search: `%${search}%` });
+        query.andWhere("(trip.userId = :userId)", {
+            userId: user.id,
+        });
         try {
             const trips = await query.getMany();
             return trips;
@@ -92,9 +101,12 @@ let TripRepository = class TripRepository extends typeorm_1.Repository {
             throw new common_1.InternalServerErrorException();
         }
     }
-    async _getTripByName(name) {
-        return await this.createQueryBuilder('trip')
-            .where('LOWER(trip.name) = LOWER(:name)', { name })
+    async _getTripByName(name, user) {
+        return await this.createQueryBuilder("trip")
+            .where("LOWER(trip.name) = LOWER(:name)", { name })
+            .andWhere("(trip.userId = :userId)", {
+            userId: user.id,
+        })
             .getOne();
     }
 };

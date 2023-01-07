@@ -20,43 +20,51 @@ const create_trip_dto_1 = require("./dto/create-trip-dto");
 const update_trip_dto_1 = require("./dto/update-trip-dto");
 const passport_1 = require("@nestjs/passport");
 const swagger_1 = require("@nestjs/swagger");
+const get_user_decorator_1 = require("../auth/get-user.decorator");
+const user_entity_1 = require("../user/user.entity");
 let TripController = class TripController {
     constructor(tripService) {
         this.tripService = tripService;
     }
-    async getTrips(filterDto) {
-        const trips = await this.tripService.getTrips(filterDto);
+    async getTrips(filterDto, user) {
+        const trips = await this.tripService.getTrips(filterDto, user);
         return {
             total: trips.length,
             data: trips,
         };
     }
-    getTrip(id) {
-        return this.tripService.getTrip(id);
+    getTrip(id, user) {
+        return this.tripService.getTrip(id, user);
     }
-    createTrip(createTripDto) {
-        return this.tripService.createTrip(createTripDto);
+    getTripByName(name, user) {
+        return this.tripService.getTripByName(name, user);
     }
-    upsertTrip(createTripDto) {
-        return this.tripService.upsertTrip(createTripDto);
+    createTrip(createTripDto, user) {
+        return this.tripService.createTrip(createTripDto, user);
     }
-    updateTrip(id, updateTripDto) {
-        return this.tripService.updateTrip(id, updateTripDto);
+    upsertTrip(createTripDto, user) {
+        return this.tripService.upsertTrip(createTripDto, user);
     }
-    deleteTrip(id) {
-        return this.tripService.deleteTrip(id);
+    updateTrip(id, updateTripDto, user) {
+        return this.tripService.updateTrip(id, updateTripDto, user);
     }
-    deleteTripByName(name) {
-        return this.tripService.deleteTripByName(name);
+    updateTripByName(name, updateTripDto, user) {
+        return this.tripService.updateTripByName(name, updateTripDto, user);
+    }
+    deleteTrip(id, user) {
+        return this.tripService.deleteTrip(id, user);
+    }
+    deleteTripByName(name, user) {
+        return this.tripService.deleteTripByName(name, user);
     }
 };
 __decorate([
     swagger_1.ApiOperation({ summary: 'Get Trips', description: 'Get all trips' }),
     common_1.Get(),
     common_1.UseGuards(passport_1.AuthGuard()),
-    __param(0, common_1.Query(common_1.ValidationPipe)),
+    __param(0, common_1.Query(common_1.ValidationPipe)), __param(1, get_user_decorator_1.GetUser()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [list_trips_dto_1.ListTripsDto]),
+    __metadata("design:paramtypes", [list_trips_dto_1.ListTripsDto, user_entity_1.User]),
     __metadata("design:returntype", Promise)
 ], TripController.prototype, "getTrips", null);
 __decorate([
@@ -69,19 +77,34 @@ __decorate([
     }),
     common_1.Get('/:id'),
     common_1.UseGuards(passport_1.AuthGuard()),
-    __param(0, common_1.Param('id', common_1.ParseIntPipe)),
+    __param(0, common_1.Param('id', common_1.ParseIntPipe)), __param(1, get_user_decorator_1.GetUser()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [Object, user_entity_1.User]),
     __metadata("design:returntype", Promise)
 ], TripController.prototype, "getTrip", null);
+__decorate([
+    swagger_1.ApiOperation({ summary: 'Get Trip By Name', description: 'Get specific trip by name' }),
+    swagger_1.ApiParam({
+        name: 'name',
+        description: 'trip name',
+        required: true,
+        type: 'string',
+    }),
+    common_1.Get('/name/:name'),
+    common_1.UseGuards(passport_1.AuthGuard()),
+    __param(0, common_1.Param('name')), __param(1, get_user_decorator_1.GetUser()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, user_entity_1.User]),
+    __metadata("design:returntype", Promise)
+], TripController.prototype, "getTripByName", null);
 __decorate([
     swagger_1.ApiOperation({ summary: 'Create Trip', description: 'Create a trip.' }),
     common_1.Post(),
     common_1.UsePipes(new common_1.ValidationPipe({ transform: true })),
     common_1.UseGuards(passport_1.AuthGuard()),
-    __param(0, common_1.Body()),
+    __param(0, common_1.Body()), __param(1, get_user_decorator_1.GetUser()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_trip_dto_1.CreateTripDto]),
+    __metadata("design:paramtypes", [create_trip_dto_1.CreateTripDto, user_entity_1.User]),
     __metadata("design:returntype", void 0)
 ], TripController.prototype, "createTrip", null);
 __decorate([
@@ -89,9 +112,9 @@ __decorate([
     common_1.Post('/upsert'),
     common_1.UsePipes(new common_1.ValidationPipe({ transform: true })),
     common_1.UseGuards(passport_1.AuthGuard()),
-    __param(0, common_1.Body()),
+    __param(0, common_1.Body()), __param(1, get_user_decorator_1.GetUser()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_trip_dto_1.CreateTripDto]),
+    __metadata("design:paramtypes", [create_trip_dto_1.CreateTripDto, user_entity_1.User]),
     __metadata("design:returntype", void 0)
 ], TripController.prototype, "upsertTrip", null);
 __decorate([
@@ -107,10 +130,31 @@ __decorate([
     common_1.UseGuards(passport_1.AuthGuard()),
     __param(0, common_1.Param('id', common_1.ParseIntPipe)),
     __param(1, common_1.Body()),
+    __param(2, get_user_decorator_1.GetUser()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, update_trip_dto_1.UpdateTripDto]),
+    __metadata("design:paramtypes", [Object, update_trip_dto_1.UpdateTripDto,
+        user_entity_1.User]),
     __metadata("design:returntype", void 0)
 ], TripController.prototype, "updateTrip", null);
+__decorate([
+    swagger_1.ApiOperation({ summary: 'Update Trip By Name', description: 'Update trip by name' }),
+    swagger_1.ApiParam({
+        name: 'name',
+        description: 'trip name',
+        required: true,
+        type: 'string',
+    }),
+    common_1.Put('/name/:name'),
+    common_1.UsePipes(new common_1.ValidationPipe({ transform: true })),
+    common_1.UseGuards(passport_1.AuthGuard()),
+    __param(0, common_1.Param('name')),
+    __param(1, common_1.Body()),
+    __param(2, get_user_decorator_1.GetUser()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, update_trip_dto_1.UpdateTripDto,
+        user_entity_1.User]),
+    __metadata("design:returntype", void 0)
+], TripController.prototype, "updateTripByName", null);
 __decorate([
     swagger_1.ApiOperation({ summary: 'Delete Trip', description: 'Delete trip by id' }),
     swagger_1.ApiParam({
@@ -121,24 +165,24 @@ __decorate([
     }),
     common_1.Delete('/:id'),
     common_1.UseGuards(passport_1.AuthGuard()),
-    __param(0, common_1.Param('id', common_1.ParseIntPipe)),
+    __param(0, common_1.Param('id', common_1.ParseIntPipe)), __param(1, get_user_decorator_1.GetUser()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [Object, user_entity_1.User]),
     __metadata("design:returntype", Promise)
 ], TripController.prototype, "deleteTrip", null);
 __decorate([
-    swagger_1.ApiOperation({ summary: 'Delete Trip', description: 'Delete trip by id' }),
+    swagger_1.ApiOperation({ summary: 'Delete Trip By Name', description: 'Delete trip by name' }),
     swagger_1.ApiParam({
-        name: 'id',
-        description: 'trip id',
+        name: 'name',
+        description: 'trip name',
         required: true,
-        type: 'number',
+        type: 'string',
     }),
     common_1.Delete('/name/:name'),
     common_1.UseGuards(passport_1.AuthGuard()),
-    __param(0, common_1.Param('name')),
+    __param(0, common_1.Param('name')), __param(1, get_user_decorator_1.GetUser()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [Object, user_entity_1.User]),
     __metadata("design:returntype", Promise)
 ], TripController.prototype, "deleteTripByName", null);
 TripController = __decorate([

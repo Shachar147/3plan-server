@@ -1,6 +1,6 @@
 import {
   Body,
-  Controller, Get,
+  Controller, Delete, Get, Param, ParseIntPipe,
   Post,
   Req,
   UseGuards,
@@ -18,13 +18,14 @@ import {
   ApiBody,
   ApiNotFoundResponse,
   ApiOkResponse,
-  ApiOperation,
+  ApiOperation, ApiParam,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 
 import { ListUserDto } from '../auth/dto/list-user-dto';
 import { UserService } from './user.service';
+import {DeleteResult} from "typeorm";
 
 @ApiBearerAuth('JWT')
 @ApiTags('Users')
@@ -47,5 +48,44 @@ export class UserController {
     @Body(ValidationPipe) listUserDto: ListUserDto,
   ): Promise<User[]> {
     return this.userService.getUsers(listUserDto);
+  }
+
+  @ApiOperation({ summary: 'Delete User', description: 'Delete user by id' })
+  @ApiParam({
+    name: 'id',
+    description: 'user id',
+    required: true,
+    type: 'number',
+  })
+  @Delete('/:id')
+  @UseGuards(AuthGuard())
+  deleteUser(@Param('id', ParseIntPipe) id): Promise<DeleteResult> {
+    return this.userService.deleteUser(id);
+  }
+
+  @ApiOperation({ summary: 'Delete Users', description: 'Delete users in bulk by ids comma separated' })
+  @ApiParam({
+    name: 'ids',
+    description: 'user id',
+    required: true,
+    type: 'string',
+  })
+  @Delete('/bulk/:ids')
+  @UseGuards(AuthGuard())
+  deleteUsers(@Param('ids') ids): Promise<DeleteResult> {
+    return this.userService.deleteUsersByIds(ids.split(',').map(x => parseInt(x)));
+  }
+
+  @ApiOperation({ summary: 'Delete User by name', description: 'Delete user by name' })
+  @ApiParam({
+    name: 'name',
+    description: 'the name of the user',
+    required: true,
+    type: 'string',
+  })
+  @Delete('/name/:name')
+  @UseGuards(AuthGuard())
+  deleteUserByName(@Param('name') name): Promise<DeleteResult> {
+    return this.userService.deleteUserByName(name);
   }
 }
