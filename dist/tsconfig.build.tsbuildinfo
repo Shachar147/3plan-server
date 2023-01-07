@@ -3737,13 +3737,13 @@
         "affectsGlobalScope": false
       },
       "../src/user/user.service.ts": {
-        "version": "40a6ee260378e4b4797a589aadb3b974533d955ef70003ad899d483ac694ab51",
-        "signature": "15865889fc6ded72e5fea0962c6bc9805ca4abe4a79947d1ba3feaea31eff48e",
+        "version": "535233dfb4f1b6c959b78307425b4afbc74e3dfc743b040cf582ff366aff65f5",
+        "signature": "c3c2891da84ee458c097594cd854e5ca6ebbf94cfaebff03a36cb0981585074b",
         "affectsGlobalScope": false
       },
       "../src/user/user.controller.ts": {
-        "version": "4885ad49a681dca21646c7a9851bb8666bbb99e10d523784bf3aabd9717451e3",
-        "signature": "b985931043c20fa7c8fecc3487d6309aa61e45af8408e0ca6957d5fcdd3ab741",
+        "version": "9ac67ccaf376de5782b2d1100c7e07c2cc7302c558a52c4b73fb05d9eaa4737b",
+        "signature": "c4e67c525ac6e80c60fed86cbb9b06779a576d8e85f65f0bda4900d4e4111b84",
         "affectsGlobalScope": false
       },
       "../src/auth/auth.controller.ts": {
@@ -3782,18 +3782,18 @@
         "affectsGlobalScope": false
       },
       "../src/trip/trip.repository.ts": {
-        "version": "d96058d830c0ed09c43e54833a73331e0d35d5b57956c1f34f80c516f3b0d19d",
-        "signature": "b4701d2486b95722c78d47e7687688b7b50447a9c5eeb92173e4e09e637e0707",
+        "version": "fa323966fabea25ee291a2003f692a2932c390fce573286f7f2bc3b28348afd3",
+        "signature": "30353fd48b91a06271b50f26d0e163141e76dd21bed931cc64f67d8027e983c9",
         "affectsGlobalScope": false
       },
       "../src/trip/trip.service.ts": {
-        "version": "b002bd3902cc669da8da812e733629302b67bf67ab89004edf74c32a4a81f8b0",
-        "signature": "1f95562e24ca314c10e9ee38b874f92933de4920fe17b55fd6e649ee9f0e8909",
+        "version": "c7bffffb851c405e06ebb464f6c27255ec1a7f0f80ae55938fe409f2e232814d",
+        "signature": "90bf6b20b6c2456fc64500291234b72119ce5b21c0767764d983d6aba2330d85",
         "affectsGlobalScope": false
       },
       "../src/trip/trip.controller.ts": {
-        "version": "2c2e523d9f3b933bf71d781ddb2f16ca43d5943546b6d45640b86a83464c0aed",
-        "signature": "ed96b1e66a4dced5049aa772d3eac008499b8d94afbbdee0886a40338493cbfc",
+        "version": "0806664d69fadbdfdada8fbe79b94fd091b0000f6cf49b222140d3a6a5f19a41",
+        "signature": "bf7f446439f3fae604793c0c2b62f3d39eac7b6d45e7624e37112351a7dac049",
         "affectsGlobalScope": false
       },
       "../src/trip/trip.module.ts": {
@@ -4019,6 +4019,11 @@
       "../node_modules/@types/anymatch/index.d.ts": {
         "version": "48b52264fa193879a074197839dbb4796fa07e86350ff888e5361e06aa46df76",
         "signature": "48b52264fa193879a074197839dbb4796fa07e86350ff888e5361e06aa46df76",
+        "affectsGlobalScope": false
+      },
+      "../node_modules/@types/aria-query/index.d.ts": {
+        "version": "21522c0f405e58c8dd89cd97eb3d1aa9865ba017fde102d01f86ab50b44e5610",
+        "signature": "21522c0f405e58c8dd89cd97eb3d1aa9865ba017fde102d01f86ab50b44e5610",
         "affectsGlobalScope": false
       },
       "../node_modules/@babel/types/lib/index.d.ts": {
@@ -4284,6 +4289,41 @@
       "../node_modules/@types/prettier/index.d.ts": {
         "version": "7403a1397d48771d58d55c603d0c51aa3d4cd6467bca03140f085fdc432eb912",
         "signature": "7403a1397d48771d58d55c603d0c51aa3d4cd6467bca03140f085fdc432eb912",
+        "affectsGlobalScope": false
+      },
+      "../node_modules/@types/prop-types/index.d.ts": {
+        "version": "6a386ff939f180ae8ef064699d8b7b6e62bc2731a62d7fbf5e02589383838dea",
+        "signature": "6a386ff939f180ae8ef064699d8b7b6e62bc2731a62d7fbf5e02589383838dea",
+        "affectsGlobalScope": false
+      },
+      "../node_modules/@types/react/global.d.ts": {
+        "version": "bbdf156fea2fabed31a569445835aeedcc33643d404fcbaa54541f06c109df3f",
+        "signature": "bbdf156fea2fabed31a569445835aeedcc33643d404fcbaa54541f06c109df3f",
+        "affectsGlobalScope": true
+      },
+      "../node_modules/csstype/index.d.ts": {
+        "version": "1c29793071152b207c01ea1954e343be9a44d85234447b2b236acae9e709a383",
+        "signature": "1c29793071152b207c01ea1954e343be9a44d85234447b2b236acae9e709a383",
+        "affectsGlobalScope": false
+      },
+      "../node_modules/@types/scheduler/tracing.d.ts": {
+        "version": "f5a8b384f182b3851cec3596ccc96cb7464f8d3469f48c74bf2befb782a19de5",
+        "signature": "f5a8b384f182b3851cec3596ccc96cb7464f8d3469f48c74bf2befb782a19de5",
+        "affectsGlobalScope": false
+      },
+      "../node_modules/@types/react/index.d.ts": {
+        "version": "ef8a481f9f2205fcc287eef2b4e461d2fc16bc8a0e49a844681f2f742d69747e",
+        "signature": "ef8a481f9f2205fcc287eef2b4e461d2fc16bc8a0e49a844681f2f742d69747e",
+        "affectsGlobalScope": true
+      },
+      "../node_modules/@types/react-dom/index.d.ts": {
+        "version": "e4dd91dd4789a109aab51d8a0569a282369fcda9ba6f2b2297bc61bacfb1a042",
+        "signature": "e4dd91dd4789a109aab51d8a0569a282369fcda9ba6f2b2297bc61bacfb1a042",
+        "affectsGlobalScope": false
+      },
+      "../node_modules/@types/scheduler/index.d.ts": {
+        "version": "74b0245c42990ed8a849df955db3f4362c81b13f799ebc981b7bec2d5b414a57",
+        "signature": "74b0245c42990ed8a849df955db3f4362c81b13f799ebc981b7bec2d5b414a57",
         "affectsGlobalScope": false
       },
       "../node_modules/@types/source-list-map/index.d.ts": {
@@ -5673,6 +5713,15 @@
       "../node_modules/@types/node/zlib.d.ts": [
         "../node_modules/@types/node/stream.d.ts",
         "../node_modules/@types/node/zlib.d.ts"
+      ],
+      "../node_modules/@types/react-dom/index.d.ts": [
+        "../node_modules/@types/react/index.d.ts"
+      ],
+      "../node_modules/@types/react/index.d.ts": [
+        "../node_modules/@types/prop-types/index.d.ts",
+        "../node_modules/@types/react/global.d.ts",
+        "../node_modules/@types/scheduler/tracing.d.ts",
+        "../node_modules/csstype/index.d.ts"
       ],
       "../node_modules/@types/serve-static/index.d.ts": [
         "../node_modules/@types/mime/index.d.ts",
@@ -7758,11 +7807,13 @@
         "../node_modules/@nestjs/passport/index.d.ts",
         "../node_modules/@nestjs/swagger/index.d.ts",
         "../node_modules/typeorm/index.d.ts",
+        "../src/auth/get-user.decorator.ts",
         "../src/trip/dto/create-trip-dto.ts",
         "../src/trip/dto/list-trips-dto.ts",
         "../src/trip/dto/update-trip-dto.ts",
         "../src/trip/trip.entity.ts",
-        "../src/trip/trip.service.ts"
+        "../src/trip/trip.service.ts",
+        "../src/user/user.entity.ts"
       ],
       "../src/trip/trip.entity.ts": [
         "../node_modules/typeorm/index.d.ts",
@@ -7783,7 +7834,8 @@
         "../src/trip/dto/create-trip-dto.ts",
         "../src/trip/dto/list-trips-dto.ts",
         "../src/trip/dto/update-trip-dto.ts",
-        "../src/trip/trip.entity.ts"
+        "../src/trip/trip.entity.ts",
+        "../src/user/user.entity.ts"
       ],
       "../src/trip/trip.service.ts": [
         "../node_modules/@nestjs/common/index.d.ts",
@@ -7791,12 +7843,14 @@
         "../src/trip/dto/create-trip-dto.ts",
         "../src/trip/dto/list-trips-dto.ts",
         "../src/trip/dto/update-trip-dto.ts",
-        "../src/trip/trip.repository.ts"
+        "../src/trip/trip.repository.ts",
+        "../src/user/user.entity.ts"
       ],
       "../src/user/user.controller.ts": [
         "../node_modules/@nestjs/common/index.d.ts",
         "../node_modules/@nestjs/passport/index.d.ts",
         "../node_modules/@nestjs/swagger/index.d.ts",
+        "../node_modules/typeorm/index.d.ts",
         "../src/auth/auth.service.ts",
         "../src/auth/dto/auth-credentials.dto.ts",
         "../src/auth/dto/list-user-dto.ts",
@@ -9079,6 +9133,15 @@
       "../node_modules/@types/node/zlib.d.ts": [
         "../node_modules/@types/node/stream.d.ts",
         "../node_modules/@types/node/zlib.d.ts"
+      ],
+      "../node_modules/@types/react-dom/index.d.ts": [
+        "../node_modules/@types/react/index.d.ts"
+      ],
+      "../node_modules/@types/react/index.d.ts": [
+        "../node_modules/@types/prop-types/index.d.ts",
+        "../node_modules/@types/react/global.d.ts",
+        "../node_modules/@types/scheduler/tracing.d.ts",
+        "../node_modules/csstype/index.d.ts"
       ],
       "../node_modules/@types/serve-static/index.d.ts": [
         "../node_modules/@types/mime/index.d.ts",
@@ -11099,7 +11162,8 @@
         "../src/trip/dto/list-trips-dto.ts",
         "../src/trip/dto/update-trip-dto.ts",
         "../src/trip/trip.entity.ts",
-        "../src/trip/trip.service.ts"
+        "../src/trip/trip.service.ts",
+        "../src/user/user.entity.ts"
       ],
       "../src/trip/trip.entity.ts": [
         "../node_modules/typeorm/index.d.ts",
@@ -11110,7 +11174,8 @@
         "../src/trip/dto/create-trip-dto.ts",
         "../src/trip/dto/list-trips-dto.ts",
         "../src/trip/dto/update-trip-dto.ts",
-        "../src/trip/trip.entity.ts"
+        "../src/trip/trip.entity.ts",
+        "../src/user/user.entity.ts"
       ],
       "../src/trip/trip.service.ts": [
         "../node_modules/typeorm/index.d.ts",
@@ -11118,9 +11183,11 @@
         "../src/trip/dto/list-trips-dto.ts",
         "../src/trip/dto/update-trip-dto.ts",
         "../src/trip/trip.entity.ts",
-        "../src/trip/trip.repository.ts"
+        "../src/trip/trip.repository.ts",
+        "../src/user/user.entity.ts"
       ],
       "../src/user/user.controller.ts": [
+        "../node_modules/typeorm/index.d.ts",
         "../src/auth/dto/list-user-dto.ts",
         "../src/user/user.entity.ts",
         "../src/user/user.service.ts"
@@ -11136,6 +11203,7 @@
         "../src/user/user.entity.ts"
       ],
       "../src/user/user.service.ts": [
+        "../node_modules/typeorm/index.d.ts",
         "../src/auth/dto/list-user-dto.ts",
         "../src/user/user.entity.ts",
         "../src/user/user.repository.ts"
@@ -11390,6 +11458,7 @@
       "../node_modules/@nestjs/typeorm/dist/typeorm.module.d.ts",
       "../node_modules/@nestjs/typeorm/index.d.ts",
       "../node_modules/@types/anymatch/index.d.ts",
+      "../node_modules/@types/aria-query/index.d.ts",
       "../node_modules/@types/babel__core/index.d.ts",
       "../node_modules/@types/babel__generator/index.d.ts",
       "../node_modules/@types/babel__template/index.d.ts",
@@ -11479,8 +11548,14 @@
       "../node_modules/@types/normalize-package-data/index.d.ts",
       "../node_modules/@types/parse-json/index.d.ts",
       "../node_modules/@types/prettier/index.d.ts",
+      "../node_modules/@types/prop-types/index.d.ts",
       "../node_modules/@types/qs/index.d.ts",
       "../node_modules/@types/range-parser/index.d.ts",
+      "../node_modules/@types/react-dom/index.d.ts",
+      "../node_modules/@types/react/global.d.ts",
+      "../node_modules/@types/react/index.d.ts",
+      "../node_modules/@types/scheduler/index.d.ts",
+      "../node_modules/@types/scheduler/tracing.d.ts",
       "../node_modules/@types/serve-static/index.d.ts",
       "../node_modules/@types/source-list-map/index.d.ts",
       "../node_modules/@types/stack-utils/index.d.ts",
@@ -11631,6 +11706,7 @@
       "../node_modules/class-validator/types/validation/validator.d.ts",
       "../node_modules/class-validator/types/validation/validatorconstraintinterface.d.ts",
       "../node_modules/class-validator/types/validation/validatoroptions.d.ts",
+      "../node_modules/csstype/index.d.ts",
       "../node_modules/jest-diff/build/cleanupsemantic.d.ts",
       "../node_modules/jest-diff/build/difflines.d.ts",
       "../node_modules/jest-diff/build/index.d.ts",

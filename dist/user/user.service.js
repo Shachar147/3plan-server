@@ -29,6 +29,43 @@ let UserService = class UserService {
         });
         return users;
     }
+    async deleteUser(id) {
+        if (id == 1) {
+            throw new common_1.NotFoundException(`You cannot delete a superadmin`);
+        }
+        const result = await this.userRepository.delete({ id: id });
+        if (result.affected === 0) {
+            throw new common_1.NotFoundException(`User with id #${id} not found`);
+        }
+        return result;
+    }
+    async deleteUserByName(name) {
+        const user = await this.userRepository.getUserByName(name);
+        return this.deleteUser(user.id);
+    }
+    async deleteUsersByIds(ids) {
+        let affected = 0;
+        const errors = [];
+        const promises = ids.map((id) => this.deleteUser(id));
+        const results = await Promise.allSettled(promises);
+        results.forEach((result, index) => {
+            if (result.status !== 200) {
+                errors.push({
+                    id: ids[index],
+                    state: result.status,
+                    message: result.reason.message
+                });
+            }
+            else {
+                affected += 1;
+            }
+        });
+        return {
+            affected,
+            errors,
+            raw: undefined
+        };
+    }
 };
 UserService = __decorate([
     common_1.Injectable(),

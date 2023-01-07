@@ -25,6 +25,15 @@ let UserController = class UserController {
     async getUsers(listUserDto) {
         return this.userService.getUsers(listUserDto);
     }
+    deleteUser(id) {
+        return this.userService.deleteUser(id);
+    }
+    deleteUsers(ids) {
+        return this.userService.deleteUsersByIds(ids.split(',').map(x => parseInt(x)));
+    }
+    deleteUserByName(name) {
+        return this.userService.deleteUserByName(name);
+    }
 };
 __decorate([
     swagger_1.ApiOperation({
@@ -42,6 +51,51 @@ __decorate([
     __metadata("design:paramtypes", [list_user_dto_1.ListUserDto]),
     __metadata("design:returntype", Promise)
 ], UserController.prototype, "getUsers", null);
+__decorate([
+    swagger_1.ApiOperation({ summary: 'Delete User', description: 'Delete user by id' }),
+    swagger_1.ApiParam({
+        name: 'id',
+        description: 'user id',
+        required: true,
+        type: 'number',
+    }),
+    common_1.Delete('/:id'),
+    common_1.UseGuards(passport_1.AuthGuard()),
+    __param(0, common_1.Param('id', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], UserController.prototype, "deleteUser", null);
+__decorate([
+    swagger_1.ApiOperation({ summary: 'Delete Users', description: 'Delete users in bulk by ids comma separated' }),
+    swagger_1.ApiParam({
+        name: 'ids',
+        description: 'user id',
+        required: true,
+        type: 'string',
+    }),
+    common_1.Delete('/bulk/:ids'),
+    common_1.UseGuards(passport_1.AuthGuard()),
+    __param(0, common_1.Param('ids')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], UserController.prototype, "deleteUsers", null);
+__decorate([
+    swagger_1.ApiOperation({ summary: 'Delete User by name', description: 'Delete user by name' }),
+    swagger_1.ApiParam({
+        name: 'name',
+        description: 'the name of the user',
+        required: true,
+        type: 'string',
+    }),
+    common_1.Delete('/name/:name'),
+    common_1.UseGuards(passport_1.AuthGuard()),
+    __param(0, common_1.Param('name')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], UserController.prototype, "deleteUserByName", null);
 UserController = __decorate([
     swagger_1.ApiBearerAuth('JWT'),
     swagger_1.ApiTags('Users'),

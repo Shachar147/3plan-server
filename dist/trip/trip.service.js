@@ -21,12 +21,12 @@ let TripService = class TripService {
         this.tripRepository = tripRepository;
         this.logger = new common_1.Logger('TripService');
     }
-    async getTrips(filterDto) {
-        return await this.tripRepository.getTrips(filterDto);
+    async getTrips(filterDto, user) {
+        return await this.tripRepository.getTrips(filterDto, user);
     }
-    async getTrip(id) {
+    async getTrip(id, user) {
         const found = await this.tripRepository.findOne(id);
-        if (!found) {
+        if (!found || (found && found.user.id !== user.id)) {
             throw new common_1.NotFoundException(`Trip with id #${id} not found`);
         }
         return found;
@@ -38,39 +38,47 @@ let TripService = class TripService {
         }
         return found;
     }
-    async getTripByName(name) {
-        const found = await this.tripRepository._getTripByName(name);
+    async getTripByName(name, user) {
+        const found = await this.tripRepository._getTripByName(name, user);
         if (!found) {
             throw new common_1.NotFoundException(`Trip with name ${name} not found`);
         }
         return found;
     }
-    async createTrip(createTripDto) {
-        return await this.tripRepository.createTrip(createTripDto);
+    async createTrip(createTripDto, user) {
+        return await this.tripRepository.createTrip(createTripDto, user);
     }
-    async upsertTrip(createTripDto) {
+    async upsertTrip(createTripDto, user) {
         const { name } = createTripDto;
         if (!name) {
             throw new common_1.BadRequestException('name : missing');
         }
-        return await this.tripRepository.upsertTrip(createTripDto);
+        return await this.tripRepository.upsertTrip(createTripDto, user);
     }
-    async updateTrip(id, updateTripDto) {
-        const trip = await this.getTrip(id);
-        return this.tripRepository.updateTrip(updateTripDto, trip);
+    async updateTrip(id, updateTripDto, user) {
+        const trip = await this.getTrip(id, user);
+        return this.tripRepository.updateTrip(updateTripDto, trip, user);
     }
-    async updateTripByName(name, updateTripDto) {
-        const trip = await this.getTripByName(name);
-        return this.tripRepository.updateTrip(updateTripDto, trip);
+    async updateTripByName(name, updateTripDto, user) {
+        const trip = await this.getTripByName(name, user);
+        return this.tripRepository.updateTrip(updateTripDto, trip, user);
     }
-    async deleteTrip(id) {
+    async deleteTrip(id, user) {
+        const trip = this.getTrip(id, user);
+        if (!trip) {
+            throw new common_1.NotFoundException(`Trip with id #${id} not found`);
+        }
         const result = await this.tripRepository.delete({ id: id });
         if (result.affected === 0) {
             throw new common_1.NotFoundException(`Trip with id #${id} not found`);
         }
         return result;
     }
-    async deleteTripByName(name) {
+    async deleteTripByName(name, user) {
+        const trip = this.getTripByName(name, user);
+        if (!trip) {
+            throw new common_1.NotFoundException(`Trip with name ${name} not found`);
+        }
         const result = await this.tripRepository.delete({ name: name });
         if (result.affected === 0) {
             throw new common_1.NotFoundException(`Trip with name "${name}" not found`);
