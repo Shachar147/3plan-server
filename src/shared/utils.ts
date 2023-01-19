@@ -1,10 +1,22 @@
-export function SubstringTo(page, n, endKey) {
+export function SubstringTo(page: string, n: number, endChar: string) {
   let string = '';
-  while (n < page.length && page[n] != endKey) {
+  while (n < page.length && page[n] != endChar) {
     string += page[n];
     n++;
   }
   return string;
+}
+
+export function SubstringToPhase(page, n, endKey) {
+  let string = '';
+  let lastIndex = page.indexOf(endKey, n+1);
+  if (lastIndex === -1) lastIndex = page.length -1;
+
+  while (n < page.length && n < lastIndex) {
+    string += page[n];
+    n++;
+  }
+  return [string, n];
 }
 
 export function GetInBetween(page, n, startKey, endKey, addKeyLength) {
