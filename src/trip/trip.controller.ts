@@ -148,4 +148,10 @@ export class TripController {
   deleteTripByName(@Param('name') name, @GetUser() user: User): Promise<DeleteResult> {
     return this.tripService.deleteTripByName(name, user);
   }
+
+  @Post('/instagram')
+  getInstagramData(@Body() instagramPayload: { url: string }) {
+    const { url } = instagramPayload;
+    return this.tripService.getInstagramData(url);
+  }
 }
