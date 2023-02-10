@@ -11,33 +11,36 @@ import {
   ValidationPipe,
   UsePipes,
   UseGuards,
-} from '@nestjs/common';
-import { ListTripsDto } from './dto/list-trips-dto';
-import { TripService } from './trip.service';
-import { CreateTripDto } from './dto/create-trip-dto';
-import { UpdateTripDto } from './dto/update-trip-dto';
-import { Trip } from './trip.entity';
-import { DeleteResult } from 'typeorm';
-import { AuthGuard } from '@nestjs/passport';
+} from "@nestjs/common";
+import { ListTripsDto } from "./dto/list-trips-dto";
+import { TripService } from "./trip.service";
+import { CreateTripDto } from "./dto/create-trip-dto";
+import { UpdateTripDto } from "./dto/update-trip-dto";
+import { Trip } from "./trip.entity";
+import { DeleteResult } from "typeorm";
+import { AuthGuard } from "@nestjs/passport";
 import {
   ApiBearerAuth,
   ApiOperation,
   ApiParam,
   ApiTags,
-} from '@nestjs/swagger';
-import {GetUser} from "../auth/get-user.decorator";
-import {User} from "../user/user.entity";
+} from "@nestjs/swagger";
+import { GetUser } from "../auth/get-user.decorator";
+import { User } from "../user/user.entity";
 
-@ApiBearerAuth('JWT')
-@ApiTags('Trips')
-@Controller('trip')
+@ApiBearerAuth("JWT")
+@ApiTags("Trips")
+@Controller("trip")
 export class TripController {
   constructor(private tripService: TripService) {}
 
-  @ApiOperation({ summary: 'Get Trips', description: 'Get all trips' })
+  @ApiOperation({ summary: "Get Trips", description: "Get all trips" })
   @Get()
   @UseGuards(AuthGuard())
-  async getTrips(@Query(ValidationPipe) filterDto: ListTripsDto, @GetUser() user: User) {
+  async getTrips(
+    @Query(ValidationPipe) filterDto: ListTripsDto,
+    @GetUser() user: User
+  ) {
     const trips = await this.tripService.getTrips(filterDto, user);
     return {
       total: trips.length,
@@ -45,33 +48,36 @@ export class TripController {
     };
   }
 
-  @ApiOperation({ summary: 'Get Trip', description: 'Get specific trip by id' })
+  @ApiOperation({ summary: "Get Trip", description: "Get specific trip by id" })
   @ApiParam({
-    name: 'id',
-    description: 'trip id',
+    name: "id",
+    description: "trip id",
     required: true,
-    type: 'number',
+    type: "number",
   })
-  @Get('/:id')
+  @Get("/:id")
   @UseGuards(AuthGuard())
-  getTrip(@Param('id', ParseIntPipe) id, @GetUser() user: User): Promise<Trip> {
+  getTrip(@Param("id", ParseIntPipe) id, @GetUser() user: User): Promise<Trip> {
     return this.tripService.getTrip(id, user);
   }
 
-  @ApiOperation({ summary: 'Get Trip By Name', description: 'Get specific trip by name' })
-  @ApiParam({
-    name: 'name',
-    description: 'trip name',
-    required: true,
-    type: 'string',
+  @ApiOperation({
+    summary: "Get Trip By Name",
+    description: "Get specific trip by name",
   })
-  @Get('/name/:name')
+  @ApiParam({
+    name: "name",
+    description: "trip name",
+    required: true,
+    type: "string",
+  })
+  @Get("/name/:name")
   @UseGuards(AuthGuard())
-  getTripByName(@Param('name') name, @GetUser() user: User): Promise<Trip> {
+  getTripByName(@Param("name") name, @GetUser() user: User): Promise<Trip> {
     return this.tripService.getTripByName(name, user);
   }
 
-  @ApiOperation({ summary: 'Create Trip', description: 'Create a trip.' })
+  @ApiOperation({ summary: "Create Trip", description: "Create a trip." })
   @Post()
   @UsePipes(new ValidationPipe({ transform: true }))
   @UseGuards(AuthGuard())
@@ -79,79 +85,96 @@ export class TripController {
     return this.tripService.createTrip(createTripDto, user);
   }
 
-  @ApiOperation({ summary: 'Upsert Trip', description: 'Upsert a trip.' })
-  @Post('/upsert')
+  @ApiOperation({ summary: "Upsert Trip", description: "Upsert a trip." })
+  @Post("/upsert")
   @UsePipes(new ValidationPipe({ transform: true }))
   @UseGuards(AuthGuard())
   upsertTrip(@Body() createTripDto: CreateTripDto, @GetUser() user: User) {
     return this.tripService.upsertTrip(createTripDto, user);
   }
 
-  @ApiOperation({ summary: 'Update Trip', description: 'Update trip by id' })
+  @ApiOperation({ summary: "Update Trip", description: "Update trip by id" })
   @ApiParam({
-    name: 'id',
-    description: 'trip id',
+    name: "id",
+    description: "trip id",
     required: true,
-    type: 'number',
+    type: "number",
   })
-  @Put('/:id')
+  @Put("/:id")
   @UsePipes(new ValidationPipe({ transform: true }))
   @UseGuards(AuthGuard())
   updateTrip(
-    @Param('id', ParseIntPipe) id,
+    @Param("id", ParseIntPipe) id,
     @Body() updateTripDto: UpdateTripDto,
     @GetUser() user: User
   ) {
     return this.tripService.updateTrip(id, updateTripDto, user);
   }
 
-  @ApiOperation({ summary: 'Update Trip By Name', description: 'Update trip by name' })
-  @ApiParam({
-    name: 'name',
-    description: 'trip name',
-    required: true,
-    type: 'string',
+  @ApiOperation({
+    summary: "Update Trip By Name",
+    description: "Update trip by name",
   })
-  @Put('/name/:name')
+  @ApiParam({
+    name: "name",
+    description: "trip name",
+    required: true,
+    type: "string",
+  })
+  @Put("/name/:name")
   @UsePipes(new ValidationPipe({ transform: true }))
   @UseGuards(AuthGuard())
   updateTripByName(
-      @Param('name') name,
-      @Body() updateTripDto: UpdateTripDto,
-      @GetUser() user: User
+    @Param("name") name,
+    @Body() updateTripDto: UpdateTripDto,
+    @GetUser() user: User
   ) {
     return this.tripService.updateTripByName(name, updateTripDto, user);
   }
 
-  @ApiOperation({ summary: 'Delete Trip', description: 'Delete trip by id' })
+  @ApiOperation({ summary: "Delete Trip", description: "Delete trip by id" })
   @ApiParam({
-    name: 'id',
-    description: 'trip id',
+    name: "id",
+    description: "trip id",
     required: true,
-    type: 'number',
+    type: "number",
   })
-  @Delete('/:id')
+  @Delete("/:id")
   @UseGuards(AuthGuard())
-  deleteTrip(@Param('id', ParseIntPipe) id, @GetUser() user: User): Promise<DeleteResult> {
+  deleteTrip(
+    @Param("id", ParseIntPipe) id,
+    @GetUser() user: User
+  ): Promise<DeleteResult> {
     return this.tripService.deleteTrip(id, user);
   }
 
-  @ApiOperation({ summary: 'Delete Trip By Name', description: 'Delete trip by name' })
-  @ApiParam({
-    name: 'name',
-    description: 'trip name',
-    required: true,
-    type: 'string',
+  @ApiOperation({
+    summary: "Delete Trip By Name",
+    description: "Delete trip by name",
   })
-  @Delete('/name/:name')
+  @ApiParam({
+    name: "name",
+    description: "trip name",
+    required: true,
+    type: "string",
+  })
+  @Delete("/name/:name")
   @UseGuards(AuthGuard())
-  deleteTripByName(@Param('name') name, @GetUser() user: User): Promise<DeleteResult> {
+  deleteTripByName(
+    @Param("name") name,
+    @GetUser() user: User
+  ): Promise<DeleteResult> {
     return this.tripService.deleteTripByName(name, user);
   }
 
-  @Post('/instagram')
+  @Post("/instagram")
   getInstagramData(@Body() instagramPayload: { url: string }) {
     const { url } = instagramPayload;
     return this.tripService.getInstagramData(url);
+  }
+
+  @Post("/instagram/create")
+  createInstagramData() {
+    return this.tripService.createInstagramData()
   }
 }
