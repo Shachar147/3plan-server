@@ -11,7 +11,7 @@ import { UpdateTripDto } from './dto/update-trip-dto';
 import { TripRepository } from './trip.repository';
 import { InjectRepository } from '@nestjs/typeorm';
 import {User} from "../user/user.entity";
-import * as fs from "fs";
+import fetch from "node-fetch";
 
 @Injectable()
 export class TripService {
@@ -187,6 +187,50 @@ export class TripService {
   // Thailand maya bay: '["https://www.instagram.com/p/B1086KOlYm0/"]'
   // Thailand ko souk: '["https://www.instagram.com/p/B1gRAyIBY4L/"]'
   // cool places: '["https://www.instagram.com/p/B2EJhfrlIvh/","https://www.instagram.com/p/B2y4F_mH73V/","https://www.instagram.com/p/B3Z83F_BRxM/","https://www.instagram.com/p/B3Ka3sngCDB/","https://www.instagram.com/p/B2_r-EOAY1E/","https://www.instagram.com/p/B2UMNq6nKTp/"]'
+
+  async fetchInstagramData(url: string){
+    // const response = await fetch(`${url}/?__a=1&__d=dis`, {
+    //   "headers": {
+    //     "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+    //     "accept-language": "en-US,en;q=0.9",
+    //     "sec-ch-prefers-color-scheme": "light",
+    //     "sec-ch-ua": "\"Not_A Brand\";v=\"99\", \"Google Chrome\";v=\"109\", \"Chromium\";v=\"109\"",
+    //     "sec-ch-ua-mobile": "?0",
+    //     "sec-ch-ua-platform": "\"macOS\"",
+    //     "sec-fetch-dest": "document",
+    //     "sec-fetch-mode": "navigate",
+    //     "sec-fetch-site": "none",
+    //     "sec-fetch-user": "?1",
+    //     "upgrade-insecure-requests": "1",
+    //     "viewport-width": "864",
+    //     "cookie": "mid=Yv6rsQAEAAH6i6rBkagmMpfkBqgb; ig_did=25DACFE2-36AE-4A8F-A99A-0D85D581B9FA; fbm_124024574287414=base_domain=.instagram.com; datr=hlL_YiP9diGRpySL-flsFr_Y; shbid=\"3269\\054245922250\\0541707586583:01f791a1f394feddee6b389bef1c4e5d053da3f939f4db4952bb184030baf976eb0106fb\"; shbts=\"1676050583\\054245922250\\0541707586583:01f70fa91feb734da6d99d0a890d1e1ec4b68f037c3c8a6146a19841cf9d8533225f5e7a\"; dpr=2; fbsr_124024574287414=ZaEwjOwGelCzo5j2gb1ZUSEG6yRFWvqdveWRG-1t0Os.eyJ1c2VyX2lkIjoiMTM2OTQwMTk3MiIsImNvZGUiOiJBUUQtcTZCVDZCeV93c2xUbkhlektKbm5Ubm9ka1JPX3hxOXRRemNlYk92VDcyMU8zdW1YNUNMY3YwVUVqMHdRZi1FMWo0NHdDaFhKRGs2Z3Q1ZFFsUFFNSXk3dDk4ZjczT2NqclVEeTMzeFdrbjJNSUlwczBGZkl2dUZXVElMb01OUVNSTkloQ2dvaGlPT21kR1NqOGkxMmV5bEkwSWtSWFhvbUxPenJmTW1uYWIxM2lwYlpOcFBZdTlBWHJ1YzNPOEJqdXhISi1ZcUI5Q2s4MGlNa0wySDEzOWk5ZU5RVmxfc2hSSGtONWxNUGhxb2lVRzdFOWtzdDlyeFMwcHhieml4dndfTU5odzZ5T2FuMmVRU3RJX2szdGVSaW55YWNyQXpnUnBlVmVsQ0hQZWRqb0RwQlBMejkyUVJuOF9ValNtX25GdWRvcUdyamdiZGtIWDRqVmg3NUxSNkZRVXJFTTM5MWZta2J4Q29XdWciLCJvYXV0aF90b2tlbiI6IkVBQUJ3ekxpeG5qWUJBR0NtWkJqenBBYjJpYWhSU0ZhVWF0QmZsTzU4ZnhqNnFLU1pBcnpDWkJIcHlobFNUdzk4eHphNTlCcGJTek5mTzNaQnpaQ2oweVJyNVpBT2tZc3J3Znl3RlpDZFhGSEFoS2FmMzhReTN0UWFtWHhIUXRHYXBTT0JvM2VxR1JuTnhXRVZaQ09GOTdteU9KS3dIdDNFeVlQaVpDTmcxbEowcFlpSWsybUVWSEN2WkMiLCJhbGdvcml0aG0iOiJITUFDLVNIQTI1NiIsImlzc3VlZF9hdCI6MTY3NjE1NDY2M30; fbsr_124024574287414=ZaEwjOwGelCzo5j2gb1ZUSEG6yRFWvqdveWRG-1t0Os.eyJ1c2VyX2lkIjoiMTM2OTQwMTk3MiIsImNvZGUiOiJBUUQtcTZCVDZCeV93c2xUbkhlektKbm5Ubm9ka1JPX3hxOXRRemNlYk92VDcyMU8zdW1YNUNMY3YwVUVqMHdRZi1FMWo0NHdDaFhKRGs2Z3Q1ZFFsUFFNSXk3dDk4ZjczT2NqclVEeTMzeFdrbjJNSUlwczBGZkl2dUZXVElMb01OUVNSTkloQ2dvaGlPT21kR1NqOGkxMmV5bEkwSWtSWFhvbUxPenJmTW1uYWIxM2lwYlpOcFBZdTlBWHJ1YzNPOEJqdXhISi1ZcUI5Q2s4MGlNa0wySDEzOWk5ZU5RVmxfc2hSSGtONWxNUGhxb2lVRzdFOWtzdDlyeFMwcHhieml4dndfTU5odzZ5T2FuMmVRU3RJX2szdGVSaW55YWNyQXpnUnBlVmVsQ0hQZWRqb0RwQlBMejkyUVJuOF9ValNtX25GdWRvcUdyamdiZGtIWDRqVmg3NUxSNkZRVXJFTTM5MWZta2J4Q29XdWciLCJvYXV0aF90b2tlbiI6IkVBQUJ3ekxpeG5qWUJBR0NtWkJqenBBYjJpYWhSU0ZhVWF0QmZsTzU4ZnhqNnFLU1pBcnpDWkJIcHlobFNUdzk4eHphNTlCcGJTek5mTzNaQnpaQ2oweVJyNVpBT2tZc3J3Znl3RlpDZFhGSEFoS2FmMzhReTN0UWFtWHhIUXRHYXBTT0JvM2VxR1JuTnhXRVZaQ09GOTdteU9KS3dIdDNFeVlQaVpDTmcxbEowcFlpSWsybUVWSEN2WkMiLCJhbGdvcml0aG0iOiJITUFDLVNIQTI1NiIsImlzc3VlZF9hdCI6MTY3NjE1NDY2M30; csrftoken=dICynEu3RTFV1DpCVbjCqi81i3nd6yCV; ds_user_id=58197136611; sessionid=58197136611%3Ah0Oe4RevJqCDqb%3A7%3AAYezfSO5hjP7sfT0EMHbXD15521BiRMQi0yTT3woFA; rur=\"LDC\\05458197136611\\0541707691137:01f7d74b3b699845c233c1e6035f6b28d2e367a99717aa528ef35da9e9733cb7ccdad52c\""
+    //   },
+    //   "referrerPolicy": "strict-origin-when-cross-origin",
+    //   "body": null,
+    //   "method": "GET"
+    // });
+    // return { data: response.json() };
+
+    console.log(`${url}/?__a=1&__d=dist`);
+
+    return this.httpService.get(`${url}/?__a=1&__d=dist`, {
+      "headers": {
+        "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+        "accept-language": "en-US,en;q=0.9",
+        "sec-ch-prefers-color-scheme": "light",
+        "sec-ch-ua": "\"Not_A Brand\";v=\"99\", \"Google Chrome\";v=\"109\", \"Chromium\";v=\"109\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\"",
+        "sec-fetch-dest": "document",
+        "sec-fetch-mode": "navigate",
+        "sec-fetch-site": "none",
+        "sec-fetch-user": "?1",
+        "upgrade-insecure-requests": "1",
+        "viewport-width": "864",
+        "cookie": "mid=Yv6rsQAEAAH6i6rBkagmMpfkBqgb; ig_did=25DACFE2-36AE-4A8F-A99A-0D85D581B9FA; fbm_124024574287414=base_domain=.instagram.com; datr=hlL_YiP9diGRpySL-flsFr_Y; shbid=\"3269\\054245922250\\0541707586583:01f791a1f394feddee6b389bef1c4e5d053da3f939f4db4952bb184030baf976eb0106fb\"; shbts=\"1676050583\\054245922250\\0541707586583:01f70fa91feb734da6d99d0a890d1e1ec4b68f037c3c8a6146a19841cf9d8533225f5e7a\"; dpr=2; fbsr_124024574287414=ZaEwjOwGelCzo5j2gb1ZUSEG6yRFWvqdveWRG-1t0Os.eyJ1c2VyX2lkIjoiMTM2OTQwMTk3MiIsImNvZGUiOiJBUUQtcTZCVDZCeV93c2xUbkhlektKbm5Ubm9ka1JPX3hxOXRRemNlYk92VDcyMU8zdW1YNUNMY3YwVUVqMHdRZi1FMWo0NHdDaFhKRGs2Z3Q1ZFFsUFFNSXk3dDk4ZjczT2NqclVEeTMzeFdrbjJNSUlwczBGZkl2dUZXVElMb01OUVNSTkloQ2dvaGlPT21kR1NqOGkxMmV5bEkwSWtSWFhvbUxPenJmTW1uYWIxM2lwYlpOcFBZdTlBWHJ1YzNPOEJqdXhISi1ZcUI5Q2s4MGlNa0wySDEzOWk5ZU5RVmxfc2hSSGtONWxNUGhxb2lVRzdFOWtzdDlyeFMwcHhieml4dndfTU5odzZ5T2FuMmVRU3RJX2szdGVSaW55YWNyQXpnUnBlVmVsQ0hQZWRqb0RwQlBMejkyUVJuOF9ValNtX25GdWRvcUdyamdiZGtIWDRqVmg3NUxSNkZRVXJFTTM5MWZta2J4Q29XdWciLCJvYXV0aF90b2tlbiI6IkVBQUJ3ekxpeG5qWUJBR0NtWkJqenBBYjJpYWhSU0ZhVWF0QmZsTzU4ZnhqNnFLU1pBcnpDWkJIcHlobFNUdzk4eHphNTlCcGJTek5mTzNaQnpaQ2oweVJyNVpBT2tZc3J3Znl3RlpDZFhGSEFoS2FmMzhReTN0UWFtWHhIUXRHYXBTT0JvM2VxR1JuTnhXRVZaQ09GOTdteU9KS3dIdDNFeVlQaVpDTmcxbEowcFlpSWsybUVWSEN2WkMiLCJhbGdvcml0aG0iOiJITUFDLVNIQTI1NiIsImlzc3VlZF9hdCI6MTY3NjE1NDY2M30; fbsr_124024574287414=ZaEwjOwGelCzo5j2gb1ZUSEG6yRFWvqdveWRG-1t0Os.eyJ1c2VyX2lkIjoiMTM2OTQwMTk3MiIsImNvZGUiOiJBUUQtcTZCVDZCeV93c2xUbkhlektKbm5Ubm9ka1JPX3hxOXRRemNlYk92VDcyMU8zdW1YNUNMY3YwVUVqMHdRZi1FMWo0NHdDaFhKRGs2Z3Q1ZFFsUFFNSXk3dDk4ZjczT2NqclVEeTMzeFdrbjJNSUlwczBGZkl2dUZXVElMb01OUVNSTkloQ2dvaGlPT21kR1NqOGkxMmV5bEkwSWtSWFhvbUxPenJmTW1uYWIxM2lwYlpOcFBZdTlBWHJ1YzNPOEJqdXhISi1ZcUI5Q2s4MGlNa0wySDEzOWk5ZU5RVmxfc2hSSGtONWxNUGhxb2lVRzdFOWtzdDlyeFMwcHhieml4dndfTU5odzZ5T2FuMmVRU3RJX2szdGVSaW55YWNyQXpnUnBlVmVsQ0hQZWRqb0RwQlBMejkyUVJuOF9ValNtX25GdWRvcUdyamdiZGtIWDRqVmg3NUxSNkZRVXJFTTM5MWZta2J4Q29XdWciLCJvYXV0aF90b2tlbiI6IkVBQUJ3ekxpeG5qWUJBR0NtWkJqenBBYjJpYWhSU0ZhVWF0QmZsTzU4ZnhqNnFLU1pBcnpDWkJIcHlobFNUdzk4eHphNTlCcGJTek5mTzNaQnpaQ2oweVJyNVpBT2tZc3J3Znl3RlpDZFhGSEFoS2FmMzhReTN0UWFtWHhIUXRHYXBTT0JvM2VxR1JuTnhXRVZaQ09GOTdteU9KS3dIdDNFeVlQaVpDTmcxbEowcFlpSWsybUVWSEN2WkMiLCJhbGdvcml0aG0iOiJITUFDLVNIQTI1NiIsImlzc3VlZF9hdCI6MTY3NjE1NDY2M30; csrftoken=dICynEu3RTFV1DpCVbjCqi81i3nd6yCV; ds_user_id=58197136611; sessionid=58197136611%3Ah0Oe4RevJqCDqb%3A7%3AAYezfSO5hjP7sfT0EMHbXD15521BiRMQi0yTT3woFA; rur=\"LDC\\05458197136611\\0541707691137:01f7d74b3b699845c233c1e6035f6b28d2e367a99717aa528ef35da9e9733cb7ccdad52c\""
+      },
+    }).toPromise();
+  }
 
   async getInstagramData(url: string){
     const allPossibleCountries = [
@@ -390,7 +434,7 @@ export class TripService {
     const mostPopularCities = [
       "Tokyo","Delhi","Shanghai","Dhaka","Sao Paulo","Mexico City","Cairo","Beijing","Mumbai","Osaka","Chongqing","Karachi","Istanbul","Kinshasa","Lagos","Buenos Aires","Kolkata","Manila","Tianjin","Guangzhou","Rio de Janeiro","Lahore","Bangalore","Shenzhen","Moscow","Chennai","Bogota","Paris","Jakarta","Lima","Bangkok","Hyderabad","Seoul","Nagoya","London","Chengdu","Nanjing","Tehran","Ho Chi Minh City","Luanda","New York City","Wuhan","Xi-an Shaanxi","Ahmedabad","Kuala Lumpur","Hangzhou","Surat","Suzhou","Hong Kong","Riyadh","Shenyang","Baghdad","Dongguan","Foshan","Dar es Salaam","Pune","Santiago","Madrid","Haerbin","Toronto","Belo Horizonte","Khartoum","Johannesburg","Singapore","Dalian","Qingdao","Zhengzhou","Ji-nan Shandong","Barcelona","Saint Petersburg","Abidjan","Yangon","Fukuoka","Alexandria","Guadalajara","Ankara","Chittagong","Addis Ababa","Melbourne","Nairobi","Hanoi","Sydney","Monterrey","Changsha","Brasilia","Cape Town","Jiddah","Urumqi","Kunming","Changchun","Hefei","Shantou","Xinbei","Kabul","Ningbo","Tel Aviv","Yaounde","Rome","Shijiazhuang","Montreal",
       "Recife","Kano","Porto Alegre","Fortaleza","Jaipur","Nanning","Medellin","Taiyuan Shanxi","Ekurhuleni","Douala","Kozhikode","Salvador","Los Angeles","Changzhou","Xiamen","Lucknow","Fuzhou Fujian","Casablanca","Wenzhou","Nanchang","Malappuram","Curitiba","Ibadan","Antananarivo","Tangshan Hebei","Abuja","Kampala","Kumasi","Faisalabad","Bekasi","Berlin","Guiyang","Busan","Santo Domingo","Asuncion","Campinas","Wuxi","Thrissur","Dakar","Port Harcourt","Mashhad","Kochi","Puebla","Kuwait City","Lanzhou","Indore","Durban","Kanpur","Sanaa","Athens","Milan","Pyongyang","Guayaquil","Izmir","Ouagadougou","Lusaka","Guatemala City","Kiev","Surabaya","Nagpur","Lisbon","Zhongshan","Dubai","Caracas","Depok","Shizuoka","Coimbatore","Handan","Port-au-Prince","Huaian","Algiers","Cali","Weifang","Incheon","Bamako","Goiania","Thiruvananthapuram","Manchester","Mbuji-Mayi","Chicago","Taipei","Pretoria","Zibo","Shaoxing","Lubumbashi","Yantai","Huizhou","Sapporo","Birmingham","Bandung","Vancouver","Accra","Toluca de Lerdo","Tashkent","Brazzaville","Luoyang","Patna","Bhopal","Damascus","Mogadishu",
-      "Brisbane","Tangerang","San Juan","Tunis","Beirut","Nantong","Medan","Baku","Belem","Gujranwala","Houston","Peshawar","Manaus","Sendai","Maracaibo","Rawalpindi","Barranquilla","Agra","Hohhot","Taoyuan","Baotou","Kannur","Liuzhou","Visakhapatnam","Vadodara","Xuzhou","Tijuana","Esfahan","Phnom Penh","Amman","Daegu","Naples","Nashik","Vijayawada","Havana","Grande Vitoria","Mecca","Brussels","Multan","Aleppo","Putian","Perth","Yangzhou","Hiroshima","Baoding","Bursa","Taizhou Zhejiang","Minsk","Conakry","Wuhu Anhui","Linyi Shandong","Kollam","Rajkot","Haikou","Vienna","Valencia","Almaty","Daqing","Yancheng Jiangsu","Panama City","Semarang","Lianyungang","Rabat","Baixada Santista","Quito","Hyderabad","Lome","Ludhiana","West Yorkshire","Davao City","La Paz","Leon de los Aldamas","Zhuhai","Benin City","Datong","Quanzhou","Adana","Madurai","Turin","Matola","Warsaw","Hamburg","Can Tho","Sharjah","Bucharest","Palembang","Santa Cruz","Budapest","Gaziantep","Montevideo","Meerut","Raipur","Lyon","Jiangmen","Mosul","Cixi","La Laguna","Varanasi","Xiangyang","Shiraz",
+      "Brisbane","Tangerang","San Juan","Tunis","Beirut","Nantong","Medan","Baku","Belem","Gujranwala","Houston","Peshawar","Manaus","Sendai","Maracaibo","Rawalpindi","Barranquilla","Hohhot","Taoyuan","Baotou","Kannur","Liuzhou","Visakhapatnam","Vadodara","Xuzhou","Tijuana","Esfahan","Phnom Penh","Amman","Daegu","Naples","Nashik","Vijayawada","Havana","Grande Vitoria","Mecca","Brussels","Multan","Aleppo","Putian","Perth","Yangzhou","Hiroshima","Baoding","Bursa","Taizhou Zhejiang","Minsk","Conakry","Wuhu Anhui","Linyi Shandong","Kollam","Rajkot","Haikou","Vienna","Valencia","Almaty","Daqing","Yancheng Jiangsu","Panama City","Semarang","Lianyungang","Rabat","Baixada Santista","Quito","Hyderabad","Lome","Ludhiana","West Yorkshire","Davao City","La Paz","Leon de los Aldamas","Zhuhai","Benin City","Datong","Quanzhou","Adana","Madurai","Turin","Matola","Warsaw","Hamburg","Can Tho","Sharjah","Bucharest","Palembang","Santa Cruz","Budapest","Gaziantep","Montevideo","Meerut","Raipur","Lyon","Jiangmen","Mosul","Cixi","La Laguna","Varanasi","Xiangyang","Shiraz",
       "Glasgow","Novosibirsk","Batam","Stockholm","Yinchuan","Anshan","Jamshedpur","Yichang","Srinagar","Auckland","Jilin","Ulaanbaatar","Tabriz","Makassar","Aurangabad","Phoenix","Qinhuangdao","Xining","Muscat","Monrovia","Marseille","Tiruppur","Philadelphia","Hengyang","Calgary","Qiqihaer","Cordoba","Suqian","Kananga","Karaj","Anyang","Rosario","Daejon","Munich","Ciudad Juarez","Harare","Onitsha","Jodhpur","Gaoxiong","Medina","Jining Shandong","Abu Dhabi","N-Djamena","Tegucigalpa","Gwangju","Yekaterinburg","Kathmandu","Edmonton","Natal","Grande Sao Luis","Ranchi","Zhangjiakou","Mandalay","Jabalpur","Huainan","Asansol","Kota","Chaozhou","San Antonio","Gwalior","San Jose","Allahabad","Yiwu","Chon Buri","Nouakchott","Amritsar","Kharkiv","Ottawa","Zurich","Taizhou Jiangsu","Basra","Joao Pessoa","Ganzhou","Belgrade","San Diego","Homs","Taian Shandong","Weihai","Queretaro","Mombasa","Niamey","Konya","Hai Phong","Jiaxing","Copenhagen","Cochabamba","Dhanbad","Kisangani","Bucaramanga","Kaifeng","Adelaide","Taizhong","Rizhao","Maceio","Suweon","Dongying","Zunyi","Zhanjiang","Samut Prakan","Nanchong",
       "Joinville","Qom","Helsinki","Mianyang Sichuan","Dallas","Liuan","Porto","Antalya","Shiyan","Prague","Bareilly","Liuyang","Ad-Dammam","Fushun Liaoning","Pointe-Noire","Yingkou","Sofia","Kazan","Tengzhou","Port Elizabeth","Aligarh","Ahvaz","Florianopolis","Tanger","Freetown","Maoming","Pekan Baru","Moradabad","Suzhou","Uyo","Mysore","Dublin","San Luis Potosi","Astana","Nizhniy Novgorod","Ruian","Mwanza","Durg-Bhilainagar","Barquisimeto","Jieyang","Chelyabinsk","Zhuzhou","Baoji","Maracay","Bhubaneswar","Pingdingshan Henan","Zhenjiang Jiangsu","Chifeng","Puning","Lilongwe","Jinhua","Mendoza","Kigali","Bogor","Huaibei","Merida","Tiruchirappalli","Islamabad","Chiang Mai","Nanyang Henan","Xiangtan Hunan","Benxi","Jinzhou","Chandigarh","Bukavu","Abomey-Calavi","Da Nang","Liupanshui","Omsk","Nnewi","Tripoli","Guilin","Amsterdam","Tasikmalaya","Haifa","Binzhou","Pizhou","Quetta","Mexicali","Krasnoyarsk","Hubli-Dharwad","Kaduna","Samara","Guwahati","Aba","Luohe","Salem","Aguascalientes","Ufa","Bujumbura","Maputo","Bandar Lampung","Rostov-on-Don","Cologne","Yueqing","Saharanpur","Shimkent","Yongin","Xinxiang"
     ]
@@ -412,14 +456,18 @@ export class TripService {
     if (url.endsWith("/")){
       url = url.substring(0,url.length-1);
     }
-    const content = await this.httpService.get(`${url}/?__a=1&__d=dist`).toPromise();;
+
+    const content: any = await this.fetchInstagramData(url);
+
+    // console.log(content.data.items[0]);
+
     if (content?.data){
-      const data = content?.data?.graphql?.shortcode_media;
+      const data = content?.data?.graphql?.shortcode_media ?? content.data.items[0];
 
       // return data;
 
-      const { shortcode, display_url, is_video, edge_media_to_caption, location, video_url, video_play_count, video_view_count, edge_sidecar_to_children } = data;
-      const description = edge_media_to_caption?.["edges"]?.[0]?.["node"]?.text;
+      let { shortcode, carousel_media, display_url, is_video, edge_media_to_caption, location, video_url, video_play_count, video_view_count, edge_sidecar_to_children } = data;
+      let description = edge_media_to_caption?.["edges"]?.[0]?.["node"]?.text;
 
       // video
       let videos = undefined;
@@ -447,6 +495,38 @@ export class TripService {
           const { video_url, video_play_count, video_view_count } = item;
           return { video_url, video_play_count, video_view_count };
           })
+      }
+      else if (carousel_media){
+
+        carousel_media.forEach((iter) => {
+          const { image_versions2 } = iter;
+
+          display_url = image_versions2?.["candidates"]?.[0]?.["url"]
+          images.push(display_url);
+
+          const video = iter?.video_versions?.[0]?.["url"];
+          videos = videos || [];
+          videos.push(video);
+        })
+
+        videos = videos.filter(Boolean);
+        images = images.filter(Boolean);
+        is_video = videos.length > 0;
+      }
+      // extract here
+      else if (!shortcode) {
+        const { code, image_versions2 } = data;
+        shortcode = code;
+
+        display_url = image_versions2?.["candidates"]?.[0]?.["url"]
+        images = [display_url].filter(Boolean);
+
+        description = data.caption.text;
+
+        const video = data?.video_versions?.[0]?.["url"];
+        videos = [video].filter(Boolean);
+
+        is_video = videos.length > 0;
       }
 
       return {
@@ -836,6 +916,7 @@ export class TripService {
     let allResults = [];
     let currPromises = [];
     for (let i = 0; i < data.length; i++){
+      console.log(`${i+1}/${data.length}...`);
       const promise = this.getInstagramData(data[i]).catch((error) => {
         allFailed.push({
           url: error?.config?.url,
@@ -859,6 +940,19 @@ export class TripService {
     await Promise.all(currPromises).then((results) => {
       allResults.push(...results);
     });
+
+    try {
+      const hash = {};
+      allResults.forEach((x) => {
+        x.destination = x.destination || "N/A";
+        hash[x.destination] = hash[x.destination] || 0;
+        // hash[x.destination].push(x);
+        hash[x.destination]++;
+      })
+      console.log(hash);
+    } catch {
+
+    }
 
     return {
       total: allResults.length,
