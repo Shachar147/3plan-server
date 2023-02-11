@@ -1,12 +1,13 @@
 import {
   BaseEntity,
   Column,
-  Entity, OneToMany,
+  Entity, ManyToOne, OneToMany,
   PrimaryGeneratedColumn,
   Unique,
 } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import {Trip} from "../trip/trip.entity";
+import {Distance} from "../distance/distance.entity";
 
 @Entity()
 @Unique(['username'])
@@ -25,6 +26,9 @@ export class User extends BaseEntity {
 
   @OneToMany((type) => Trip, (record) => record.user, { eager: true })
   trips: Trip[];
+
+  @OneToMany((type) => Distance, (distance) => distance.addedBy, { eager: true })
+  added_distances: Distance[];
 
   async validatePassword(password: string): Promise<boolean> {
     const hash = await bcrypt.hash(password, this.salt);

@@ -6,13 +6,15 @@ import { typeOrmConfig } from './config/typeorm.config';
 import { ScheduleModule } from '@nestjs/schedule';
 import { UserModule } from './user/user.module';
 import {TripModule} from "./trip/trip.module";
+import { DistanceModule } from './distance/distance.module';
 
 @Module({
   imports: [
     TypeOrmModule.forRoot(typeOrmConfig),
     ScheduleModule.forRoot(),
     UserModule,
-    TripModule
+    TripModule,
+    DistanceModule
   ],
   controllers: [AppController],
   providers: [AppService],
