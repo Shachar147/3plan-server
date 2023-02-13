@@ -1,4 +1,4 @@
-import { HttpModule, HttpService, Module } from '@nestjs/common';
+import { HttpModule, Module } from '@nestjs/common';
 import { TripController } from './trip.controller';
 import { TripService } from './trip.service';
 import { TypeOrmModule } from '@nestjs/typeorm';

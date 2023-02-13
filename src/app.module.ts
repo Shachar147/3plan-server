@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import {HttpModule, HttpService, Module} from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -6,15 +6,21 @@ import { typeOrmConfig } from './config/typeorm.config';
 import { ScheduleModule } from '@nestjs/schedule';
 import { UserModule } from './user/user.module';
 import {TripModule} from "./trip/trip.module";
+import { InstagramModule } from './instagram/instagram.module';
+import { TinderService } from './integrations/tinder/tinder.service';
+import { TinderModule } from './integrations/tinder/tinder.module';
 
 @Module({
   imports: [
     TypeOrmModule.forRoot(typeOrmConfig),
     ScheduleModule.forRoot(),
     UserModule,
-    TripModule
+    TripModule,
+    InstagramModule,
+    TinderModule,
+    HttpModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, TinderService],
 })
 export class AppModule {}
