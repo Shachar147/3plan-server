@@ -52,7 +52,7 @@
     "inquirer": "^6.0.0",
     "lint-staged": "^10.5.4",
     "nba": "^4.13.0",
-    "node-fetch": "^2.6.1",
+    "node-fetch": "^2.6.9",
     "passport": "^0.4.1",
     "passport-jwt": "^4.0.0",
     "pg": "^8.5.1",
