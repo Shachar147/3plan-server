@@ -10,6 +10,7 @@ export const allPossibleCountries = [
     "Australia",
     "Austria",
     "Azerbaijan",
+    "Bahama",
     "Bahamas",
     "Bahrain",
     "Bangladesh",
@@ -128,7 +129,7 @@ export const allPossibleCountries = [
     "North Korea",
     "North Macedonia",
     "Norway",
-    "Oman",
+    // "Oman",
     "Pakistan",
     "Palau",
     "Palestine State",
@@ -193,6 +194,7 @@ export const allPossibleCountries = [
     "Yemen",
     "Zambia",
     "Zimbabwe",
+    "Hawaii"
 ];
 
 export const mostPopularCities = [

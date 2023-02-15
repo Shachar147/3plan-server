@@ -26,9 +26,10 @@ export class InstagramService {
             תצפיות: ["sky view", "תצפית", "dubai frame"],
             "ברים חיי לילה": ["dance club", "lounge"],
             פארקים: ["פארק"],
+            עיירות: ["עיירה", "עיירות"],
             חופים: ["beach "],
             "ביץ׳ ברים": ["beach bar"],
-            "בתי מלון": ["six senses", "sixsenses", "hotel", "resort"],
+            "בתי מלון": ["six senses", "sixsenses", "hotel", "resort","בית מלון","המלון"],
             "אוכל": ["resturant", "cafe", "מסעדה", "chocolate", "croissants"]
         };
 
@@ -85,7 +86,28 @@ export class InstagramService {
      *
      * @param url - instagram post url
      */
-    async getInstagramData(url: string) {
+    async getInstagramData(url: string): Promise<any> {
+        if (url.endsWith("/")) {
+            url = url.substring(0, url.length - 1);
+        }
+
+        const content: any = await this.fetchInstagramData(url);
+
+        // console.log(content.data.items[0]);
+
+        if (content?.data) {
+            const data =
+                content?.data?.graphql?.shortcode_media ?? content.data.items[0];
+
+            // return data;
+
+            return this.scrapeInstagramJSON(data, url);
+        }
+        return {};
+    }
+
+    scrapeInstagramJSON(data: any, url?: string) {
+
         const findDestination = (description: string, location?: any) => {
             let result = "N/A";
             [...allPossibleCountries, ...mostPopularCities].forEach((country) => {
@@ -108,113 +130,121 @@ export class InstagramService {
             return result;
         };
 
-        if (url.endsWith("/")) {
-            url = url.substring(0, url.length - 1);
-        }
+        let {
+            shortcode,
+            carousel_media,
+            display_url,
+            is_video,
+            edge_media_to_caption,
+            location,
+            video_url,
+            video_play_count,
+            video_view_count,
+            edge_sidecar_to_children,
+        } = data;
+        let description = edge_media_to_caption?.["edges"]?.[0]?.["node"]?.text;
 
-        const content: any = await this.fetchInstagramData(url);
-
-        // console.log(content.data.items[0]);
-
-        if (content?.data) {
-            const data =
-                content?.data?.graphql?.shortcode_media ?? content.data.items[0];
-
-            // return data;
-
-            let {
-                shortcode,
-                carousel_media,
-                display_url,
-                is_video,
-                edge_media_to_caption,
-                location,
+        // video
+        let videos = undefined;
+        if (is_video) {
+            const video = {
                 video_url,
                 video_play_count,
                 video_view_count,
-                edge_sidecar_to_children,
-            } = data;
-            let description = edge_media_to_caption?.["edges"]?.[0]?.["node"]?.text;
+            };
+            videos = [video];
+        }
 
-            // video
-            let videos = undefined;
-            if (is_video) {
-                const video = {
-                    video_url,
-                    video_play_count,
-                    video_view_count,
-                };
-                videos = [video];
-            }
+        // image
+        let images = [display_url];
 
-            // image
-            let images = [display_url];
+        // combo
+        if (edge_sidecar_to_children) {
+            const comboItems = edge_sidecar_to_children.edges
+                ?.map((iter) => iter?.node)
+                .filter(Boolean);
 
-            // combo
-            if (edge_sidecar_to_children) {
-                const comboItems = edge_sidecar_to_children.edges
-                    ?.map((iter) => iter?.node)
-                    .filter(Boolean);
+            images = edge_sidecar_to_children
+                ? comboItems
+                    .filter((item) => !item.is_video)
+                    .map((item) => item.display_url)
+                : [display_url];
 
-                images = edge_sidecar_to_children
-                    ? comboItems
-                        .filter((item) => !item.is_video)
-                        .map((item) => item.display_url)
-                    : [display_url];
-
-                videos = comboItems
-                    .filter((item) => item.is_video)
-                    .map((item) => {
-                        const { video_url, video_play_count, video_view_count } = item;
-                        return { video_url, video_play_count, video_view_count };
-                    });
-            } else if (carousel_media) {
-                carousel_media.forEach((iter) => {
-                    const { image_versions2 } = iter;
-
-                    display_url = image_versions2?.["candidates"]?.[0]?.["url"];
-                    images.push(display_url);
-
-                    const video = iter?.video_versions?.[0]?.["url"];
-                    videos = videos || [];
-                    videos.push(video);
+            videos = comboItems
+                .filter((item) => item.is_video)
+                .map((item) => {
+                    const { video_url, video_play_count, video_view_count } = item;
+                    return { video_url, video_play_count, video_view_count };
                 });
-
-                videos = videos.filter(Boolean);
-                images = images.filter(Boolean);
-                is_video = videos.length > 0;
-            }
-            // extract here
-            else if (!shortcode) {
-                const { code, image_versions2 } = data;
-                shortcode = code;
+        } else if (carousel_media) {
+            carousel_media.forEach((iter) => {
+                const { image_versions2 } = iter;
 
                 display_url = image_versions2?.["candidates"]?.[0]?.["url"];
-                images = [display_url].filter(Boolean);
+                images.push(display_url);
 
-                description = data.caption.text;
+                const video = iter?.video_versions?.[0]?.["url"];
+                videos = videos || [];
+                videos.push(video);
+            });
 
-                const video = data?.video_versions?.[0]?.["url"];
-                videos = [video].filter(Boolean);
-
-                is_video = videos.length > 0;
-            }
-
-            return {
-                more_info: url,
-                shortcode,
-                images,
-                videos,
-                display_image: display_url,
-                is_video,
-                description,
-                location,
-                destination: findDestination(description, location),
-                source: "Instagram",
-                category: this.extractCategory([description])
-            };
+            videos = videos.filter(Boolean);
+            images = images.filter(Boolean);
+            is_video = videos.length > 0;
         }
-        return {};
+        // extract here
+        else if (!shortcode) {
+            const { code, image_versions2 } = data;
+            shortcode = code;
+
+            display_url = image_versions2?.["candidates"]?.[0]?.["url"];
+            images = [display_url].filter(Boolean);
+
+            description = data?.caption?.text ?? "";
+
+            const video = data?.video_versions?.[0]?.["url"];
+            videos = [video].filter(Boolean);
+
+            is_video = videos.length > 0;
+        }
+
+        if (!url){
+            url = `https://www.instagram.com/p/${shortcode}`;
+        }
+
+        return {
+            name: url,
+            more_info: url,
+            shortcode,
+            images,
+            videos,
+            display_image: display_url,
+            is_video,
+            description,
+            location,
+            destination: findDestination(description, location),
+            source: "Instagram",
+            category: this.extractCategory([description].filter(Boolean))
+        };
+    }
+
+    async postData(createMode, results, createdData) {
+        if (createMode && results.filter(Boolean).length > 0) {
+            results.filter(Boolean).forEach((x) => x.description = x.description || "");
+            const response = await this.tinderService.createBulk(results);
+            const totals = response?.data?.totals;
+            createdData.totals.created += totals?.created ?? 0;
+            createdData.totals.updated += totals?.updated ?? 0;
+            createdData.totals.errors += totals?.errors ?? 0;
+
+            const created = response?.data?.created ?? [];
+            const updated = response?.data?.updated ?? [];
+            const errors = response?.data?.errors ?? [];
+            createdData.created = [...createdData.created, ...created];
+            createdData.updated = [...createdData.updated, ...updated];
+            createdData.errors = [...createdData.errors, ...errors];
+        }
+        return createdData;
     }
 
     /***
@@ -225,7 +255,7 @@ export class InstagramService {
 
         let data = saved_posts;
 
-        const maxItems = 1000;
+        const maxItems = 2;
         const maxInParallel = 2;
 
         data = data.slice(0, Math.min(data.length, maxItems));
@@ -234,7 +264,7 @@ export class InstagramService {
         let allResults = [];
         let currPromises = [];
 
-        const createdData = {
+        let createdData = {
             totals: {
                 created: 0,
                 updated: 0,
@@ -247,12 +277,7 @@ export class InstagramService {
 
         for (let i = 0; i < data.length; i++) {
             console.log(`${i + 1}/${data.length}...`);
-            const promise = this.getInstagramData(data[i]).then((result) => {
-                return {
-                    ...result,
-                    name: result.more_info
-                }
-            }).catch((error) => {
+            const promise = this.getInstagramData(data[i]).catch((error) => {
                 allFailed.push({
                     url: error?.config?.url,
                     error: error?.message,
@@ -260,39 +285,30 @@ export class InstagramService {
             });
             currPromises.push(promise);
             if (currPromises.length === maxInParallel) {
-                await Promise.all(currPromises)
-                    .then((results) => {
-                        allResults.push(...results);
-                    })
-                    .catch((error) => {
-                        allFailed.push({
-                            url: error?.config?.url,
-                            error: error?.message,
-                        });
+                const results = await Promise.all(currPromises).catch((error) => {
+                    allFailed.push({
+                        url: error?.config?.url,
+                        error: error?.message,
                     });
-                // await new Promise((resolve) => { setTimeout(resolve, 2000) });
+                    return [];
+                }) ?? [];
+                allResults.push(...results);
+
+                if (createMode){
+                    createdData = await this.postData(createMode, results, createdData)
+                }
+
+                // await new Promise((resolve) => { setTimeout(resolve, 1000) });
                 currPromises = [];
             }
         }
-        await Promise.all(currPromises).then(async (results) => {
 
-            if (createMode) {
-                const response = await this.tinderService.createBulk(results);
-                const totals = response?.data?.totals;
-                createdData.totals.created += totals?.created ?? 0;
-                createdData.totals.updated += totals?.updated ?? 0;
-                createdData.totals.errors += totals?.errors ?? 0;
+        const results = await Promise.all(currPromises) ?? [];
+        if (createMode){
+            createdData = await this.postData(createMode, results, createdData)
+        }
+        allResults.push(...results);
 
-                const created = response?.data?.created ?? [];
-                const updated = response?.data?.updated ?? [];
-                const errors = response?.data?.errors ?? [];
-                createdData.created = [...createdData.created, ...created];
-                createdData.updated = [...createdData.updated, ...updated];
-                createdData.errors = [...createdData.errors, ...errors];
-            }
-
-            allResults.push(...results);
-        });
 
         try {
             const hash = {};
@@ -320,6 +336,22 @@ export class InstagramService {
      */
     async createInstagramSavedPostsData(){
         return this.getSavedPostsData(true);
+    }
+
+    async createInstagramDataFromJSON(itemsJSON: any){
+        const results = itemsJSON?.items?.map((item) => this.scrapeInstagramJSON(item));
+        let createdData = {
+            totals: {
+                created: 0,
+                updated: 0,
+                errors: 0
+            },
+            created: [],
+            updated: [],
+            errors: []
+        }
+        createdData = await this.postData(true, results, createdData)
+        return createdData;
     }
 
     async deleteInstagramData(){

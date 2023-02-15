@@ -28,4 +28,9 @@ export class InstagramController {
     deleteInstagramData(){
         return this.instagramService.deleteInstagramData();
     }
+
+    @Post("json")
+    createInstagramDataFromJSON(@Body() json: any){
+        return this.instagramService.createInstagramDataFromJSON(json);
+    }
 }
