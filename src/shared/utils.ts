@@ -7,7 +7,7 @@ export function SubstringTo(page: string, n: number, endChar: string) {
   return string;
 }
 
-export function SubstringToPhase(page, n, endKey) {
+export function SubstringToPhaseSubstringToPhase(page, n, endKey) {
   let string = '';
   let lastIndex = page.indexOf(endKey, n+1);
   if (lastIndex === -1) lastIndex = page.length -1;
@@ -50,4 +50,7 @@ export function nth(d) {
     default:
       return 'th';
   }
+}
+export function getTimestampInSeconds () {
+  return Math.floor(Date.now() / 1000)
 }

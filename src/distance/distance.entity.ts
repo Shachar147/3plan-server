@@ -6,26 +6,19 @@ import {
     PrimaryGeneratedColumn,
     Unique,
 } from "typeorm";
-import { IsOptional } from "class-validator";
 import {User} from "../user/user.entity";
 
 @Entity()
-@Unique("uniqueFields", ["from_lat", "from_lng" , "to_lat" , "to_lng"])
+@Unique("uniqueFields", ["from" , "to" , "travel_mode"])
 export class Distance extends BaseEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column()
-    from_lat: string;
+    @Column("jsonb")
+    from: object;
 
-    @Column()
-    from_lng: string;
-
-    @Column()
-    to_lat: string;
-
-    @Column()
-    to_lng: number;
+    @Column("jsonb")
+    to: object;
 
     @Column()
     travel_mode: string;
@@ -37,13 +30,13 @@ export class Distance extends BaseEntity {
     duration: string;
 
     @Column()
-    from: string;
+    origin: string;
 
     @Column()
-    to: string;
+    destination: string;
 
-    @Column()
-    distance_value: string;
+    @Column({ nullable: false })
+    addedAt: number;
 
     @ManyToOne((type) => User, (user) => user.added_distances, { eager: false })
     addedBy: User;

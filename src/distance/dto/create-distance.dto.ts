@@ -2,17 +2,18 @@ import { IsNotEmpty } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
 import {Column, PrimaryGeneratedColumn} from "typeorm";
 
+export interface Coordinate{
+    lat: number;
+    lng: number;
+}
+
 export class createDistanceDto {
 
-    from_lat: string;
-    from_lng: string;
-    to_lat: string;
-    to_lng: number;
+    from: Coordinate;
+    to: Coordinate;
     travel_mode: string;
     distance: string;
     duration: string;
-    from: string;
-    to: string;
-    distance_value: string;
-
+    origin: string;
+    destination: string;
 }
