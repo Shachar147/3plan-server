@@ -11,10 +11,9 @@ export class DistanceController {
 
     @Post()
     GetDistanceBetweenTwoDestination(
-        @Body() createDistanceDto: createDistanceDto[])
-        @GetUser() user: User
-    ): Promise<any> {
-        return this.distanceService.getDistanceBetweenTwoDestination();
+        @Body() createDistanceDto: createDistanceDto[],
+        @GetUser() user: User): Promise<any>{
+        return this.distanceService.getDistanceBetweenTwoDestination(createDistanceDto , user);
     }
 
 

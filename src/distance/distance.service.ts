@@ -1,4 +1,6 @@
 import { Injectable } from '@nestjs/common';
+import {User} from "../user/user.entity";
+import {createDistanceDto} from "./dto/create-distance.dto";
 
 @Injectable()
 export class DistanceService {
@@ -6,13 +8,15 @@ export class DistanceService {
     // @InjectRepository(ItemRepository)
     // private itemRepository: ItemRepository) {}
 
-    async getDistanceBetweenTwoDestination(): Promise<any> {
+    async getDistanceBetweenTwoDestination(createDistanceDto: createDistanceDto[] , user: User): Promise<any> {
         const distance = require('google-distance-matrix');
+        distance.key('AIzaSyA7I3QU1khdOUoOwQm4xPhv2_jt_cwFSNU');
 
-        var origins = ['San Francisco CA', '40.7421,-73.9914'];
-        var destinations = ['New York NY', 'Montreal', '41.8337329,-87.7321554', 'Honolulu'];
+        let item = "";
+        const origins = ['47.4989928,19.0436994'];
+        const destinations = ['47.4912977,19.0544491'];
 
-        distance.matrix(origins, destinations, function (err, distances) {
+        distance.matrix(origins, destinations, function (err, distances ,item) {
             if (err) {
                 return console.log(err);
             }
@@ -26,7 +30,7 @@ export class DistanceService {
                         var destination = distances.destination_addresses[j];
                         if (distances.rows[0].elements[j].status == 'OK') {
                             var distance = distances.rows[i].elements[j].distance.text;
-                            console.log('Distance from ' + origin + ' to ' + destination + ' is ' + distance);
+                            item = { origin, distance, destination}
                         } else {
                             console.log(destination + ' is not reachable by land from ' + origin);
                         }
@@ -34,7 +38,6 @@ export class DistanceService {
                 }
             }
         });
-        const item = "";
     return item;
     }
 
