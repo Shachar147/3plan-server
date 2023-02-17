@@ -2,7 +2,7 @@ import {Body, Controller, Post} from '@nestjs/common';
 import {DistanceService} from "./distance.service";
 import {User} from "../user/user.entity";
 import {GetUser} from "../auth/get-user.decorator";
-import {createDistanceDto} from "./dto/create-distance.dto";
+import {GetDistanceResultDto} from "./dto/get-distance-result.dto";
 
 @Controller('distance')
 export class DistanceController {
@@ -11,9 +11,9 @@ export class DistanceController {
 
     @Post()
     GetDistanceBetweenTwoDestination(
-        @Body() createDistanceDto: createDistanceDto[],
+        @Body() getDistanceResultDto: GetDistanceResultDto,
         @GetUser() user: User): Promise<any>{
-        return this.distanceService.getDistanceBetweenTwoDestination(createDistanceDto , user);
+        return this.distanceService.getDistanceBetweenTwoDestination(getDistanceResultDto , user);
     }
 
 
