@@ -71,7 +71,6 @@ export class TripController {
     return this.tripService.getTripByName(name, user);
   }
 
-
   @ApiOperation({ summary: 'Create Trip', description: 'Create a trip.' })
   @Post()
   @UsePipes(new ValidationPipe({ transform: true }))
