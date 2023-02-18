@@ -694,6 +694,7 @@ export const mostPopularCities = [
     "Shimkent",
     "Yongin",
     "Xinxiang",
+    "Bali"
 ];
 
 /*
