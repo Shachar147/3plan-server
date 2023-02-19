@@ -387,12 +387,49 @@ export class InstagramService {
 
     async scrapeInstagramProfile(userId: string): Promise<CreateInstagramItemsResult> {
         // https://www.instagram.com/madiaubakirov/?hl=en -> 29859324
+        // https://www.instagram.com/momentsofgregory/ -> 6367920068
         const baseUrl = `https://www.instagram.com/api/v1/feed/user/${userId}/?count=120`;
         return await this.recursivelyScrapePage(baseUrl, 1);
     }
 
     async recursivelyScrapePage(baseUrl: string, reqCount: number, max_id?: string) {
         const headers = {
+            accept: '*/*',
+            'accept-language': 'en-US,en;q=0.9,he;q=0.8',
+            'sec-ch-prefers-color-scheme': 'dark',
+            'sec-ch-ua': '"Chromium";v="110", "Not A(Brand";v="24", "Google Chrome";v="110"',
+            'sec-ch-ua-mobile': '?0',
+            'sec-ch-ua-platform': '"macOS"',
+            'sec-fetch-dest': 'empty',
+            'sec-fetch-mode': 'cors',
+            'sec-fetch-site': 'same-origin',
+            'viewport-width': '1792',
+            'x-asbd-id': '198387',
+            'x-csrftoken': 'YbfEZK7ax95lw6nGik1t4kvWd4SviAmq',
+            'x-ig-app-id': '936619743392459',
+            'x-ig-www-claim': 'hmac.AR0NLejJOielzYRs_gl0g2da4JqbJHCBR6dY4RYD3Ls4f9I3',
+            'x-requested-with': 'XMLHttpRequest',
+        };
+
+        const headers2 = {
+            "accept": "*/*",
+            "accept-language": "en-US,en;q=0.9,he;q=0.8",
+            "sec-ch-prefers-color-scheme": "light",
+            "sec-ch-ua": "\"Chromium\";v=\"110\", \"Not A(Brand\";v=\"24\", \"Google Chrome\";v=\"110\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"macOS\"",
+            "sec-fetch-dest": "empty",
+            "sec-fetch-mode": "cors",
+            "sec-fetch-site": "same-origin",
+            "viewport-width": "1792",
+            "x-asbd-id": "198387",
+            "x-csrftoken": "YbfEZK7ax95lw6nGik1t4kvWd4SviAmq",
+            "x-ig-app-id": "936619743392459",
+            "x-ig-www-claim": "hmac.AR0NLejJOielzYRs_gl0g2da4JqbJHCBR6dY4RYD3Ls4f7ha",
+            "x-requested-with": "XMLHttpRequest"
+        };
+
+        const headers3 = {
             accept: '*/*',
             'accept-language': 'en-US,en;q=0.9,he;q=0.8',
             'sec-ch-prefers-color-scheme': 'dark',
