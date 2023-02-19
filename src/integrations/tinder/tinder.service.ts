@@ -17,10 +17,11 @@ export class TinderService {
         return result?.data?.accessToken;
     }
 
-    async createBulk(data: any[]) {
+    async createBulk(data: any[], downloadMedia: boolean) {
         const token = await this.login();
+        const route = downloadMedia ? 'bulk-with-download' : 'bulk';
         return this.httpService
-            .post(`${getTinderServerAddress()}/item/bulk`, data, {
+            .post(`${getTinderServerAddress()}/item/${route}`, data, {
                 headers: {
                     'Access-Control-Allow-Origin': '*',
                     'Authorization': `Bearer ${token}`
