@@ -33,4 +33,15 @@ export class InstagramController {
     createInstagramDataFromJSON(@Body() json: any){
         return this.instagramService.createInstagramDataFromJSON(json);
     }
+
+    @Post("json/short")
+    createInstagramDataFromJSONShort(@Body() json: any){
+        return this.instagramService.createInstagramDataFromJSON(json, false);
+    }
+
+    @Post("scrape/profile")
+    scrapeInstagramProfile(@Body() instagramPayload: { userId: string }) {
+        const { userId } = instagramPayload;
+        return this.instagramService.scrapeInstagramProfile(userId);
+    }
 }
