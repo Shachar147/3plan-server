@@ -409,9 +409,12 @@ export class InstagramService {
     }
 
     async scrapeInstagramProfile(userId: string): Promise<CreateInstagramItemsResult> {
+        // travel bloggers
         // https://www.instagram.com/madiaubakirov/?hl=en -> 29859324
         // https://www.instagram.com/momentsofgregory/ -> 6367920068
         // https://www.instagram.com/_marcelsiebert/ -> 277627304
+        // https://www.instagram.com/jeremyaustiin/ -> 22767954
+        // https://www.instagram.com/or.zano/ -> travel inspirations -> 2961005690
         const baseUrl = `https://www.instagram.com/api/v1/feed/user/${userId}/?count=120`;
         return await this.recursivelyScrapePage(baseUrl, 1);
     }
