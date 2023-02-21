@@ -238,7 +238,7 @@ export const mostPopularCities = [
     "Tehran",
     "Ho Chi Minh City",
     "Luanda",
-    "New York City",
+    "New York",
     "Wuhan",
     "Xi-an Shaanxi",
     "Ahmedabad",
@@ -694,7 +694,12 @@ export const mostPopularCities = [
     "Shimkent",
     "Yongin",
     "Xinxiang",
-    "Bali"
+    "Bali",
+    "Aruba",
+    "Turks And Caicos Islands",
+    "Koh Tao",
+    "Phuket",
+    "Koh Samui"
 ];
 
 /*
