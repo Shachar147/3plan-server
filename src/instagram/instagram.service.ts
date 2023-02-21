@@ -131,6 +131,12 @@ export class InstagramService {
 
         const findDestination = (description: string, location?: any) => {
             let result = "N/A";
+
+            // exceptions
+            const specialExceptions = {
+                Germany: ["allgäu"],
+            };
+
             [...allPossibleCountries, ...mostPopularCities].forEach((country) => {
                 if (
                     description &&
@@ -148,6 +154,23 @@ export class InstagramService {
                     return result;
                 }
             });
+
+            if (result === "N/A"){
+                Object.keys(specialExceptions).forEach((destination) => {
+                    if (description &&
+                        description.toLowerCase().indexOf(destination.toLowerCase()) !== -1) {
+                        result = destination;
+                        return destination;
+                    } else if (location &&
+                        JSON.stringify(location)
+                            .toLowerCase()
+                            .indexOf(destination.toLowerCase()) !== -1) {
+                        result = destination;
+                        return destination;
+                    }
+                });
+            }
+
             return result;
         };
 
@@ -388,6 +411,7 @@ export class InstagramService {
     async scrapeInstagramProfile(userId: string): Promise<CreateInstagramItemsResult> {
         // https://www.instagram.com/madiaubakirov/?hl=en -> 29859324
         // https://www.instagram.com/momentsofgregory/ -> 6367920068
+        // https://www.instagram.com/_marcelsiebert/ -> 277627304
         const baseUrl = `https://www.instagram.com/api/v1/feed/user/${userId}/?count=120`;
         return await this.recursivelyScrapePage(baseUrl, 1);
     }
