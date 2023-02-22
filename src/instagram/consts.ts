@@ -699,7 +699,8 @@ export const mostPopularCities = [
     "Turks And Caicos Islands",
     "Koh Tao",
     "Phuket",
-    "Koh Samui"
+    "Koh Samui",
+    "Antarctica"
 ];
 
 /*
