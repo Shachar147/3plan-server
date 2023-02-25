@@ -416,6 +416,7 @@ export class InstagramService {
         // https://www.instagram.com/jeremyaustiin/ -> 22767954
         // https://www.instagram.com/or.zano/ -> travel inspirations -> 2961005690
         // https://www.instagram.com/judit.bar.dimri/-> 216755086
+        // https://www.instagram.com/itay_erlich/ -> 184393676
         const baseUrl = `https://www.instagram.com/api/v1/feed/user/${userId}/?count=120`;
         return await this.recursivelyScrapePage(baseUrl, 1);
     }
