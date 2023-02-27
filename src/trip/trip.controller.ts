@@ -27,6 +27,7 @@ import {
 } from "@nestjs/swagger";
 import { GetUser } from "../auth/get-user.decorator";
 import { User } from "../user/user.entity";
+import {DuplicateTripDto} from "./dto/duplicate-trip-dto";
 
 @ApiBearerAuth("JWT")
 @ApiTags("Trips")
@@ -91,6 +92,18 @@ export class TripController {
   @UseGuards(AuthGuard())
   upsertTrip(@Body() createTripDto: CreateTripDto, @GetUser() user: User) {
     return this.tripService.upsertTrip(createTripDto, user);
+  }
+
+  @ApiOperation({ summary: "Duplicate Trip", description: "Duplicate trip by name" })
+  @Post("/duplicate")
+  @UsePipes(new ValidationPipe({ transform: true }))
+  @UseGuards(AuthGuard())
+  duplicateTripByName(
+      @Body() duplicateTripDto: DuplicateTripDto,
+      @GetUser() user: User
+  ) {
+    const { name } = duplicateTripDto;
+    return this.tripService.duplicateTripByName(name, duplicateTripDto, user);
   }
 
   @ApiOperation({ summary: "Update Trip", description: "Update trip by id" })

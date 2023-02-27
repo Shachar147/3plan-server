@@ -1,9 +1,9 @@
-import { Module } from '@nestjs/common';
-import { DistanceController } from './distance.controller';
-import { DistanceService } from './distance.service';
+import { Module } from "@nestjs/common";
+import { DistanceController } from "./distance.controller";
+import { DistanceService } from "./distance.service";
 
 @Module({
   controllers: [DistanceController],
-  providers: [DistanceService]
+  providers: [DistanceService],
 })
 export class DistanceModule {}

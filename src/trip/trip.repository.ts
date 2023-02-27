@@ -10,6 +10,7 @@ import {
 } from "@nestjs/common";
 import { Trip } from "./trip.entity";
 import { User } from "../user/user.entity";
+import {DuplicateTripDto} from "./dto/duplicate-trip-dto";
 
 @EntityRepository(Trip)
 export class TripRepository extends Repository<Trip> {
@@ -145,4 +146,35 @@ export class TripRepository extends Repository<Trip> {
       })
       .getOne();
   }
+
+  async duplicateTripByName(oldTrip: Trip, duplicateTripDto: DuplicateTripDto, user: User) {
+    return await this.createTrip({
+      name: duplicateTripDto.newName,
+      allEvents: oldTrip.allEvents,
+      calendarEvents: oldTrip.calendarEvents,
+      sidebarEvents: oldTrip.sidebarEvents,
+      calendarLocale: oldTrip.calendarLocale,
+      categories: oldTrip.categories,
+      dateRange: oldTrip.dateRange
+    }, user)
+    // const trip = new Trip();
+    //
+    // trip.name = duplicateTripDto.newName;
+    // trip.allEvents = oldTrip.allEvents;
+    // trip.calendarEvents = oldTrip.calendarEvents;
+    // trip.sidebarEvents = oldTrip.sidebarEvents;
+    // trip.dateRange = oldTrip.dateRange;
+    // trip.categories = oldTrip.categories;
+    // trip.calendarLocale = oldTrip.calendarLocale;
+    //
+    // try {
+    //   await trip.save();
+    // } catch (error) {
+    //   if (Number(error.code) === 23505) {
+    //     // duplicate trip name
+    //     throw new ConflictException("Trip already exists");
+    //   } else {
+    //     throw new InternalServerErrorException();
+    //   }
+    }
 }
