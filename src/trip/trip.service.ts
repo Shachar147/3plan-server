@@ -12,6 +12,8 @@ import { TripRepository } from "./trip.repository";
 import { InjectRepository } from "@nestjs/typeorm";
 import { User } from "../user/user.entity";
 import fetch from "node-fetch";
+import {DuplicateTripDto} from "./dto/duplicate-trip-dto";
+import {Trip} from "./trip.entity";
 
 @Injectable()
 export class TripService {
@@ -46,7 +48,7 @@ export class TripService {
     // await new Promise(r => setTimeout(r, 10000)); // todo remove
 
     // const found = await this.tripRepository.createQueryBuilder('trip').where("LOWER(trip.name) = LOWER(:name)", { name }).leftJoinAndSelect('trip.players', 'player').getOne();
-    const found = await this.tripRepository._getTripByName(name, user);
+    const found = await this.tripRepository._getTripByName(name.replace(/\s/ig,"-"), user);
     if (!found) {
       throw new NotFoundException(`Trip with name ${name} not found`);
     }
@@ -120,7 +122,7 @@ export class TripService {
   }
 
   async deleteTripByName(name: string, user: User) {
-    const trip = this.getTripByName(name, user);
+    const trip = await this.getTripByName(name, user);
     if (!trip) {
       throw new NotFoundException(`Trip with name ${name} not found`);
     }
@@ -129,5 +131,15 @@ export class TripService {
       throw new NotFoundException(`Trip with name "${name}" not found`);
     }
     return result;
+  }
+
+  async duplicateTripByName(name: string, duplicateTripDto: DuplicateTripDto, user:User) {
+    const trip = await this.getTripByName(name, user);
+    if (!trip) {
+      throw new NotFoundException(`Trip with name ${name} not found`);
+    }
+
+    await this.tripRepository.duplicateTripByName(trip, duplicateTripDto, user);
+    return await this.getTripByName(duplicateTripDto.newName, user);
   }
 }

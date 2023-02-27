@@ -2,7 +2,6 @@ import { Body, Controller, Post, UseGuards } from "@nestjs/common";
 import { DistanceService } from "./distance.service";
 import { User } from "../user/user.entity";
 import { GetUser } from "../auth/get-user.decorator";
-import { GetDistanceResultDto } from "./dto/get-distance-result.dto";
 import { DistanceDto } from "./dto/create-distance.dto";
 import { AuthGuard } from "@nestjs/passport";
 

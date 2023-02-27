@@ -10,6 +10,7 @@ import { InstagramModule } from './instagram/instagram.module';
 import { TinderService } from './integrations/tinder/tinder.service';
 import { TinderModule } from './integrations/tinder/tinder.module';
 import { DistanceModule } from './distance/distance.module';
+import { RoutePlannerModule } from './route-planner/route-planner.module';
 
 @Module({
   imports: [
@@ -20,7 +21,8 @@ import { DistanceModule } from './distance/distance.module';
     InstagramModule,
     TinderModule,
     HttpModule,
-    DistanceModule
+    DistanceModule,
+    RoutePlannerModule
   ],
   controllers: [AppController],
   providers: [AppService, TinderService],
