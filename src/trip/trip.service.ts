@@ -48,9 +48,16 @@ export class TripService {
     // await new Promise(r => setTimeout(r, 10000)); // todo remove
 
     // const found = await this.tripRepository.createQueryBuilder('trip').where("LOWER(trip.name) = LOWER(:name)", { name }).leftJoinAndSelect('trip.players', 'player').getOne();
-    const found = await this.tripRepository._getTripByName(name.replace(/\s/ig,"-"), user);
+
+    const lsName = name.replace(/\s/ig,"-")
+
+    const found = await this.tripRepository._getTripByName(name, user);
     if (!found) {
-      throw new NotFoundException(`Trip with name ${name} not found`);
+      const lsNameFound = await this.tripRepository._getTripByName(lsName, user);
+      if (!lsNameFound) {
+        throw new NotFoundException(`Trip with name ${name} not found`);
+      }
+      return lsNameFound
     }
     return found;
   }
