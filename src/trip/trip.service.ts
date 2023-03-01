@@ -49,6 +49,7 @@ export class TripService {
 
     // const found = await this.tripRepository.createQueryBuilder('trip').where("LOWER(trip.name) = LOWER(:name)", { name }).leftJoinAndSelect('trip.players', 'player').getOne();
 
+    name.replace(/-/ig," ")
     const lsName = name.replace(/\s/ig,"-")
 
     const found = await this.tripRepository._getTripByName(name, user);
