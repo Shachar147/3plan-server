@@ -10,7 +10,7 @@ export class BackupsController {
 
     @Get()
     @UseGuards(AuthGuard())
-    GetAllBackups(
+    GetAllBackupsCount(
         @GetUser() user: User
     ): Promise<any> {
         return this.backupsService.getAllBackups(
@@ -18,14 +18,15 @@ export class BackupsController {
         );
     }
 
-    @Get("/by-trip/:id")
+    @Get("/by-trip/:id/:limit")
     @UseGuards(AuthGuard())
     GetTripBackups(
         @Param("id", ParseIntPipe) id,
+        @Param("limit", ParseIntPipe) limit,
         @GetUser() user: User
     ): Promise<any> {
         return this.backupsService.getTripBackups(
-            { trip_id: id },
+            { trip_id: id, limit: limit },
             user
         );
     }
