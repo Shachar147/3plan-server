@@ -1,4 +1,4 @@
-import {Body, Controller, Get, Post, UseGuards} from "@nestjs/common";
+import {Body, Controller, Get, Param, ParseIntPipe, Post, UseGuards} from "@nestjs/common";
 import { User } from "../user/user.entity";
 import { GetUser } from "../auth/get-user.decorator";
 import {AuthGuard} from "@nestjs/passport";
@@ -12,7 +12,6 @@ export class BackupsController {
     @Get()
     @UseGuards(AuthGuard())
     GetAllBackups(
-        @Body() getTripBackupsDto: GetTripBackupsDto,
         @GetUser() user: User
     ): Promise<any> {
         return this.backupsService.getAllBackups(
@@ -20,14 +19,14 @@ export class BackupsController {
         );
     }
 
-    @Get("/by-trip")
+    @Get("/by-trip/:id")
     @UseGuards(AuthGuard())
     GetTripBackups(
-        @Body() getTripBackupsDto: GetTripBackupsDto,
+        @Param("id", ParseIntPipe) id,
         @GetUser() user: User
     ): Promise<any> {
         return this.backupsService.getTripBackups(
-            getTripBackupsDto,
+            { trip_id: id },
             user
         );
     }
