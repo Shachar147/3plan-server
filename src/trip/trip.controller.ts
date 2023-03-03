@@ -28,6 +28,7 @@ import {
 import { GetUser } from "../auth/get-user.decorator";
 import { User } from "../user/user.entity";
 import {DuplicateTripDto} from "./dto/duplicate-trip-dto";
+import { Request } from 'express';
 
 @ApiBearerAuth("JWT")
 @ApiTags("Trips")
