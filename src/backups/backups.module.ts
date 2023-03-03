@@ -4,11 +4,13 @@ import {TypeOrmModule} from "@nestjs/typeorm";
 import {BackupsRepository} from "./backups.repository";
 import {BackupsController} from "./backups.controller";
 import {AuthModule} from "../auth/auth.module";
+import {PassportModule} from "@nestjs/passport";
 
 @Module({
   imports: [
       TypeOrmModule.forFeature([BackupsRepository]),
-      AuthModule
+      AuthModule,
+    PassportModule,
   ],
   controllers: [BackupsController],
   providers: [BackupsService],
