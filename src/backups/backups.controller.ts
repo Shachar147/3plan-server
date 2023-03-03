@@ -1,9 +1,8 @@
-import {Body, Controller, Get, Param, ParseIntPipe, Post, UseGuards} from "@nestjs/common";
+import {Controller, Get, Param, ParseIntPipe, Post, UseGuards} from "@nestjs/common";
 import { User } from "../user/user.entity";
 import { GetUser } from "../auth/get-user.decorator";
 import {AuthGuard} from "@nestjs/passport";
 import {BackupsService} from "./backups.service";
-import {GetTripBackupsDto} from "./dto/get-trip-backups-dto";
 
 @Controller("backups")
 export class BackupsController {
