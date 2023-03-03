@@ -11,9 +11,8 @@ import { UpdateTripDto } from "./dto/update-trip-dto";
 import { TripRepository } from "./trip.repository";
 import { InjectRepository } from "@nestjs/typeorm";
 import { User } from "../user/user.entity";
-import fetch from "node-fetch";
 import {DuplicateTripDto} from "./dto/duplicate-trip-dto";
-import {Trip} from "./trip.entity";
+import {BackupsService} from "../backups/backups.service";
 
 @Injectable()
 export class TripService {
@@ -21,7 +20,10 @@ export class TripService {
   constructor(
     @InjectRepository(TripRepository)
     private tripRepository: TripRepository,
-  ) {}
+    private backupsService: BackupsService,
+  ) {
+
+  }
 
   async getTrips(filterDto: ListTripsDto, user: User) {
     return await this.tripRepository.getTrips(filterDto, user);
@@ -63,27 +65,27 @@ export class TripService {
     return found;
   }
 
-  async createTrip(createTripDto: CreateTripDto, user: User) {
+  async createTrip(createTripDto: CreateTripDto, user: User, request: Request) {
     // // validation
     // ['name', 'logo', 'division', 'conference'].forEach((iter) => {
     //   if (createTripDto[iter] == undefined) {
     //     throw new BadRequestException(`${iter} : missing`);
     //   }
     // });
-    return await this.tripRepository.createTrip(createTripDto, user);
+    return await this.tripRepository.createTrip(createTripDto, user, request, this.backupsService);
   }
 
-  async upsertTrip(createTripDto: CreateTripDto, user: User) {
+  async upsertTrip(createTripDto: CreateTripDto, user: User, request: Request) {
     const { name } = createTripDto;
 
     if (!name) {
       throw new BadRequestException("name : missing");
     }
 
-    return await this.tripRepository.upsertTrip(createTripDto, user);
+    return await this.tripRepository.upsertTrip(createTripDto, user, request, this.backupsService);
   }
 
-  async updateTrip(id: number, updateTripDto: UpdateTripDto, user: User) {
+  async updateTrip(id: number, updateTripDto: UpdateTripDto, user: User, request: Request) {
     const trip = await this.getTrip(id, user);
 
     // if (
@@ -95,13 +97,14 @@ export class TripService {
     //   throw new NotFoundException(`You have to pass fields to update`);
     // }
 
-    return this.tripRepository.updateTrip(updateTripDto, trip, user);
+    return this.tripRepository.updateTrip(updateTripDto, trip, user, request, this.backupsService);
   }
 
   async updateTripByName(
     name: string,
     updateTripDto: UpdateTripDto,
-    user: User
+    user: User,
+    request: Request
   ) {
     const trip = await this.getTripByName(name, user);
 
@@ -114,14 +117,18 @@ export class TripService {
     //   throw new NotFoundException(`You have to pass fields to update`);
     // }
 
-    return this.tripRepository.updateTrip(updateTripDto, trip, user);
+    return this.tripRepository.updateTrip(updateTripDto, trip, user, request, this.backupsService);
   }
 
-  async deleteTrip(id: number, user: User) {
-    const trip = this.getTrip(id, user);
+  async deleteTrip(id: number, user: User, request: Request) {
+    const trip = await this.getTrip(id, user);
     if (!trip) {
       throw new NotFoundException(`Trip with id #${id} not found`);
     }
+
+    // backup
+    await this.tripRepository.keepBackup({id}, trip, request, user, this.backupsService)
+
     const result = await this.tripRepository.delete({ id: id });
     if (result.affected === 0) {
       throw new NotFoundException(`Trip with id #${id} not found`);
@@ -129,7 +136,7 @@ export class TripService {
     return result;
   }
 
-  async deleteTripByName(name: string, user: User) {
+  async deleteTripByName(name: string, user: User, request: Request) {
     const trip = await this.getTripByName(name, user);
     if (!trip) {
       throw new NotFoundException(`Trip with name ${name} not found`);
@@ -141,13 +148,13 @@ export class TripService {
     return result;
   }
 
-  async duplicateTripByName(name: string, duplicateTripDto: DuplicateTripDto, user:User) {
+  async duplicateTripByName(name: string, duplicateTripDto: DuplicateTripDto, user:User, request: Request) {
     const trip = await this.getTripByName(name, user);
     if (!trip) {
       throw new NotFoundException(`Trip with name ${name} not found`);
     }
 
-    await this.tripRepository.duplicateTripByName(trip, duplicateTripDto, user);
+    await this.tripRepository.duplicateTripByName(trip, duplicateTripDto, user, request, this.backupsService);
     return await this.getTripByName(duplicateTripDto.newName, user);
   }
 }

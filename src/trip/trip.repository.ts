@@ -3,20 +3,44 @@ import { CreateTripDto } from "./dto/create-trip-dto";
 import { UpdateTripDto } from "./dto/update-trip-dto";
 import { ListTripsDto } from "./dto/list-trips-dto";
 import {
-  ConflictException,
+  ConflictException, Injectable,
   InternalServerErrorException,
   Logger,
-  NotFoundException,
 } from "@nestjs/common";
 import { Trip } from "./trip.entity";
 import { User } from "../user/user.entity";
 import {DuplicateTripDto} from "./dto/duplicate-trip-dto";
+import {CreateBackupDto} from "../backups/dto/create-backup-dto";
+import {BackupsService} from "../backups/backups.service";
 
+@Injectable()
 @EntityRepository(Trip)
 export class TripRepository extends Repository<Trip> {
   private logger = new Logger("TripRepository");
 
-  async createTrip(createTripDto: CreateTripDto, user: User): Promise<Trip> {
+  async keepBackup(dto: any, trip: Trip, request: Request, user: User, backupsService: BackupsService){
+
+    // do not keep small backups
+    if (Object.keys(dto).length == 1){
+      const key = Object.keys(dto)[0];
+      if (["calendarLocale", "dateRange"].indexOf(key) !== -1){
+        return; // skip
+      }
+    }
+
+    // backup
+    const backupDto: CreateBackupDto = {
+      tripBackup: JSON.parse(JSON.stringify(trip)),
+      tripId: trip.id,
+      requestPayload: JSON.parse(JSON.stringify(dto)),
+      requestUrl: request.url,
+      requestMethod: request.method
+    }
+
+    return await backupsService.createBackup(backupDto, user);
+  }
+
+  async createTrip(createTripDto: CreateTripDto, user: User, request: Request, backupsService: BackupsService): Promise<Trip> {
     const {
       name,
       dateRange,
@@ -47,10 +71,13 @@ export class TripRepository extends Repository<Trip> {
       }
     }
 
+    // backup
+    await this.keepBackup(createTripDto, trip, request, user, backupsService)
+
     return trip;
   }
 
-  async upsertTrip(createTripDto: CreateTripDto, user: User): Promise<Trip> {
+  async upsertTrip(createTripDto: CreateTripDto, user: User, request: Request, backupsService: BackupsService): Promise<Trip> {
     const { name } = createTripDto;
     const query = this.createQueryBuilder("trip");
     query.andWhere("trip.name = :name", { name });
@@ -58,14 +85,16 @@ export class TripRepository extends Repository<Trip> {
       userId: user.id,
     });
     const trips = await query.getMany();
-    if (trips.length == 0) return await this.createTrip(createTripDto, user);
-    else return await this.updateTrip(createTripDto, trips[0], user);
+    if (trips.length == 0) return await this.createTrip(createTripDto, user, request, backupsService);
+    else return await this.updateTrip(createTripDto, trips[0], user, request, backupsService);
   }
 
   async updateTrip(
     updateTripDto: UpdateTripDto,
     trip: Trip,
-    user: User
+    user: User,
+    request: Request,
+    backupService: BackupsService,
   ): Promise<Trip> {
     const {
       name,
@@ -76,6 +105,10 @@ export class TripRepository extends Repository<Trip> {
       allEvents,
       calendarLocale,
     } = updateTripDto;
+
+    // backup
+    await this.keepBackup(updateTripDto, trip, request, user, backupService)
+
     if (name) trip.name = name;
     if (dateRange) trip.dateRange = dateRange;
     if (categories) trip.categories = categories;
@@ -147,7 +180,7 @@ export class TripRepository extends Repository<Trip> {
       .getOne();
   }
 
-  async duplicateTripByName(oldTrip: Trip, duplicateTripDto: DuplicateTripDto, user: User) {
+  async duplicateTripByName(oldTrip: Trip, duplicateTripDto: DuplicateTripDto, user: User, request: Request, backupsService: BackupsService) {
     return await this.createTrip({
       name: duplicateTripDto.newName,
       allEvents: oldTrip.allEvents,
@@ -156,7 +189,7 @@ export class TripRepository extends Repository<Trip> {
       calendarLocale: oldTrip.calendarLocale,
       categories: oldTrip.categories,
       dateRange: oldTrip.dateRange
-    }, user)
+    }, user, request, backupsService)
     // const trip = new Trip();
     //
     // trip.name = duplicateTripDto.newName;

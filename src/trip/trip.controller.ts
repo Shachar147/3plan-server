@@ -10,7 +10,7 @@ import {
   Query,
   ValidationPipe,
   UsePipes,
-  UseGuards,
+  UseGuards, Req,
 } from "@nestjs/common";
 import { ListTripsDto } from "./dto/list-trips-dto";
 import { TripService } from "./trip.service";
@@ -33,7 +33,10 @@ import {DuplicateTripDto} from "./dto/duplicate-trip-dto";
 @ApiTags("Trips")
 @Controller("trip")
 export class TripController {
-  constructor(private tripService: TripService) {}
+  constructor(
+      private tripService: TripService,
+
+  ) {}
 
   @ApiOperation({ summary: "Get Trips", description: "Get all trips" })
   @Get()
@@ -82,16 +85,16 @@ export class TripController {
   @Post()
   @UsePipes(new ValidationPipe({ transform: true }))
   @UseGuards(AuthGuard())
-  createTrip(@Body() createTripDto: CreateTripDto, @GetUser() user: User) {
-    return this.tripService.createTrip(createTripDto, user);
+  createTrip(@Body() createTripDto: CreateTripDto, @GetUser() user: User, @Req() request: Request) {
+    return this.tripService.createTrip(createTripDto, user, request);
   }
 
   @ApiOperation({ summary: "Upsert Trip", description: "Upsert a trip." })
   @Post("/upsert")
   @UsePipes(new ValidationPipe({ transform: true }))
   @UseGuards(AuthGuard())
-  upsertTrip(@Body() createTripDto: CreateTripDto, @GetUser() user: User) {
-    return this.tripService.upsertTrip(createTripDto, user);
+  upsertTrip(@Body() createTripDto: CreateTripDto, @GetUser() user: User, @Req() request: Request) {
+    return this.tripService.upsertTrip(createTripDto, user, request);
   }
 
   @ApiOperation({ summary: "Duplicate Trip", description: "Duplicate trip by name" })
@@ -100,10 +103,11 @@ export class TripController {
   @UseGuards(AuthGuard())
   duplicateTripByName(
       @Body() duplicateTripDto: DuplicateTripDto,
-      @GetUser() user: User
+      @GetUser() user: User,
+      @Req() request: Request
   ) {
     const { name } = duplicateTripDto;
-    return this.tripService.duplicateTripByName(name, duplicateTripDto, user);
+    return this.tripService.duplicateTripByName(name, duplicateTripDto, user, request);
   }
 
   @ApiOperation({ summary: "Update Trip", description: "Update trip by id" })
@@ -119,9 +123,10 @@ export class TripController {
   updateTrip(
     @Param("id", ParseIntPipe) id,
     @Body() updateTripDto: UpdateTripDto,
-    @GetUser() user: User
+    @GetUser() user: User,
+    @Req() request: Request
   ) {
-    return this.tripService.updateTrip(id, updateTripDto, user);
+    return this.tripService.updateTrip(id, updateTripDto, user, request);
   }
 
   @ApiOperation({
@@ -140,9 +145,10 @@ export class TripController {
   updateTripByName(
     @Param("name") name,
     @Body() updateTripDto: UpdateTripDto,
-    @GetUser() user: User
+    @GetUser() user: User,
+    @Req() request: Request
   ) {
-    return this.tripService.updateTripByName(name, updateTripDto, user);
+    return this.tripService.updateTripByName(name, updateTripDto, user, request);
   }
 
   @ApiOperation({ summary: "Delete Trip", description: "Delete trip by id" })
@@ -156,9 +162,10 @@ export class TripController {
   @UseGuards(AuthGuard())
   deleteTrip(
     @Param("id", ParseIntPipe) id,
-    @GetUser() user: User
+    @GetUser() user: User,
+    @Req() request: Request
   ): Promise<DeleteResult> {
-    return this.tripService.deleteTrip(id, user);
+    return this.tripService.deleteTrip(id, user, request);
   }
 
   @ApiOperation({
@@ -175,8 +182,9 @@ export class TripController {
   @UseGuards(AuthGuard())
   deleteTripByName(
     @Param("name") name,
-    @GetUser() user: User
+    @GetUser() user: User,
+    @Req() request: Request
   ): Promise<DeleteResult> {
-    return this.tripService.deleteTripByName(name, user);
+    return this.tripService.deleteTripByName(name, user, request);
   }
 }
