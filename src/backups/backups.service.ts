@@ -21,23 +21,26 @@ export class BackupsService {
         total: number,
         backups: Backups[]
     }> {
-        const data = await this.backupsRepository.find({
-            tripId: getTripBackupsDto.trip_id
+        const { trip_id, limit = 20 } = getTripBackupsDto;
+        let data = await this.backupsRepository.find({
+            tripId: trip_id
         });
+        data = data.sort((a,b) => b.id - a.id);
         return {
             total: data.length,
-            backups: data
+            backups: data.slice(0, Math.min(data.length-1, limit))
         }
     }
 
     async getAllBackups(user: User): Promise<{
         total: number,
-        backups: Backups[]
+        backups?: Backups[]
     }> {
-        const data = await this.backupsRepository.find({});
+        let data = await this.backupsRepository.find({});
+        data = data.sort((a,b) => b.id - a.id);
         return {
-            total: data.length,
-            backups: data
+            total: data.length
+            // backups: data
         }
     }
 }
