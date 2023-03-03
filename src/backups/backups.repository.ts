@@ -10,7 +10,7 @@ import {CreateBackupDto} from "./dto/create-backup-dto";
 export class BackupsRepository extends Repository<Backups> {
     private logger = new Logger("BackupsRepository");
 
-    private MAX_BACKUPS = 270;
+    private MAX_BACKUPS = 1000;
 
     public async removeOldBackups() {
         const allBackups = (await this.find({})).sort((a,b) => a.id - b.id);
