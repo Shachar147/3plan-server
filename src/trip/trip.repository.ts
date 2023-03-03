@@ -12,6 +12,7 @@ import { User } from "../user/user.entity";
 import {DuplicateTripDto} from "./dto/duplicate-trip-dto";
 import {CreateBackupDto} from "../backups/dto/create-backup-dto";
 import {BackupsService} from "../backups/backups.service";
+import { Request } from 'express';
 
 @Injectable()
 @EntityRepository(Trip)

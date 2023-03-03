@@ -13,6 +13,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { User } from "../user/user.entity";
 import {DuplicateTripDto} from "./dto/duplicate-trip-dto";
 import {BackupsService} from "../backups/backups.service";
+import { Request } from 'express';
 
 @Injectable()
 export class TripService {
