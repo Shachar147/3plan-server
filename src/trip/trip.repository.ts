@@ -120,7 +120,7 @@ export class TripRepository extends Repository<Trip> {
   }
 
   async updateTrip(
-    updateTripDto: UpdateTripDto,
+    updateTripDto: Partial<UpdateTripDto>,
     trip: Trip,
     user: User,
     request: Request,
@@ -139,27 +139,48 @@ export class TripRepository extends Repository<Trip> {
     // backup
     await this.keepBackup(updateTripDto, trip, request, user, backupService);
 
-    if (name) trip.name = name;
-    if (dateRange) trip.dateRange = dateRange;
-    if (categories) trip.categories = categories;
-    if (calendarEvents) trip.calendarEvents = calendarEvents;
-    if (sidebarEvents) trip.sidebarEvents = sidebarEvents;
-    if (allEvents) trip.allEvents = allEvents;
-    if (calendarLocale) trip.calendarLocale = calendarLocale;
-    if (user) trip.user = user;
+    const updates: any = {};
 
-    trip.lastUpdateAt = new Date();
+    if (name) updates.name = name;
+    if (dateRange) updates.dateRange = dateRange;
+    if (categories) updates.categories = categories;
+    if (calendarEvents) updates.calendarEvents = calendarEvents;
+    if (sidebarEvents) updates.sidebarEvents = sidebarEvents;
+    if (allEvents) updates.allEvents = allEvents;
+    if (calendarLocale) updates.calendarLocale = calendarLocale;
+    if (user) updates.user = user;
+    updates.lastUpdateAt = new Date();
 
-    try {
-      await trip.save();
-    } catch (error) {
-      if (Number(error.code) === 23505) {
-        // duplicate trip name
-        throw new ConflictException("Trip already exists");
-      } else {
-        throw new InternalServerErrorException();
-      }
-    }
+    const queryBuilder = this.createQueryBuilder('trip');
+    await queryBuilder
+        .update(Trip)
+        .set(updates)
+        .where('id = :id', { id: trip.id })
+        .execute();
+
+    trip = await this._getTripByName(trip.name, user)
+
+    // if (name) trip.name = name;
+    // if (dateRange) trip.dateRange = dateRange;
+    // if (categories) trip.categories = categories;
+    // if (calendarEvents) trip.calendarEvents = calendarEvents;
+    // if (sidebarEvents) trip.sidebarEvents = sidebarEvents;
+    // if (allEvents) trip.allEvents = allEvents;
+    // if (calendarLocale) trip.calendarLocale = calendarLocale;
+    // if (user) trip.user = user;
+    //
+    // trip.lastUpdateAt = new Date();
+    //
+    // try {
+    //   await trip.save();
+    // } catch (error) {
+    //   if (Number(error.code) === 23505) {
+    //     // duplicate trip name
+    //     throw new ConflictException("Trip already exists");
+    //   } else {
+    //     throw new InternalServerErrorException();
+    //   }
+    // }
 
     return trip;
   }
