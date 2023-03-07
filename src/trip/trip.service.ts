@@ -47,37 +47,10 @@ export class TripService {
   }
 
   async getTripByName(name: string, user: User) {
-    // debug - simulate long load
-    // await new Promise(r => setTimeout(r, 10000)); // todo remove
-
-    // const found = await this.tripRepository.createQueryBuilder('trip').where("LOWER(trip.name) = LOWER(:name)", { name }).leftJoinAndSelect('trip.players', 'player').getOne();
-
-    let found = await this.tripRepository._getTripByName(name, user);
-    if (!found) {
-
-      name.replace(/-/ig," ");
-      found = await this.tripRepository._getTripByName(name, user);
-
-      if (!found) {
-        const lsName = name.replace(/\s/ig, "-")
-
-        const lsNameFound = await this.tripRepository._getTripByName(lsName, user);
-        if (!lsNameFound) {
-          throw new NotFoundException(`Trip with name ${name} not found`);
-        }
-        return lsNameFound
-      }
-    }
-    return found;
+    return this.tripRepository._getTripByName(name, user);
   }
 
   async createTrip(createTripDto: CreateTripDto, user: User, request: Request) {
-    // // validation
-    // ['name', 'logo', 'division', 'conference'].forEach((iter) => {
-    //   if (createTripDto[iter] == undefined) {
-    //     throw new BadRequestException(`${iter} : missing`);
-    //   }
-    // });
     return await this.tripRepository.createTrip(createTripDto, user, request, this.backupsService);
   }
 
@@ -147,7 +120,7 @@ export class TripService {
     if (!trip) {
       throw new NotFoundException(`Trip with name ${name} not found`);
     }
-    const result = await this.tripRepository.delete({ name: name });
+    const result = await this.tripRepository.delete({ name: trip.name });
     if (result.affected === 0) {
       throw new NotFoundException(`Trip with name "${name}" not found`);
     }
