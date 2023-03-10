@@ -30,4 +30,16 @@ export class BackupsController {
             user
         );
     }
+
+    @Get("/:id")
+    @UseGuards(AuthGuard())
+    GetSpecificBackup(
+        @Param("id", ParseIntPipe) id,
+        @GetUser() user: User
+    ): Promise<any> {
+        return this.backupsService.getSpecificBackup(
+            id,
+            user
+        );
+    }
 }
