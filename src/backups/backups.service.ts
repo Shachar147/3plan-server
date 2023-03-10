@@ -13,6 +13,12 @@ export class BackupsService {
         private backupsRepository: BackupsRepository,
     ) {}
 
+    async getSpecificBackup(id: number, user: User): Promise<any> {
+        return (await this.backupsRepository.findOne({
+            id
+        }))?.tripBackup
+    }
+
     async createBackup(createBackupDto: CreateBackupDto, user: User): Promise<Backups> {
         return this.backupsRepository.createBackup(createBackupDto, user)
     }

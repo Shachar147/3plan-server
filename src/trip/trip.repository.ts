@@ -221,7 +221,7 @@ export class TripRepository extends Repository<Trip> {
     let found = await findOne(name, user);
     if (!found) {
 
-      name.replace(/-/ig," ");
+      name = name.replace(/\-/ig," ");
       found = await findOne(name, user);
 
       if (!found) {
