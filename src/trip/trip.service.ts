@@ -160,6 +160,7 @@ export class TripService {
     const totalCategoryIdFixes = [];
     const totalOpeningHoursFixes = [];
 
+    // @ts-ignore
     const modifiedTrips = trips.map((trip, idx) => {
       const categories: any[] = trip.categories as unknown as any[];
 
@@ -171,6 +172,7 @@ export class TripService {
       let totalErrorsInThisTrip = 0;
 
       // all events
+      // @ts-ignore
       const modifiedAllEvents = trip.allEvents.map((event) => {
         if (Object.keys(event).includes("extendedProps")) {
           totalExtendedPropsFixes.push({
@@ -269,6 +271,7 @@ export class TripService {
         return event;
       });
 
+      // @ts-ignore
       const modifiedCalendarEvents = trip.calendarEvents.map((event) => {
         if (Object.keys(event).includes("extendedProps")) {
           totalExtendedPropsFixes.push({
