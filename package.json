@@ -28,7 +28,7 @@
     "start:background": "npm run killbill && npm run start:dev:mac",
     "start:all": "concurrently \"npm run start:background\" \"cd ../3plan-frontend && npm run start:background\"",
     "migration:extendedprops": "ts-node ./migrations/migrate-extendedprops-11-03-2023.ts --dryrun=false",
-    "migration:extendedprops:specific": "ts-node ./migrations/migrate-extendedprops-11-03-2023.ts --dryrun=false --name=\"שוויץ לוקאלי\""
+    "migration:extendedprops:specific": "ts-node ./migrations/migrate-extendedprops-11-03-2023.ts --dryrun=false --name=\"שוויץ\""
   },
   "husky": {
     "hooks": {
