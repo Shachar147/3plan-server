@@ -473,8 +473,11 @@ export class TripService {
       });
 
       if (!isDryRun) {
+        // @ts-ignore
         trip.allEvents = modifiedAllEvents;
+        // @ts-ignore
         trip.sidebarEvents = modifiedSidebarEvents;
+        // @ts-ignore
         trip.calendarEvents = modifiedCalendarEvents;
       }
 
@@ -502,6 +505,7 @@ export class TripService {
               `... Backing Up trip #${i+1}/${tripsToBackup.length} - ${trip.name}...\n`
           );
 
+        // @ts-ignore
         await this.tripRepository.keepBackup({}, trip, {
           url: "migration",
           method: "migrate-extendedprops-11-03-2023.ts"
