@@ -161,7 +161,7 @@ export class TripService {
     const totalOpeningHoursFixes = [];
 
     const modifiedTrips = trips.map((trip, idx) => {
-      const { categories } = trip;
+      const categories: any[] = trip.categories as unknown as any[];
 
       if (isVerbose)
         console.log(
