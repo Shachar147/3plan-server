@@ -3,7 +3,6 @@ import {
   Injectable,
   Logger,
   NotFoundException,
-  HttpService,
 } from "@nestjs/common";
 import { ListTripsDto } from "./dto/list-trips-dto";
 import { CreateTripDto } from "./dto/create-trip-dto";
@@ -14,8 +13,6 @@ import { User } from "../user/user.entity";
 import {DuplicateTripDto} from "./dto/duplicate-trip-dto";
 import {BackupsService} from "../backups/backups.service";
 import { Request } from 'express';
-import {Trip} from "./trip.entity";
-import {BackupsRepository} from "../backups/backups.repository";
 
 @Injectable()
 export class TripService {
