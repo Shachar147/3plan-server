@@ -185,6 +185,12 @@ export class TripRepository extends Repository<Trip> {
     return trip;
   }
 
+  async getAllTripsByPass(){
+    const query = this.createQueryBuilder("trip");
+    const trips = await query.getMany();
+    return trips;
+  }
+
   async getTrips(filterDto: ListTripsDto, user: User): Promise<Trip[]> {
     const { search } = filterDto;
 
