@@ -27,6 +27,10 @@ export class TripRepository extends Repository<Trip> {
     user: User,
     backupsService: BackupsService
   ) {
+
+    // commented out for now since it may causing issues on production.
+    return undefined;
+
     // do not keep small backups
     if (Object.keys(dto).length == 1) {
       const key = Object.keys(dto)[0];
