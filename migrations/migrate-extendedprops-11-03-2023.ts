@@ -30,6 +30,15 @@ const dbConfig = {
   database: "triplan",
 };
 
+const productionDbConfig = {
+  type: "postgres",
+  host: "ec2-3-230-87-163.compute-1.amazonaws.com",
+  username: "qhryowlnqsgysl",
+  password: "650bae8295578b5b8764d747f7f630d569597fa04dbdfe2270f46faef46b5238",
+  port: 5432,
+  database: "d8irue2932ioo9",
+}
+
 // todo complete - remove also openingHours OBJECT OBJECT
 
 // Define the logic for your script
@@ -54,7 +63,7 @@ async function migrate() {
   // Connect to the database
   if (isVerbose) console.log("Connecting to database....\n");
   const connection = await createConnection({
-    ...dbConfig,
+    ...productionDbConfig,
     entities: [Trip, User, Distance, Backups],
   });
 
