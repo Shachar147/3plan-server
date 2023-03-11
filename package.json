@@ -26,7 +26,7 @@
     "killbill": "npx kill-port 3001",
     "start:background": "npm run killbill && npm run start:dev:mac",
     "start:all": "concurrently \"npm run start:background\" \"cd ../3plan-frontend && npm run start:background\"",
-    "migration:extendedprops": "ts-node ./migrations/migrate-extendedprops-11-03-2023.ts --dryrun=false",
+    "migration:extendedprops": "ts-node ./migrations/migrate-extendedprops-11-03-2023.ts --dryrun=true",
     "migration:extendedprops:specific": "ts-node ./migrations/migrate-extendedprops-11-03-2023.ts --dryrun=false --name=\"שוויץ\""
   },
   "husky": {
