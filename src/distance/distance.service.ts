@@ -1,7 +1,5 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { User } from "../user/user.entity";
-import { Coordinate } from "./dto/get-distance-result.dto";
-import { Distance, TextValueObject, TravelMode } from "./distance.entity";
 import { DistanceDto } from "./dto/create-distance.dto";
 import { getTimestampInSeconds } from "../shared/utils";
 import { InjectRepository } from "@nestjs/typeorm";
@@ -29,36 +27,38 @@ export class DistanceService {
 
     // return from db if already exist
     const distanceFromDB = await this.distanceRepository.findDistance(from, to);
-    const diffInDays =
-      (getTimestampInSeconds() - distanceFromDB.addedAt) / SECONDS_IN_DAY; // 86400;
     if (distanceFromDB) {
+      const diffInDays =
+        (getTimestampInSeconds() -
+          Math.floor(distanceFromDB.addedAt.getTime() / 1000)) /
+        SECONDS_IN_DAY;
       if (diffInDays <= DB_DATA_EXPIRY_IN_DAYS) {
         return this.distanceRepository.distanceToDistanceResult(distanceFromDB);
       }
-
-      // else calculate from google
-      const distance = require("google-distance-matrix");
-      const result = await this.distanceRepository.calculateDistance(
-        origins,
-        destinations,
-        distance
-      );
-
-      await this.distanceRepository.upsertDistance(
-        DistanceDto,
-        user,
-        result,
-        distance,
-        distanceFromDB
-      );
-
-      // @ts-ignore
-      return {
-        ...result,
-        travelMode: distance.options.mode.toUpperCase(),
-        from,
-        to,
-      };
     }
+
+    // else calculate from google
+    const distance = require("google-distance-matrix");
+    const result = await this.distanceRepository.calculateDistance(
+      origins,
+      destinations,
+      distance
+    );
+
+    await this.distanceRepository.upsertDistance(
+      DistanceDto,
+      user,
+      result,
+      distance,
+      !!distanceFromDB
+    );
+
+    // @ts-ignore
+    return {
+      ...result,
+      travelMode: distance.options.mode.toUpperCase(),
+      from,
+      to,
+    };
   }
 }

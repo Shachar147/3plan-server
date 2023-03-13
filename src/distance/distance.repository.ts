@@ -1,10 +1,10 @@
-import { Distance, TextValueObject, TravelMode } from "./distance.entity";
+import { Distance } from "./distance.entity";
 import { EntityRepository, Repository } from "typeorm";
 import { User } from "../user/user.entity";
-import { getTimestampInSeconds } from "../shared/utils";
 import { BadRequestException } from "@nestjs/common";
 import { Coordinate, DistanceDto } from "./dto/create-distance.dto";
 import { updateDistanceDto } from "./dto/update.distance.dto";
+import { TextValueObject, TravelMode } from "./common";
 
 export interface DistanceResult {
   origin: string;
@@ -29,7 +29,6 @@ export class DistanceRepository extends Repository<Distance> {
     dis.from = from;
     dis.to = to;
     dis.addedBy = user;
-    dis.addedAt = getTimestampInSeconds();
 
     try {
       await dis.save();
@@ -37,7 +36,7 @@ export class DistanceRepository extends Repository<Distance> {
       if (e.code === "23505") {
         throw new BadRequestException(
           "DistanceAlreadyExist",
-          `distance is already exist`
+          `the distance between ${from} and ${to} (in ${dis.travel_mode}) is already exist`
         );
       }
       throw e;
@@ -56,22 +55,20 @@ export class DistanceRepository extends Repository<Distance> {
   ): Promise<any> {
     const updates = this.updateAndGetDiff(distance, DistanceDto);
     const isUpdated = updates.length > 0;
-    if (!isUpdated) {
-      return { isUpdated, updates, distance };
+    if (isUpdated) {
+      await distance.save();
     }
-
-    await distance.save();
     return { isUpdated, updates, distance };
   }
 
   async upsertDistance(
     DistanceDto: DistanceDto,
     user: User,
-    result,
+    result: object,
     distance,
-    distanceFromDB
+    isExist: boolean
   ) {
-    if (distanceFromDB) {
+    if (isExist) {
       await this.updateDistance(distance, DistanceDto);
     } else {
       await this.createDistance(DistanceDto, user, result, distance);
@@ -111,36 +108,43 @@ export class DistanceRepository extends Repository<Distance> {
     destinations,
     distance
   ): Promise<Partial<DistanceResult>> {
-    distance.key("AIzaSyA7I3QU1khdOUoOwQm4xPhv2_jt_cwFSNU");
-    console.log(distance.options.mode);
-    return new Promise((resolve, reject) => {
-      distance.matrix(origins, destinations, function (err, distances) {
-        if (err) {
-          reject(err);
-        }
-        if (!distances) {
-          reject("no distances");
-        }
-        if (distances.status == "OK") {
-          for (var i = 0; i < origins.length; i++) {
-            for (var j = 0; j < destinations.length; j++) {
-              var origin = distances.origin_addresses[i];
-              var destination = distances.destination_addresses[j];
-              if (distances.rows[0].elements[j].status == "OK") {
-                var distance = distances.rows[i].elements[j].distance;
-                console.log("distances", distances);
-                var duration = distances.rows[i].elements[j].duration;
-                resolve({ origin, distance, destination, duration });
-              } else {
-                reject(
-                  destination + " is not reachable by land from " + origin
-                );
+    const googleKey = "AIzaSyA7I3QU1khdOUoOwQm4xPhv2_jt_cwFSNU";
+    distance.key(googleKey);
+    try {
+      return new Promise((resolve, reject) => {
+        distance.matrix(origins, destinations, function (err, distances) {
+          if (err) {
+            reject(err);
+          }
+          if (!distances) {
+            reject("no distances");
+          }
+          if (distances.status == "OK") {
+            for (var i = 0; i < origins.length; i++) {
+              for (var j = 0; j < destinations.length; j++) {
+                var origin = distances.origin_addresses[i];
+                var destination = distances.destination_addresses[j];
+                if (distances.rows[0].elements[j].status == "OK") {
+                  var distance = distances.rows[i].elements[j].distance;
+                  console.log("distances", distances);
+                  var duration = distances.rows[i].elements[j].duration;
+                  resolve({ origin, distance, destination, duration });
+                } else {
+                  reject(
+                    destination + " is not reachable by land from " + origin
+                  );
+                }
               }
             }
           }
-        }
+        });
       });
-    });
+    } catch (e) {
+      throw new BadRequestException(
+        "DistanceNotExist",
+        `the distance is not exist`
+      );
+    }
   }
 
   async findDistance(from: Coordinate, to: Coordinate): Promise<Distance> {
