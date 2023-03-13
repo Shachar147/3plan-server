@@ -3,7 +3,6 @@ import {
   Injectable,
   Logger,
   NotFoundException,
-  HttpService,
 } from "@nestjs/common";
 import { ListTripsDto } from "./dto/list-trips-dto";
 import { CreateTripDto } from "./dto/create-trip-dto";
@@ -47,37 +46,10 @@ export class TripService {
   }
 
   async getTripByName(name: string, user: User) {
-    // debug - simulate long load
-    // await new Promise(r => setTimeout(r, 10000)); // todo remove
-
-    // const found = await this.tripRepository.createQueryBuilder('trip').where("LOWER(trip.name) = LOWER(:name)", { name }).leftJoinAndSelect('trip.players', 'player').getOne();
-
-    let found = await this.tripRepository._getTripByName(name, user);
-    if (!found) {
-
-      name.replace(/-/ig," ");
-      found = await this.tripRepository._getTripByName(name, user);
-
-      if (!found) {
-        const lsName = name.replace(/\s/ig, "-")
-
-        const lsNameFound = await this.tripRepository._getTripByName(lsName, user);
-        if (!lsNameFound) {
-          throw new NotFoundException(`Trip with name ${name} not found`);
-        }
-        return lsNameFound
-      }
-    }
-    return found;
+    return this.tripRepository._getTripByName(name, user);
   }
 
   async createTrip(createTripDto: CreateTripDto, user: User, request: Request) {
-    // // validation
-    // ['name', 'logo', 'division', 'conference'].forEach((iter) => {
-    //   if (createTripDto[iter] == undefined) {
-    //     throw new BadRequestException(`${iter} : missing`);
-    //   }
-    // });
     return await this.tripRepository.createTrip(createTripDto, user, request, this.backupsService);
   }
 
@@ -147,7 +119,7 @@ export class TripService {
     if (!trip) {
       throw new NotFoundException(`Trip with name ${name} not found`);
     }
-    const result = await this.tripRepository.delete({ name: name });
+    const result = await this.tripRepository.delete({ name: trip.name });
     if (result.affected === 0) {
       throw new NotFoundException(`Trip with name "${name}" not found`);
     }
@@ -162,5 +134,399 @@ export class TripService {
 
     await this.tripRepository.duplicateTripByName(trip, duplicateTripDto, user, request, this.backupsService);
     return await this.getTripByName(duplicateTripDto.newName, user);
+  }
+
+  async migrate({ isDryRun = true, name }: { isDryRun?: boolean, name?: string}) {
+    const isVerbose = true;
+
+    // Connect to the database
+    if (isVerbose) console.log("Connecting to database....\n");
+
+    const tripRepository = this.tripRepository;
+
+    if (isVerbose) console.log("Querying all trips....\n");
+    let trips = await this.tripRepository.getAllTripsByPass()
+
+    if (name) {
+      trips = trips.filter((x) => x.name === name);
+    }
+
+    const changedTripIds = {};
+    const totalTripsToFix = {};
+    const totalExtendedPropsFixes = [];
+    const totalCategoryIdFixes = [];
+    const totalOpeningHoursFixes = [];
+
+    // @ts-ignore
+    const modifiedTrips = trips.map((trip, idx) => {
+      const categories: any[] = trip.categories as unknown as any[];
+
+      if (isVerbose)
+        console.log(
+            `Analyzing trip #${idx + 1}/${trips.length} - ${trip.name}....`
+        );
+
+      let totalErrorsInThisTrip = 0;
+
+      // all events
+      // @ts-ignore
+      const modifiedAllEvents = trip.allEvents.map((event) => {
+        if (Object.keys(event).includes("extendedProps")) {
+          totalExtendedPropsFixes.push({
+            id: event.id,
+            where: "allEvents",
+            event,
+          });
+
+          if (!isDryRun) {
+            if (event.extendedProps) {
+              event = {
+                ...event.extendedProps,
+                ...event,
+              };
+              delete event.extendedProps;
+            }
+          }
+
+          changedTripIds[trip.id] = changedTripIds[trip.id] || 0;
+          changedTripIds[trip.id]++;
+          totalTripsToFix[trip.name] = totalTripsToFix[trip.name] || 0;
+          totalTripsToFix[trip.name]++;
+          totalErrorsInThisTrip++;
+        }
+
+        if (Object.keys(event).includes("categoryId")) {
+          totalCategoryIdFixes.push({ id: event.id, where: "allEvents", event });
+
+          let shouldIncreaseCounters = true;
+          if (!isDryRun) {
+            if (event.categoryId) {
+              if (event.category == undefined) {
+                event.category = event.categoryId;
+              }
+              if (event.categoryId == event.category) {
+                delete event.categoryId;
+              } else {
+                if (Number.isNaN(event.category)) {
+                  event.category = event.categoryId;
+                  delete event.categoryId;
+                } else {
+                  delete event.categoryId;
+                }
+
+                // shouldIncreaseCounters = false;
+                console.error(
+                    `trip ${trip.name} activity: ${event.title} have two categories: ${event.categoryId}, ${event.category} which are: ${categories.find((x) => x.id == event.categoryId)?.title}, ${categories.find((x) => x.id == event.category)?.title}`
+                );
+              }
+            }
+          }
+          if (shouldIncreaseCounters) {
+            totalTripsToFix[trip.name] = totalTripsToFix[trip.name] || 0;
+            totalTripsToFix[trip.name]++;
+            totalErrorsInThisTrip++;
+          }
+        }
+
+        if (typeof event.category === "object") {
+          if (Object.keys(event["category"]).includes("id")) {
+            totalCategoryIdFixes.push({
+              id: event.id,
+              where: "sidebar",
+              event,
+            });
+
+            if (!isDryRun) {
+              event.category = event.category.id;
+            }
+
+            totalTripsToFix[trip.name] = totalTripsToFix[trip.name] || 0;
+            totalTripsToFix[trip.name]++;
+            totalErrorsInThisTrip++;
+          }
+        }
+
+        if (
+            Object.keys(event).includes("openingHours") &&
+            event["openingHours"] === "[object Object]"
+        ) {
+          if (!isDryRun) {
+            delete event["openingHours"];
+          }
+          totalOpeningHoursFixes.push({
+            id: event.id,
+            where: "allEvents",
+            event,
+          });
+          changedTripIds[trip.id] = changedTripIds[trip.id] || 0;
+          changedTripIds[trip.id]++;
+          totalTripsToFix[trip.name] = totalTripsToFix[trip.name] || 0;
+          totalTripsToFix[trip.name]++;
+          totalErrorsInThisTrip++;
+        }
+
+        return event;
+      });
+
+      // @ts-ignore
+      const modifiedCalendarEvents = trip.calendarEvents.map((event) => {
+        if (Object.keys(event).includes("extendedProps")) {
+          totalExtendedPropsFixes.push({
+            id: event.id,
+            where: "calendar",
+            event,
+          });
+
+          if (!isDryRun) {
+            if (event.extendedProps) {
+              event = {
+                ...event.extendedProps,
+                ...event,
+              };
+              delete event.extendedProps;
+            }
+          }
+
+          changedTripIds[trip.id] = changedTripIds[trip.id] || 0;
+          changedTripIds[trip.id]++;
+          totalTripsToFix[trip.name] = totalTripsToFix[trip.name] || 0;
+          totalTripsToFix[trip.name]++;
+          totalErrorsInThisTrip++;
+        }
+
+        if (Object.keys(event).includes("categoryId")) {
+          totalCategoryIdFixes.push({ id: event.id, where: "calendar", event });
+          let shouldIncreaseCounters = true;
+          if (!isDryRun) {
+            if (event.categoryId) {
+              if (event.category == undefined) {
+                event.category = event.categoryId;
+              }
+              if (event.categoryId == event.category) {
+                delete event.categoryId;
+              } else {
+                // shouldIncreaseCounters = false;
+                // console.error(
+                //     `trip ${trip.name} activity: ${event.title} have two categories: ${event.categoryId}, ${event.category} which are: ${categories.find((x) => x.id == event.categoryId)?.title}, ${categories.find((x) => x.id == event.category)?.title}`
+                // );
+
+                if (Number.isNaN(event.category)) {
+                  event.category = event.categoryId;
+                  delete event.categoryId;
+                } else {
+                  delete event.categoryId;
+                }
+
+                // shouldIncreaseCounters = false;
+                console.error(
+                    `trip ${trip.name} activity: ${event.title} have two categories: ${event.categoryId}, ${event.category} which are: ${categories.find((x) => x.id == event.categoryId)?.title}, ${categories.find((x) => x.id == event.category)?.title}`
+                );
+              }
+            }
+          }
+          if (shouldIncreaseCounters) {
+            totalTripsToFix[trip.name] = totalTripsToFix[trip.name] || 0;
+            totalTripsToFix[trip.name]++;
+            totalErrorsInThisTrip++;
+          }
+        }
+
+        if (typeof event.category === "object") {
+          if (Object.keys(event["category"]).includes("id")) {
+            totalCategoryIdFixes.push({
+              id: event.id,
+              where: "sidebar",
+              event,
+            });
+
+            if (!isDryRun) {
+              event.category = event.category.id;
+            }
+
+            totalTripsToFix[trip.name] = totalTripsToFix[trip.name] || 0;
+            totalTripsToFix[trip.name]++;
+            totalErrorsInThisTrip++;
+          }
+        }
+
+        if (
+            Object.keys(event).includes("openingHours") &&
+            event["openingHours"] === "[object Object]"
+        ) {
+          if (!isDryRun) {
+            delete event["openingHours"];
+          }
+          totalOpeningHoursFixes.push({ id: event.id, where: "calendar", event });
+          changedTripIds[trip.id] = changedTripIds[trip.id] || 0;
+          changedTripIds[trip.id]++;
+          totalTripsToFix[trip.name] = totalTripsToFix[trip.name] || 0;
+          totalTripsToFix[trip.name]++;
+          totalErrorsInThisTrip++;
+        }
+
+        return event;
+      });
+
+      const modifiedSidebarEvents: Record<number, any[]> = {};
+      Object.keys(trip.sidebarEvents).forEach((category_id: string) => {
+        // @ts-ignore
+        trip.sidebarEvents[Number(category_id)].forEach((event) => {
+          modifiedSidebarEvents[Number(category_id)] =
+              modifiedSidebarEvents[Number(category_id)] || [];
+
+          if (Object.keys(event).includes("extendedProps")) {
+            totalExtendedPropsFixes.push({
+              id: event.id,
+              where: "sidebar",
+              event,
+            });
+
+            if (!isDryRun) {
+              if (event.extendedProps) {
+                event = {
+                  ...event.extendedProps,
+                  ...event,
+                };
+                delete event.extendedProps;
+              }
+            }
+
+            totalTripsToFix[trip.name] = totalTripsToFix[trip.name] || 0;
+            totalTripsToFix[trip.name]++;
+            totalErrorsInThisTrip++;
+          }
+
+          if (Object.keys(event).includes("categoryId")) {
+            totalCategoryIdFixes.push({
+              id: event.id,
+              where: "sidebar",
+              event,
+            });
+
+            let shouldIncreaseCounters = true;
+            if (!isDryRun) {
+              if (event.categoryId) {
+                if (event.category == undefined) {
+                  event.category = event.categoryId;
+                }
+                if (event.categoryId == event.category) {
+                  delete event.categoryId;
+                } else {
+                  if (Number.isNaN(event.category)) {
+                    event.category = event.categoryId;
+                    delete event.categoryId;
+                  } else {
+                    delete event.categoryId;
+                  }
+
+                  // shouldIncreaseCounters = false;
+                  console.error(
+                      `trip ${trip.name} activity: ${event.title} have two categories: ${event.categoryId}, ${event.category} which are: ${categories.find((x) => x.id == event.categoryId)?.title}, ${categories.find((x) => x.id == event.category)?.title}`
+                  );
+                }
+              }
+            }
+            if (shouldIncreaseCounters) {
+              totalTripsToFix[trip.name] = totalTripsToFix[trip.name] || 0;
+              totalTripsToFix[trip.name]++;
+              totalErrorsInThisTrip++;
+            }
+          }
+
+          if (typeof event.category === "object") {
+            if (Object.keys(event["category"]).includes("id")) {
+              totalCategoryIdFixes.push({
+                id: event.id,
+                where: "sidebar",
+                event,
+              });
+
+              if (!isDryRun) {
+                event.category = event.category.id;
+              }
+
+              totalTripsToFix[trip.name] = totalTripsToFix[trip.name] || 0;
+              totalTripsToFix[trip.name]++;
+              totalErrorsInThisTrip++;
+            }
+          }
+
+          if (
+              Object.keys(event).includes("openingHours") &&
+              event["openingHours"] === "[object Object]"
+          ) {
+            if (!isDryRun) {
+              delete event["openingHours"];
+            }
+            totalOpeningHoursFixes.push({
+              id: event.id,
+              where: "sidebar",
+              event,
+            });
+            totalTripsToFix[trip.name] = totalTripsToFix[trip.name] || 0;
+            totalTripsToFix[trip.name]++;
+            totalErrorsInThisTrip++;
+          }
+
+          modifiedSidebarEvents[category_id].push(event);
+        });
+      });
+
+      if (!isDryRun) {
+        // @ts-ignore
+        trip.allEvents = modifiedAllEvents;
+        // @ts-ignore
+        trip.sidebarEvents = modifiedSidebarEvents;
+        // @ts-ignore
+        trip.calendarEvents = modifiedCalendarEvents;
+      }
+
+      if (isVerbose)
+        console.log(
+            `... Found ${totalErrorsInThisTrip} things to fix in this trip\n`
+        );
+
+      return trip;
+    });
+
+    if (!isDryRun) {
+
+      const tripsToBackup = modifiedTrips.filter((trip) => changedTripIds[trip.id]);
+
+      if (isVerbose)
+        console.log(
+            `Backing Up trips...\n`
+        );
+
+      for (let i =0; i< tripsToBackup.length; i++){
+        const trip = tripsToBackup[i];
+        if (isVerbose)
+          console.log(
+              `... Backing Up trip #${i+1}/${tripsToBackup.length} - ${trip.name}...\n`
+          );
+
+        // @ts-ignore
+        await this.tripRepository.keepBackup({}, trip, {
+          url: "migration",
+          method: "migrate-extendedprops-11-03-2023.ts"
+        }, undefined, this.backupsService)
+      }
+
+      // Save the modified trips back to the database
+      // @ts-ignore
+      await tripRepository.save(modifiedTrips);
+    }
+
+    // summary
+    const summary = {
+      [isDryRun ? "tripsToFix" : "fixedTrips"]: totalTripsToFix,
+      totalExtended: totalExtendedPropsFixes.length,
+      totalCategory: totalCategoryIdFixes.length,
+    };
+    console.log("Summary:", summary);
+
+    return summary;
+
+    // await queryRunner.manager.save(trips);
   }
 }

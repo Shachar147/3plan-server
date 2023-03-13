@@ -53,6 +53,20 @@ export class TripController {
     };
   }
 
+  @Put("/migrate/extended-props/wet")
+  migrate() {
+    return this.tripService.migrate({
+      isDryRun: false
+    });
+  }
+
+  @Put("/migrate/extended-props")
+  migrateDryRun() {
+    return this.tripService.migrate({
+
+    });
+  }
+
   @ApiOperation({ summary: "Get Trip", description: "Get specific trip by id" })
   @ApiParam({
     name: "id",

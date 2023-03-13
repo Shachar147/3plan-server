@@ -3,28 +3,38 @@ import { CreateTripDto } from "./dto/create-trip-dto";
 import { UpdateTripDto } from "./dto/update-trip-dto";
 import { ListTripsDto } from "./dto/list-trips-dto";
 import {
-  ConflictException, Injectable,
+  ConflictException,
+  Injectable,
   InternalServerErrorException,
-  Logger,
+  Logger, NotFoundException,
 } from "@nestjs/common";
 import { Trip } from "./trip.entity";
 import { User } from "../user/user.entity";
-import {DuplicateTripDto} from "./dto/duplicate-trip-dto";
-import {CreateBackupDto} from "../backups/dto/create-backup-dto";
-import {BackupsService} from "../backups/backups.service";
-import { Request } from 'express';
+import { DuplicateTripDto } from "./dto/duplicate-trip-dto";
+import { CreateBackupDto } from "../backups/dto/create-backup-dto";
+import { BackupsService } from "../backups/backups.service";
+import { Request } from "express";
 
 @Injectable()
 @EntityRepository(Trip)
 export class TripRepository extends Repository<Trip> {
   private logger = new Logger("TripRepository");
 
-  async keepBackup(dto: any, trip: Trip, request: Request, user: User, backupsService: BackupsService){
+  async keepBackup(
+    dto: any,
+    trip: Trip,
+    request: Request,
+    user: User,
+    backupsService: BackupsService
+  ) {
+
+    // commented out for now since it may causing issues on production.
+    return undefined;
 
     // do not keep small backups
-    if (Object.keys(dto).length == 1){
+    if (Object.keys(dto).length == 1) {
       const key = Object.keys(dto)[0];
-      if (["calendarLocale", "dateRange"].indexOf(key) !== -1){
+      if (["calendarLocale", "dateRange"].indexOf(key) !== -1) {
         return; // skip
       }
     }
@@ -35,13 +45,18 @@ export class TripRepository extends Repository<Trip> {
       tripId: trip.id,
       requestPayload: JSON.parse(JSON.stringify(dto)),
       requestUrl: request.url,
-      requestMethod: request.method
-    }
+      requestMethod: request.method,
+    };
 
     return await backupsService.createBackup(backupDto, user);
   }
 
-  async createTrip(createTripDto: CreateTripDto, user: User, request: Request, backupsService: BackupsService): Promise<Trip> {
+  async createTrip(
+    createTripDto: CreateTripDto,
+    user: User,
+    request: Request,
+    backupsService: BackupsService
+  ): Promise<Trip> {
     const {
       name,
       dateRange,
@@ -73,12 +88,17 @@ export class TripRepository extends Repository<Trip> {
     }
 
     // backup
-    await this.keepBackup(createTripDto, trip, request, user, backupsService)
+    await this.keepBackup(createTripDto, trip, request, user, backupsService);
 
     return trip;
   }
 
-  async upsertTrip(createTripDto: CreateTripDto, user: User, request: Request, backupsService: BackupsService): Promise<Trip> {
+  async upsertTrip(
+    createTripDto: CreateTripDto,
+    user: User,
+    request: Request,
+    backupsService: BackupsService
+  ): Promise<Trip> {
     const { name } = createTripDto;
     const query = this.createQueryBuilder("trip");
     query.andWhere("trip.name = :name", { name });
@@ -86,16 +106,29 @@ export class TripRepository extends Repository<Trip> {
       userId: user.id,
     });
     const trips = await query.getMany();
-    if (trips.length == 0) return await this.createTrip(createTripDto, user, request, backupsService);
-    else return await this.updateTrip(createTripDto, trips[0], user, request, backupsService);
+    if (trips.length == 0)
+      return await this.createTrip(
+        createTripDto,
+        user,
+        request,
+        backupsService
+      );
+    else
+      return await this.updateTrip(
+        createTripDto,
+        trips[0],
+        user,
+        request,
+        backupsService
+      );
   }
 
   async updateTrip(
-    updateTripDto: UpdateTripDto,
+    updateTripDto: Partial<UpdateTripDto>,
     trip: Trip,
     user: User,
     request: Request,
-    backupService: BackupsService,
+    backupService: BackupsService
   ): Promise<Trip> {
     const {
       name,
@@ -108,31 +141,58 @@ export class TripRepository extends Repository<Trip> {
     } = updateTripDto;
 
     // backup
-    await this.keepBackup(updateTripDto, trip, request, user, backupService)
+    await this.keepBackup(updateTripDto, trip, request, user, backupService);
 
-    if (name) trip.name = name;
-    if (dateRange) trip.dateRange = dateRange;
-    if (categories) trip.categories = categories;
-    if (calendarEvents) trip.calendarEvents = calendarEvents;
-    if (sidebarEvents) trip.sidebarEvents = sidebarEvents;
-    if (allEvents) trip.allEvents = allEvents;
-    if (calendarLocale) trip.calendarLocale = calendarLocale;
-    if (user) trip.user = user;
+    const updates: any = {};
 
-    trip.lastUpdateAt = new Date();
+    if (name) updates.name = name;
+    if (dateRange) updates.dateRange = dateRange;
+    if (categories) updates.categories = categories;
+    if (calendarEvents) updates.calendarEvents = calendarEvents;
+    if (sidebarEvents) updates.sidebarEvents = sidebarEvents;
+    if (allEvents) updates.allEvents = allEvents;
+    if (calendarLocale) updates.calendarLocale = calendarLocale;
+    if (user) updates.user = user;
+    updates.lastUpdateAt = new Date();
 
-    try {
-      await trip.save();
-    } catch (error) {
-      if (Number(error.code) === 23505) {
-        // duplicate trip name
-        throw new ConflictException("Trip already exists");
-      } else {
-        throw new InternalServerErrorException();
-      }
-    }
+    const queryBuilder = this.createQueryBuilder('trip');
+    await queryBuilder
+        .update(Trip)
+        .set(updates)
+        .where('id = :id', { id: trip.id })
+        .execute();
+
+    trip = await this._getTripByName(trip.name, user)
+
+    // if (name) trip.name = name;
+    // if (dateRange) trip.dateRange = dateRange;
+    // if (categories) trip.categories = categories;
+    // if (calendarEvents) trip.calendarEvents = calendarEvents;
+    // if (sidebarEvents) trip.sidebarEvents = sidebarEvents;
+    // if (allEvents) trip.allEvents = allEvents;
+    // if (calendarLocale) trip.calendarLocale = calendarLocale;
+    // if (user) trip.user = user;
+    //
+    // trip.lastUpdateAt = new Date();
+    //
+    // try {
+    //   await trip.save();
+    // } catch (error) {
+    //   if (Number(error.code) === 23505) {
+    //     // duplicate trip name
+    //     throw new ConflictException("Trip already exists");
+    //   } else {
+    //     throw new InternalServerErrorException();
+    //   }
+    // }
 
     return trip;
+  }
+
+  async getAllTripsByPass(){
+    const query = this.createQueryBuilder("trip");
+    const trips = await query.getMany();
+    return trips;
   }
 
   async getTrips(filterDto: ListTripsDto, user: User): Promise<Trip[]> {
@@ -142,20 +202,6 @@ export class TripRepository extends Repository<Trip> {
 
     if (search)
       query.where("(trip.name LIKE :search)", { search: `%${search}%` });
-    // if (name) query.andWhere('trip.name = :name', { name });
-    // if (division) query.andWhere('trip.division = :division', { division });
-    // if (conference)
-    //   query.andWhere('trip.conference = :conference', { conference });
-    //
-    // if (id) query.andWhere('trip.id = :id', { id });
-    //
-    // if (_2k_rating)
-    //   query.andWhere('trip._2k_rating = :_2k_rating', {
-    //     _2k_rating,
-    //   });
-    // query.leftJoinAndSelect('trip.players', 'player');
-    // query.leftJoinAndSelect('trip.allstar_players', 'player p');
-
     query.andWhere("(trip.userId = :userId)", {
       userId: user.id,
     });
@@ -173,42 +219,54 @@ export class TripRepository extends Repository<Trip> {
   }
 
   async _getTripByName(name: string, user: User) {
-    return await this.createQueryBuilder("trip")
-      .where("LOWER(trip.name) = LOWER(:name)", { name })
-      .andWhere("(trip.userId = :userId)", {
-        userId: user.id,
-      })
-      .getOne();
+    const findOne = async (name: string, user: User) => {
+      return await this.createQueryBuilder("trip")
+          .where("LOWER(trip.name) = LOWER(:name)", {name})
+          .andWhere("(trip.userId = :userId)", {
+            userId: user.id,
+          })
+          .getOne();
+    }
+
+    let found = await findOne(name, user);
+    if (!found) {
+
+      name = name.replace(/\-/ig," ");
+      found = await findOne(name, user);
+
+      if (!found) {
+        const lsName = name.replace(/\s/ig, "-")
+
+        const lsNameFound = await findOne(lsName, user);
+        if (!lsNameFound) {
+          throw new NotFoundException(`Trip with name ${name} not found`);
+        }
+        return lsNameFound
+      }
+    }
+    return found;
   }
 
-  async duplicateTripByName(oldTrip: Trip, duplicateTripDto: DuplicateTripDto, user: User, request: Request, backupsService: BackupsService) {
-    return await this.createTrip({
-      name: duplicateTripDto.newName,
-      allEvents: oldTrip.allEvents,
-      calendarEvents: oldTrip.calendarEvents,
-      sidebarEvents: oldTrip.sidebarEvents,
-      calendarLocale: oldTrip.calendarLocale,
-      categories: oldTrip.categories,
-      dateRange: oldTrip.dateRange
-    }, user, request, backupsService)
-    // const trip = new Trip();
-    //
-    // trip.name = duplicateTripDto.newName;
-    // trip.allEvents = oldTrip.allEvents;
-    // trip.calendarEvents = oldTrip.calendarEvents;
-    // trip.sidebarEvents = oldTrip.sidebarEvents;
-    // trip.dateRange = oldTrip.dateRange;
-    // trip.categories = oldTrip.categories;
-    // trip.calendarLocale = oldTrip.calendarLocale;
-    //
-    // try {
-    //   await trip.save();
-    // } catch (error) {
-    //   if (Number(error.code) === 23505) {
-    //     // duplicate trip name
-    //     throw new ConflictException("Trip already exists");
-    //   } else {
-    //     throw new InternalServerErrorException();
-    //   }
-    }
+  async duplicateTripByName(
+    oldTrip: Trip,
+    duplicateTripDto: DuplicateTripDto,
+    user: User,
+    request: Request,
+    backupsService: BackupsService
+  ) {
+    return await this.createTrip(
+      {
+        name: duplicateTripDto.newName,
+        allEvents: oldTrip.allEvents,
+        calendarEvents: oldTrip.calendarEvents,
+        sidebarEvents: oldTrip.sidebarEvents,
+        calendarLocale: oldTrip.calendarLocale,
+        categories: oldTrip.categories,
+        dateRange: oldTrip.dateRange,
+      },
+      user,
+      request,
+      backupsService
+    );
+  }
 }

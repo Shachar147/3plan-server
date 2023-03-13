@@ -14,7 +14,11 @@ import { BackupsModule } from './backups/backups.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot(typeOrmConfig),
+    TypeOrmModule.forRoot({
+      ...typeOrmConfig,
+      name: 'default', // for migrations
+      keepConnectionAlive: true, // for migrations
+    }),
     ScheduleModule.forRoot(),
     UserModule,
     TripModule,
