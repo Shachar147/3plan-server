@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { User } from "../user/user.entity";
-import { DistanceDto } from "./dto/create-distance.dto";
+import { CreateDistanceDto } from "./dto/create-distance.dto";
 import { getTimestampInSeconds } from "../shared/utils";
 import { InjectRepository } from "@nestjs/typeorm";
 import { DistanceRepository, DistanceResult } from "./distance.repository";
@@ -16,8 +16,7 @@ export class DistanceService {
   ) {}
 
   async getDistanceBetweenTwoDestination(
-    //distanceEntity: Distance,
-    DistanceDto: DistanceDto,
+    DistanceDto: CreateDistanceDto,
     user: User
   ): Promise<DistanceResult> {
     const { from, to } = DistanceDto;

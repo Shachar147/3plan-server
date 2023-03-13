@@ -8,6 +8,7 @@ import {
 import * as bcrypt from 'bcrypt';
 import {Trip} from "../trip/trip.entity";
 import {Distance} from "../distance/distance.entity";
+import {Backups} from "../backups/backups.entity";
 
 @Entity()
 @Unique(['username'])
@@ -29,6 +30,9 @@ export class User extends BaseEntity {
 
   @OneToMany((type) => Distance, (distance) => distance.addedBy, { eager: true })
   added_distances: Distance[];
+
+  @OneToMany((type) => Backups, (backups) => backups.updatedBy, { eager: true })
+  backups: Backups[];
 
   async validatePassword(password: string): Promise<boolean> {
     const hash = await bcrypt.hash(password, this.salt);

@@ -2,7 +2,7 @@ import { Distance } from "./distance.entity";
 import { EntityRepository, Repository } from "typeorm";
 import { User } from "../user/user.entity";
 import { BadRequestException } from "@nestjs/common";
-import { Coordinate, DistanceDto } from "./dto/create-distance.dto";
+import { Coordinate, CreateDistanceDto } from "./dto/create-distance.dto";
 import { updateDistanceDto } from "./dto/update.distance.dto";
 import { TextValueObject, TravelMode } from "./common";
 
@@ -18,8 +18,8 @@ export interface DistanceResult {
 
 @EntityRepository(Distance)
 export class DistanceRepository extends Repository<Distance> {
-  async createDistance(DistanceDto: DistanceDto, user: User, result, distance) {
-    const { from, to } = DistanceDto;
+  async createDistance(createDistanceDto: CreateDistanceDto, user: User, result, distance) {
+    const { from, to } = createDistanceDto;
     const dis = new Distance();
     dis.destination = result.destination;
     dis.distance = result.distance;
@@ -62,7 +62,7 @@ export class DistanceRepository extends Repository<Distance> {
   }
 
   async upsertDistance(
-    DistanceDto: DistanceDto,
+    DistanceDto: CreateDistanceDto,
     user: User,
     result: object,
     distance,

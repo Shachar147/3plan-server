@@ -7,7 +7,7 @@ export interface Coordinate {
   lng: number;
 }
 
-export class DistanceDto {
+export class CreateDistanceDto {
   from: Coordinate;
   to: Coordinate;
   distance: string;
