@@ -7,11 +7,10 @@ import {
   Unique,
 } from "typeorm";
 import { User } from "../user/user.entity";
-import { Coordinate } from "./dto/calc-distance.dto";
-import { TextValueObject, TravelMode } from "./common";
+import {Coordinate, TextValueObject, TravelMode} from "./common";
 
 @Entity()
-@Unique("uniqueFields", ["from", "to", "travel_mode"])
+@Unique("uniqueFields", ["from", "to", "travelMode"])
 export class Distance extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
@@ -23,7 +22,7 @@ export class Distance extends BaseEntity {
   to: Coordinate;
 
   @Column()
-  travel_mode: TravelMode;
+  travelMode: TravelMode;
 
   @Column("jsonb")
   distance: TextValueObject;

@@ -2,10 +2,10 @@ import { Distance } from "./distance.entity";
 import { EntityRepository, Repository } from "typeorm";
 import { User } from "../user/user.entity";
 import { BadRequestException } from "@nestjs/common";
-import { Coordinate, CalcDistanceDto } from "./dto/calc-distance.dto";
+import { CalcDistanceDto } from "./dto/calc-distance.dto";
 import { updateDistanceDto } from "./dto/update.distance.dto";
-import { TextValueObject, TravelMode } from "./common";
-import { getTimestampInSeconds } from "../shared/utils";
+import {Coordinate, TextValueObject, TravelMode} from "./common";
+import {CreateDistanceDto} from "./dto/create-distance.dto";
 
 export interface DistanceResult {
   origin: string;
@@ -22,41 +22,41 @@ const SECONDS_IN_DAY = 86400;
 
 @EntityRepository(Distance)
 export class DistanceRepository extends Repository<Distance> {
-  // async createDistance(
-  //   createDistanceDto: CreateDistanceDto,
-  //   user: User,
-  //   result,
-  //   distance
-  // ) {
-  //   const { from, to } = createDistanceDto;
-  //   const dis = new Distance();
-  //   dis.destination = result.destination;
-  //   dis.distance = result.distance;
-  //   dis.origin = result.origin;
-  //   dis.travel_mode = distance.options.mode.toUpperCase();
-  //   dis.duration = result.duration;
-  //   dis.from = from;
-  //   dis.to = to;
-  //   dis.addedBy = user;
-  //
-  //   try {
-  //     await dis.save();
-  //   } catch (e) {
-  //     if (e.code === "23505") {
-  //       throw new BadRequestException(
-  //         "DistanceAlreadyExist",
-  //         `the distance between ${from} and ${to} (in ${dis.travel_mode}) is already exist`
-  //       );
-  //     }
-  //     throw e;
-  //   }
-  //
-  //   // @ts-ignore
-  //   dis.addedBy = {
-  //     id: user.id,
-  //     username: user.username,
-  //   };
-  // }
+  async createDistance(
+    createDistanceDto: CreateDistanceDto,
+    user: User,
+    result,
+    distance
+  ) {
+    const { from, to } = createDistanceDto;
+    const dis = new Distance();
+    dis.destination = result.destination;
+    dis.distance = result.distance;
+    dis.origin = result.origin;
+    dis.travelMode = distance.options.mode.toUpperCase();
+    dis.duration = result.duration;
+    dis.from = from;
+    dis.to = to;
+    dis.addedBy = user;
+
+    try {
+      await dis.save();
+    } catch (e) {
+      if (e.code === "23505") {
+        throw new BadRequestException(
+          "DistanceAlreadyExist",
+          `the distance between ${from} and ${to} (in ${dis.travelMode}) is already exist`
+        );
+      }
+      throw e;
+    }
+
+    // @ts-ignore
+    dis.addedBy = {
+      id: user.id,
+      username: user.username,
+    };
+  }
 
   async updateDistance(
     distance: Distance,
@@ -71,16 +71,17 @@ export class DistanceRepository extends Repository<Distance> {
   }
 
   async upsertDistance(
-    DistanceDto: CalcDistanceDto,
+    calcDistanceDto: CalcDistanceDto,
     user: User,
-    result: object,
+    result,
     distance
   ) {
-    //if (isExist) {
-    //await this.updateDistance(distance, DistanceDto);
-    //} else {
-    //await this.createDistance(DistanceDto, user, result, distance);
-    //}
+
+    // if (isExist) {
+    // await this.updateDistance(distance, DistanceDto);
+    // } else {
+    // await this.createDistance(DistanceDto, user, result, distance);
+    // }
   }
 
   updateAndGetDiff(
@@ -88,7 +89,7 @@ export class DistanceRepository extends Repository<Distance> {
     updateDistanceDto: updateDistanceDto
   ): any {
     const updates = [];
-    const complexFields = ["from", "to", "travel_mode", "distance", "duration"];
+    const complexFields = ["from", "to", "travelMode", "distance", "duration"];
 
     Object.keys(updateDistanceDto).forEach((key) => {
       const shouldUpdate =
@@ -113,6 +114,7 @@ export class DistanceRepository extends Repository<Distance> {
 
   async calculateDistance(origins, destinations, distance): Promise<any> {
     const googleKey = "AIzaSyA7I3QU1khdOUoOwQm4xPhv2_jt_cwFSNU";
+    const travelMode = distance.options.mode.toUpperCase()
     distance.key(googleKey);
     try {
       return new Promise((resolve, reject) => {
@@ -143,6 +145,7 @@ export class DistanceRepository extends Repository<Distance> {
                     distance,
                     destination,
                     duration,
+                    travelMode
                   });
                 } else {
                   errors.push(
@@ -179,7 +182,7 @@ export class DistanceRepository extends Repository<Distance> {
       destination: distance.destination,
       duration: distance.duration,
       distance: distance.distance,
-      travelMode: distance.travel_mode,
+      travelMode: distance.travelMode,
       from: distance.from,
       to: distance.to,
     };

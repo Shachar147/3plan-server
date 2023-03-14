@@ -1,4 +1,4 @@
-import { Coordinate } from "./calc-distance.dto";
+import {Coordinate} from "../common";
 
 export class updateDistanceDto {
   from: Coordinate;

@@ -6,6 +6,8 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { DistanceRepository, DistanceResult } from "./distance.repository";
 import { toArray } from "rxjs/operators";
 import { Coordinate } from "./common";
+import { In } from "typeorm";
+import {Distance} from "./distance.entity";
 
 const DB_DATA_EXPIRY_IN_DAYS = 30;
 const SECONDS_IN_DAY = 86400;
@@ -21,111 +23,75 @@ export class DistanceService {
     params: CalcDistanceDto,
     user: User
   ): Promise<any> {
-    const origin: Coordinate = params.origin;
+    const from: Coordinate = params.from;
+    const to: Coordinate[] = params.to;
 
     const destinations = [];
     const exist = [];
 
-    const origins = [`${origin.lat},${origin.lng}`];
+    const origins = [`${from.lat},${from.lng}`];
 
-    params.destinations.forEach(async (destination: Coordinate) => {
-      // todo move to bulk
-      for (let i = 0; i < to.length; i++) {
-        const distanceFromDB = await this.distanceRepository.findDistance(
-            from,
-            to[i]
-        );
+    const resultsFromDb: Distance[] = await this.distanceRepository.find({
+      where: {
+        from: from,
+        to: In(to),
+      },
     });
 
-    for (let i = 0; i < to.length; i++) {
-      const distanceFromDB = await this.distanceRepository.findDistance(
-        from,
-        to[i]
+    for (const destination of to) {
+      // todo move to bulk
+      // const distanceFromDB = await this.distanceRepository.findDistance(
+      //     from,
+      //     destination
+      // );
+
+      const distanceFromDB = resultsFromDb.find(
+        (row) =>
+          row.to.lat === destination.lat && row.to.lng === destination.lng
       );
-      if (distanceFromDB) {
-        const diffInDays =
-          (getTimestampInSeconds() -
+
+      const diffInDays = distanceFromDB
+        ? (getTimestampInSeconds() -
             Math.floor(distanceFromDB.addedAt.getTime() / 1000)) /
-          SECONDS_IN_DAY;
-        if (diffInDays <= DB_DATA_EXPIRY_IN_DAYS) {
-          exist.push(
-            this.distanceRepository.distanceToDistanceResult(distanceFromDB)
-          );
-        } else {
-        }
+          SECONDS_IN_DAY
+        : 9999;
+
+      // valid only if exist and not expired
+      const isValid = !!distanceFromDB && diffInDays <= DB_DATA_EXPIRY_IN_DAYS;
+
+      if (isValid) {
+        exist.push(
+          this.distanceRepository.distanceToDistanceResult(distanceFromDB)
+        );
       } else {
-        destinations.push([[to[i].lat, to[i].lng].join(",")]);
+        destinations.push(`${destination.lat},${destination.lng}`);
       }
     }
+
+    // todo fix require
     const distance = require("google-distance-matrix");
+
+    // todo add type
     const result = await this.distanceRepository.calculateDistanceChunks(
       origins,
       destinations,
       distance
     );
 
-    for (var i = 0; i < result.results.length; i++) {
-      await this.distanceRepository.upsertDistance(
-        params,
-        user,
-        result.results[i],
-        distance
-      );
+    const results: Distance[] = [...result.results, ...exist];
+
+    for (const result of results) {
+      await this.distanceRepository.createDistance({
+        from: result.from,
+        to: result.to
+      }, user, result, distance);
     }
 
     // @ts-ignore
     return {
-      ...result,
-      exist,
-      travelMode: distance.options.mode.toUpperCase(),
+      results,
       from,
       to,
     };
   }
-
-  // async getDistanceBetweenTwoDestination(
-  //   DistanceDto: CreateDistanceDto,
-  //   user: User
-  // ): Promise<DistanceResult> {
-  //   const { from, to } = DistanceDto;
-  //
-  //   const origins = [[from.lat, from.lng].join(",")];
-  //   const destinations = [[to.lat, to.lng].join(",")];
-  //
-  //   // return from db if already exist
-  //   const distanceFromDB = await this.distanceRepository.findDistance(from, to);
-  //   if (distanceFromDB) {
-  //     const diffInDays =
-  //       (getTimestampInSeconds() -
-  //         Math.floor(distanceFromDB.addedAt.getTime() / 1000)) /
-  //       SECONDS_IN_DAY;
-  //     if (diffInDays <= DB_DATA_EXPIRY_IN_DAYS) {
-  //       return this.distanceRepository.distanceToDistanceResult(distanceFromDB);
-  //     }
-  //   }
-  //
-  //   // else calculate from google
-  //   const distance = require("google-distance-matrix");
-  //   const result = await this.distanceRepository.calculateDistance(
-  //     origins,
-  //     destinations,
-  //     distance
-  //   );
-  //
-  //   await this.distanceRepository.upsertDistance(
-  //     DistanceDto,
-  //     user,
-  //     result,
-  //     distance,
-  //     !!distanceFromDB
-  //   );
-  //
-  //   // @ts-ignore
-  //   return {
-  //     ...result,
-  //     travelMode: distance.options.mode.toUpperCase(),
-  //     from,
-  //     to,
-  //   };
-  // }
 }
