@@ -2,9 +2,10 @@ import { Distance } from "./distance.entity";
 import { EntityRepository, Repository } from "typeorm";
 import { User } from "../user/user.entity";
 import { BadRequestException } from "@nestjs/common";
-import { Coordinate, CreateDistanceDto } from "./dto/create-distance.dto";
+import { Coordinate, CalcDistanceDto } from "./dto/calc-distance.dto";
 import { updateDistanceDto } from "./dto/update.distance.dto";
 import { TextValueObject, TravelMode } from "./common";
+import { getTimestampInSeconds } from "../shared/utils";
 
 export interface DistanceResult {
   origin: string;
@@ -16,38 +17,46 @@ export interface DistanceResult {
   to: Coordinate;
 }
 
+const DB_DATA_EXPIRY_IN_DAYS = 30;
+const SECONDS_IN_DAY = 86400;
+
 @EntityRepository(Distance)
 export class DistanceRepository extends Repository<Distance> {
-  async createDistance(createDistanceDto: CreateDistanceDto, user: User, result, distance) {
-    const { from, to } = createDistanceDto;
-    const dis = new Distance();
-    dis.destination = result.destination;
-    dis.distance = result.distance;
-    dis.origin = result.origin;
-    dis.travel_mode = distance.options.mode.toUpperCase();
-    dis.duration = result.duration;
-    dis.from = from;
-    dis.to = to;
-    dis.addedBy = user;
-
-    try {
-      await dis.save();
-    } catch (e) {
-      if (e.code === "23505") {
-        throw new BadRequestException(
-          "DistanceAlreadyExist",
-          `the distance between ${from} and ${to} (in ${dis.travel_mode}) is already exist`
-        );
-      }
-      throw e;
-    }
-
-    // @ts-ignore
-    dis.addedBy = {
-      id: user.id,
-      username: user.username,
-    };
-  }
+  // async createDistance(
+  //   createDistanceDto: CreateDistanceDto,
+  //   user: User,
+  //   result,
+  //   distance
+  // ) {
+  //   const { from, to } = createDistanceDto;
+  //   const dis = new Distance();
+  //   dis.destination = result.destination;
+  //   dis.distance = result.distance;
+  //   dis.origin = result.origin;
+  //   dis.travel_mode = distance.options.mode.toUpperCase();
+  //   dis.duration = result.duration;
+  //   dis.from = from;
+  //   dis.to = to;
+  //   dis.addedBy = user;
+  //
+  //   try {
+  //     await dis.save();
+  //   } catch (e) {
+  //     if (e.code === "23505") {
+  //       throw new BadRequestException(
+  //         "DistanceAlreadyExist",
+  //         `the distance between ${from} and ${to} (in ${dis.travel_mode}) is already exist`
+  //       );
+  //     }
+  //     throw e;
+  //   }
+  //
+  //   // @ts-ignore
+  //   dis.addedBy = {
+  //     id: user.id,
+  //     username: user.username,
+  //   };
+  // }
 
   async updateDistance(
     distance: Distance,
@@ -62,17 +71,16 @@ export class DistanceRepository extends Repository<Distance> {
   }
 
   async upsertDistance(
-    DistanceDto: CreateDistanceDto,
+    DistanceDto: CalcDistanceDto,
     user: User,
     result: object,
-    distance,
-    isExist: boolean
+    distance
   ) {
-    if (isExist) {
-      await this.updateDistance(distance, DistanceDto);
-    } else {
-      await this.createDistance(DistanceDto, user, result, distance);
-    }
+    //if (isExist) {
+    //await this.updateDistance(distance, DistanceDto);
+    //} else {
+    //await this.createDistance(DistanceDto, user, result, distance);
+    //}
   }
 
   updateAndGetDiff(
@@ -103,15 +111,13 @@ export class DistanceRepository extends Repository<Distance> {
     return updates;
   }
 
-  async calculateDistance(
-    origins,
-    destinations,
-    distance
-  ): Promise<Partial<DistanceResult>> {
+  async calculateDistance(origins, destinations, distance): Promise<any> {
     const googleKey = "AIzaSyA7I3QU1khdOUoOwQm4xPhv2_jt_cwFSNU";
     distance.key(googleKey);
     try {
       return new Promise((resolve, reject) => {
+        const errors = [];
+        const results = [];
         distance.matrix(origins, destinations, function (err, distances) {
           if (err) {
             reject(err);
@@ -124,18 +130,33 @@ export class DistanceRepository extends Repository<Distance> {
               for (var j = 0; j < destinations.length; j++) {
                 var origin = distances.origin_addresses[i];
                 var destination = distances.destination_addresses[j];
+                var to = distances.destination_addresses[j];
+                var from = origins[i];
                 if (distances.rows[0].elements[j].status == "OK") {
                   var distance = distances.rows[i].elements[j].distance;
                   console.log("distances", distances);
                   var duration = distances.rows[i].elements[j].duration;
-                  resolve({ origin, distance, destination, duration });
+                  results.push({
+                    from,
+                    to,
+                    origin,
+                    distance,
+                    destination,
+                    duration,
+                  });
                 } else {
-                  reject(
+                  errors.push(
                     destination + " is not reachable by land from " + origin
                   );
                 }
               }
             }
+            resolve({
+              errors,
+              results,
+            });
+          } else {
+            reject("couldn't find distance");
           }
         });
       });
@@ -162,5 +183,47 @@ export class DistanceRepository extends Repository<Distance> {
       from: distance.from,
       to: distance.to,
     };
+  }
+
+  private readonly MAX_CHUNK_SIZE = 25;
+
+  async calculateDistanceChunks(
+    origin: string[],
+    destinations: string[],
+    distance
+  ): Promise<{
+    errors: any[];
+    results: any[];
+  }> {
+    const chunks = this.splitIntoChunks(destinations, this.MAX_CHUNK_SIZE);
+    const response = {
+      errors: [],
+      results: [],
+    };
+
+    for (const chunkDestinations of chunks) {
+      const chunkResults = await this.calculateDistance(
+        origin,
+        chunkDestinations,
+        distance
+      );
+
+      response.errors.push(...chunkResults.errors);
+      response.results.push(...chunkResults.results);
+    }
+    return response;
+  }
+
+  private splitIntoChunks<T>(array: T[], chunkSize: number): T[][] {
+    const chunks = [];
+    const numChunks = Math.ceil(array.length / chunkSize);
+
+    for (let i = 0; i < numChunks; i++) {
+      const chunkStart = i * chunkSize;
+      const chunkEnd = chunkStart + chunkSize;
+      const chunkArray = array.slice(chunkStart, chunkEnd);
+      chunks.push(chunkArray);
+    }
+    return chunks;
   }
 }

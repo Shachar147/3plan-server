@@ -7,7 +7,7 @@ import {
   Unique,
 } from "typeorm";
 import { User } from "../user/user.entity";
-import { Coordinate } from "./dto/create-distance.dto";
+import { Coordinate } from "./dto/calc-distance.dto";
 import { TextValueObject, TravelMode } from "./common";
 
 @Entity()
