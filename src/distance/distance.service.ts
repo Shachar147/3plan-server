@@ -7,7 +7,7 @@ import { DistanceRepository, DistanceResult } from "./distance.repository";
 import { toArray } from "rxjs/operators";
 import { Coordinate } from "./common";
 import { In } from "typeorm";
-import {Distance} from "./distance.entity";
+import { Distance } from "./distance.entity";
 
 const DB_DATA_EXPIRY_IN_DAYS = 30;
 const SECONDS_IN_DAY = 86400;
@@ -70,6 +70,7 @@ export class DistanceService {
 
     // todo fix require
     const distance = require("google-distance-matrix");
+    distance.units("metric");
 
     // todo add type
     const result = await this.distanceRepository.calculateDistanceChunks(
@@ -78,15 +79,11 @@ export class DistanceService {
       distance
     );
 
-    const results: Distance[] = [...result.results, ...exist];
-
-    for (const result of results) {
-      await this.distanceRepository.createDistance({
-        from: result.from,
-        to: result.to
-      }, user, result, distance);
+    for (const r of result.results) {
+      await this.distanceRepository.upsertDistance(user, r, distance);
     }
 
+    const results: Distance[] = [...result.results, ...exist];
     // @ts-ignore
     return {
       results,

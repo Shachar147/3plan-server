@@ -4,8 +4,8 @@ import { User } from "../user/user.entity";
 import { BadRequestException } from "@nestjs/common";
 import { CalcDistanceDto } from "./dto/calc-distance.dto";
 import { updateDistanceDto } from "./dto/update.distance.dto";
-import {Coordinate, TextValueObject, TravelMode} from "./common";
-import {CreateDistanceDto} from "./dto/create-distance.dto";
+import { Coordinate, TextValueObject, TravelMode } from "./common";
+import { CreateDistanceDto } from "./dto/create-distance.dto";
 
 export interface DistanceResult {
   origin: string;
@@ -22,21 +22,15 @@ const SECONDS_IN_DAY = 86400;
 
 @EntityRepository(Distance)
 export class DistanceRepository extends Repository<Distance> {
-  async createDistance(
-    createDistanceDto: CreateDistanceDto,
-    user: User,
-    result,
-    distance
-  ) {
-    const { from, to } = createDistanceDto;
+  async createDistance(user: User, result) {
     const dis = new Distance();
     dis.destination = result.destination;
     dis.distance = result.distance;
     dis.origin = result.origin;
-    dis.travelMode = distance.options.mode.toUpperCase();
+    dis.travelMode = result.travelMode;
     dis.duration = result.duration;
-    dis.from = from;
-    dis.to = to;
+    dis.from = result.from;
+    dis.to = result.to;
     dis.addedBy = user;
 
     try {
@@ -45,7 +39,7 @@ export class DistanceRepository extends Repository<Distance> {
       if (e.code === "23505") {
         throw new BadRequestException(
           "DistanceAlreadyExist",
-          `the distance between ${from} and ${to} (in ${dis.travelMode}) is already exist`
+          `the distance between ${dis.origin} and ${result.destination} (in ${dis.travelMode}) is already exist`
         );
       }
       throw e;
@@ -58,11 +52,8 @@ export class DistanceRepository extends Repository<Distance> {
     };
   }
 
-  async updateDistance(
-    distance: Distance,
-    DistanceDto: updateDistanceDto
-  ): Promise<any> {
-    const updates = this.updateAndGetDiff(distance, DistanceDto);
+  async updateDistance(distance: Distance, result): Promise<any> {
+    const updates = this.updateAndGetDiff(distance, result);
     const isUpdated = updates.length > 0;
     if (isUpdated) {
       await distance.save();
@@ -70,18 +61,13 @@ export class DistanceRepository extends Repository<Distance> {
     return { isUpdated, updates, distance };
   }
 
-  async upsertDistance(
-    calcDistanceDto: CalcDistanceDto,
-    user: User,
-    result,
-    distance
-  ) {
-
-    // if (isExist) {
-    // await this.updateDistance(distance, DistanceDto);
-    // } else {
-    // await this.createDistance(DistanceDto, user, result, distance);
-    // }
+  async upsertDistance(user: User, result, distance: Distance) {
+    const isExist = result.id;
+    if (isExist) {
+      await this.updateDistance(distance, result);
+    } else {
+      await this.createDistance(user, result);
+    }
   }
 
   updateAndGetDiff(
@@ -114,13 +100,13 @@ export class DistanceRepository extends Repository<Distance> {
 
   async calculateDistance(origins, destinations, distance): Promise<any> {
     const googleKey = "AIzaSyA7I3QU1khdOUoOwQm4xPhv2_jt_cwFSNU";
-    const travelMode = distance.options.mode.toUpperCase()
+    const travelMode = distance.options.mode.toUpperCase();
     distance.key(googleKey);
     try {
       return new Promise((resolve, reject) => {
         const errors = [];
         const results = [];
-        distance.matrix(origins, destinations, function (err, distances) {
+        distance.matrix(origins, destinations, (err, distances) => {
           if (err) {
             reject(err);
           }
@@ -132,8 +118,8 @@ export class DistanceRepository extends Repository<Distance> {
               for (var j = 0; j < destinations.length; j++) {
                 var origin = distances.origin_addresses[i];
                 var destination = distances.destination_addresses[j];
-                var to = distances.destination_addresses[j];
-                var from = origins[i];
+                var to = this.toCoordinate(destinations[j]);
+                var from = this.toCoordinate(origins[i]);
                 if (distances.rows[0].elements[j].status == "OK") {
                   var distance = distances.rows[i].elements[j].distance;
                   console.log("distances", distances);
@@ -145,7 +131,7 @@ export class DistanceRepository extends Repository<Distance> {
                     distance,
                     destination,
                     duration,
-                    travelMode
+                    travelMode,
                   });
                 } else {
                   errors.push(
@@ -174,6 +160,14 @@ export class DistanceRepository extends Repository<Distance> {
   async findDistance(from: Coordinate, to: Coordinate): Promise<Distance> {
     const distanceDB = await this.findOne({ from, to });
     return distanceDB;
+  }
+
+  toCoordinate(coordinate: string): Coordinate {
+    const parts: string[] = coordinate.split(",");
+    return {
+      lat: parseFloat(parts[0]),
+      lng: parseFloat(parts[1]),
+    };
   }
 
   distanceToDistanceResult(distance: Distance): DistanceResult {
