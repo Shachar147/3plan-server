@@ -30,6 +30,10 @@ import { User } from "../user/user.entity";
 import {DuplicateTripDto} from "./dto/duplicate-trip-dto";
 import { Request } from 'express';
 
+export async function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 @ApiBearerAuth("JWT")
 @ApiTags("Trips")
 @Controller("trip")
@@ -108,7 +112,8 @@ export class TripController {
   @Post("/upsert")
   @UsePipes(new ValidationPipe({ transform: true }))
   @UseGuards(AuthGuard())
-  upsertTrip(@Body() createTripDto: CreateTripDto, @GetUser() user: User, @Req() request: Request) {
+  async upsertTrip(@Body() createTripDto: CreateTripDto, @GetUser() user: User, @Req() request: Request) {
+    await sleep(5000);
     return this.tripService.upsertTrip(createTripDto, user, request);
   }
 
@@ -135,12 +140,13 @@ export class TripController {
   @Put("/:id")
   @UsePipes(new ValidationPipe({ transform: true }))
   @UseGuards(AuthGuard())
-  updateTrip(
+  async updateTrip(
     @Param("id", ParseIntPipe) id,
     @Body() updateTripDto: UpdateTripDto,
     @GetUser() user: User,
     @Req() request: Request
   ) {
+    await sleep(5000);
     return this.tripService.updateTrip(id, updateTripDto, user, request);
   }
 
@@ -157,12 +163,13 @@ export class TripController {
   @Put("/name/:name")
   @UsePipes(new ValidationPipe({ transform: true }))
   @UseGuards(AuthGuard())
-  updateTripByName(
+  async updateTripByName(
     @Param("name") name,
     @Body() updateTripDto: UpdateTripDto,
     @GetUser() user: User,
     @Req() request: Request
   ) {
+    await sleep(5000);
     return this.tripService.updateTripByName(name, updateTripDto, user, request);
   }
 
