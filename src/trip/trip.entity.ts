@@ -7,7 +7,7 @@ import {
 } from 'typeorm';
 import {User} from "../user/user.entity";
 
-@Unique(['name'])
+@Unique(['name', 'userId'])
 @Entity()
 export class Trip extends BaseEntity {
   @PrimaryGeneratedColumn()
@@ -15,6 +15,9 @@ export class Trip extends BaseEntity {
 
   @ManyToOne((type) => User, (user) => user.trips, { eager: false })
   user: User;
+
+  @Column()
+  userId: number;
 
   @Column()
   name: string;

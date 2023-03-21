@@ -119,7 +119,7 @@ export class TripService {
     if (!trip) {
       throw new NotFoundException(`Trip with name ${name} not found`);
     }
-    const result = await this.tripRepository.delete({ name: trip.name });
+    const result = await this.tripRepository.delete({ id: trip.id });
     if (result.affected === 0) {
       throw new NotFoundException(`Trip with name "${name}" not found`);
     }
