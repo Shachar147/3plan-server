@@ -36,7 +36,7 @@ export class DistanceService {
       results: [],
       from,
       to,
-      routesToCalculate: [],
+      // routesToCalculate: [],
       totals: {
         expectedRoutes: from.length * to.length,
         alreadyExisting: 0,
@@ -178,11 +178,4 @@ export class DistanceService {
       },
     };
   }
-
-  // async getAllRoutes(
-  //     params: GetAllRoutesDto,
-  //     user: User
-  // ) {
-  //
-  // }
 }
