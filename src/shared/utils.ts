@@ -1,3 +1,5 @@
+import {Coordinate} from "./interfaces";
+
 export function SubstringTo(page: string, n: number, endChar: string) {
   let string = '';
   while (n < page.length && page[n] != endChar) {
@@ -51,6 +53,25 @@ export function nth(d) {
       return 'th';
   }
 }
+
 export function getTimestampInSeconds () {
   return Math.floor(Date.now() / 1000)
+}
+
+export function coordinateToString(coordinate: Coordinate): string {
+  return `${coordinate.lat},${coordinate.lng}`;
+}
+
+export function stringToCoordinate(coordinateStr: string): Coordinate | undefined {
+  const parts = coordinateStr.split(',');
+  if (parts.length !== 2){
+    return undefined;
+  }
+  if (Number.isNaN(Number(parts[0])) || Number.isNaN(Number(parts[1]))) {
+    return undefined;
+  }
+  return {
+    lat: Number(parts[0]),
+    lng: Number(parts[1])
+  }
 }

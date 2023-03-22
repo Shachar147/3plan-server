@@ -1,13 +1,6 @@
-import { IsNotEmpty } from "class-validator";
-import { ApiProperty } from "@nestjs/swagger";
-import {Column, PrimaryGeneratedColumn} from "typeorm";
+import {Coordinate} from "../../shared/interfaces";
 
-export interface Coordinate{
-    lat: number;
-    lng: number;
-}
 export class GetDistanceResultDto {
-
-    from: Coordinate;
-    to: Coordinate;
+    from: Coordinate[];
+    to: Coordinate[];
 }

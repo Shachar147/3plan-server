@@ -1,9 +1,14 @@
 import { Injectable } from "@nestjs/common";
 import { User } from "../user/user.entity";
 import { CreateDistanceDto } from "./dto/create-distance.dto";
-import { getTimestampInSeconds } from "../shared/utils";
+import { coordinateToString, getTimestampInSeconds } from "../shared/utils";
 import { InjectRepository } from "@nestjs/typeorm";
-import { DistanceRepository, DistanceResult } from "./distance.repository";
+import {
+  CalculateDistancesResult,
+  DistanceRepository,
+} from "./distance.repository";
+import { GetDistanceResultDto } from "./dto/get-distance-result.dto";
+import { chunk } from "lodash";
 
 const DB_DATA_EXPIRY_IN_DAYS = 30;
 const SECONDS_IN_DAY = 86400;
@@ -15,49 +20,169 @@ export class DistanceService {
     private distanceRepository: DistanceRepository
   ) {}
 
-  async getDistanceBetweenTwoDestination(
-    DistanceDto: CreateDistanceDto,
+  async getDistanceResultInChunks(
+    params: GetDistanceResultDto,
     user: User
-  ): Promise<DistanceResult> {
-    const { from, to } = DistanceDto;
+  ): Promise<CalculateDistancesResult> {
+    let { from, to } = params;
+    from = Array.from(new Set(from.map((x) => JSON.stringify({ lat: x.lat, lng: x.lng })))).map((x) => JSON.parse(x));
+    to = Array.from(new Set(to.map((x) => JSON.stringify({ lat: x.lat, lng: x.lng })))).map((x) => JSON.parse(x));
 
-    const origins = [[from.lat, from.lng].join(",")];
-    const destinations = [[to.lat, to.lng].join(",")];
+    const from_chunks = chunk(from, 25);
+    const to_chunks = chunk(to, 25);
 
-    // return from db if already exist
-    const distanceFromDB = await this.distanceRepository.findDistance(from, to);
-    if (distanceFromDB) {
-      const diffInDays =
-        (getTimestampInSeconds() -
-          Math.floor(distanceFromDB.addedAt.getTime() / 1000)) /
-        SECONDS_IN_DAY;
-      if (diffInDays <= DB_DATA_EXPIRY_IN_DAYS) {
-        return this.distanceRepository.distanceToDistanceResult(distanceFromDB);
+    const result = {
+      errors: [],
+      results: [],
+      from,
+      to,
+      routesToCalculate: [],
+      totals: {
+        expectedRoutes: from.length * to.length,
+        alreadyExisting: 0,
+        expired: 0,
+        calculated: 0,
+        newResults: 0,
+        errors: 0,
+        chunks: 0,
+      },
+    };
+
+    for (const from_chunk of from_chunks) {
+      for (const to_chunk of to_chunks) {
+        const r = await this.getDistanceResult({from: from_chunk, to: to_chunk}, user);
+        result.errors = result.errors.concat(r.errors);
+        result.results = Array.from(new Set(result.results.concat(r.results)));
+        result.totals.alreadyExisting += r.totals.alreadyExisting;
+        result.totals.expired += r.totals.expired;
+        // result.routesToCalculate = Array.from(new Set(result.routesToCalculate.concat(r.routesToCalculate)))
+        // result.totals.calculated = result.routesToCalculate.length;
+        result.totals.calculated += r.totals.calculated;
+        result.totals.newResults = result.results.length;
+        result.totals.errors += r.totals.errors;
+        result.totals.chunks += r.totals.chunks;
       }
     }
 
-    // else calculate from google
+    return result;
+  }
+
+  async getDistanceResult(
+    params: GetDistanceResultDto,
+    user: User
+  ): Promise<CalculateDistancesResult> {
+    const { from, to } = params;
+
+    // todo - seek for alternative with nestjs.
     const distance = require("google-distance-matrix");
-    const result = await this.distanceRepository.calculateDistance(
-      origins,
-      destinations,
-      distance
-    );
+    const googleKey = "AIzaSyA7I3QU1khdOUoOwQm4xPhv2_jt_cwFSNU";
+    distance.key(googleKey);
+    const travelMode = distance.options.mode.toUpperCase();
 
-    await this.distanceRepository.upsertDistance(
-      DistanceDto,
-      user,
-      result,
-      distance,
-      !!distanceFromDB
-    );
+    // get already existing db results, filter out expired ones.
+    const expired = [];
+    const dbResults = (
+      await this.distanceRepository.findDistancesByFromAndTo(
+        from,
+        to,
+        travelMode
+      )
+    ).filter((r) => {
+      const diffInDays =
+        (getTimestampInSeconds() - r.addedAt.getTime() / 1000) / SECONDS_IN_DAY;
 
-    // @ts-ignore
+      const isValid = diffInDays <= DB_DATA_EXPIRY_IN_DAYS;
+
+      if (!isValid) {
+        expired.push(r);
+      }
+
+      return isValid;
+    });
+
+    const originsToCalculate: Record<string, number> = {};
+    const destinationsToCalculate = {};
+    const routesToCalculate = [];
+
+    from.forEach((f) => {
+      to.forEach((t) => {
+        if (
+          !dbResults.find(
+            (d) =>
+              JSON.stringify(d.to) === JSON.stringify(t) &&
+              JSON.stringify(d.from) === JSON.stringify(f) &&
+              d.travelMode === travelMode
+          )
+        ) {
+          originsToCalculate[coordinateToString(f)] = 1;
+          destinationsToCalculate[coordinateToString(t)] = 1;
+          routesToCalculate.push(JSON.stringify({
+            from: f,
+            to: t,
+            travelMode
+          }))
+        }
+      });
+    });
+
+    // const originsToCalculate = from.filter(
+    //     (c) => !dbResults.find((d) => JSON.stringify(d.from) === JSON.stringify(c))
+    // );
+    // const destinationsToCalculate = to.filter(
+    //   (c) => !dbResults.find((d) => JSON.stringify(d.to) === JSON.stringify(c))
+    // );
+
+    let result: CalculateDistancesResult = {
+      results: [],
+      errors: [],
+      totals: {
+        alreadyExisting: 0,
+        expired: 0,
+        calculated: 0,
+        newResults: 0,
+        errors: 0,
+        chunks: 0,
+      },
+    };
+
+    let chunks = 0;
+
+    // build params for google api
+    if (routesToCalculate.length) {
+      const origins = Object.keys(originsToCalculate);
+      const destinations = Object.keys(destinationsToCalculate);
+      result = await this.distanceRepository.calculateDistances(
+        origins,
+        destinations,
+        distance
+      );
+      chunks++;
+    }
+
+    for (const r of result.results) {
+      const upsertDto = (r as unknown) as CreateDistanceDto;
+      await this.distanceRepository.upsertDistance(upsertDto, user);
+    }
+
     return {
       ...result,
-      travelMode: distance.options.mode.toUpperCase(),
-      from,
-      to,
+      results: [...result.results, ...dbResults],
+      // routesToCalculate,
+      totals: {
+        alreadyExisting: dbResults.length,
+        expired: expired.length,
+        calculated: routesToCalculate.length,
+        // newResults: result.results.length,
+        errors: result.errors.length,
+        chunks: chunks,
+      },
     };
   }
+
+  // async getAllRoutes(
+  //     params: GetAllRoutesDto,
+  //     user: User
+  // ) {
+  //
+  // }
 }

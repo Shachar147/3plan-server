@@ -1,11 +1,12 @@
-import {Coordinate} from "./create-distance.dto";
+import {Coordinate} from "../../shared/interfaces";
+import {TextValueObject, TravelMode} from "../common";
 
 export class updateDistanceDto {
-
     from: Coordinate;
     to: Coordinate;
-    distance: string;
-    duration: string;
+    distance: TextValueObject;
+    duration: TextValueObject;
     origin: string;
     destination: string;
+    travelMode: TravelMode;
 }
