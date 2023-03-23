@@ -11,6 +11,8 @@ import { TinderService } from './integrations/tinder/tinder.service';
 import { TinderModule } from './integrations/tinder/tinder.module';
 import { DistanceModule } from './distance/distance.module';
 import { BackupsModule } from './backups/backups.module';
+import { TaskStatusController } from './task-status/task-status.controller';
+import { TaskStatusModule } from './task-status/task-status.module';
 
 @Module({
   imports: [
@@ -27,8 +29,9 @@ import { BackupsModule } from './backups/backups.module';
     HttpModule,
     DistanceModule,
     BackupsModule,
+    TaskStatusModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, TaskStatusController],
   providers: [AppService, TinderService],
 })
 export class AppModule {}

@@ -1,19 +1,15 @@
-import { Injectable } from "@nestjs/common";
-import { User } from "../user/user.entity";
-import { CreateDistanceDto } from "./dto/create-distance.dto";
-import {
-  coordinateToString,
-  getTimestampInSeconds,
-  sleep,
-  stringToCoordinate,
-} from "../shared/utils";
-import { InjectRepository } from "@nestjs/typeorm";
-import {
-  CalculateDistancesResult,
-  DistanceRepository,
-} from "./distance.repository";
-import { GetDistanceResultDto } from "./dto/get-distance-result.dto";
-import { chunk } from "lodash";
+import {Injectable} from "@nestjs/common";
+import {User} from "../user/user.entity";
+import {CreateDistanceDto} from "./dto/create-distance.dto";
+import {coordinateToString, getTimestampInSeconds, sleep, stringToCoordinate,} from "../shared/utils";
+import {InjectRepository} from "@nestjs/typeorm";
+import {CalculateDistancesResult, DistanceRepository,} from "./distance.repository";
+import {GetDistanceResultDto} from "./dto/get-distance-result.dto";
+import {chunk} from "lodash";
+import {TripService} from "../trip/trip.service";
+import {TaskStatusService} from "../task-status/task-status.service";
+import {TaskStatusType} from "../task-status/task-status.entity";
+import {CreateTaskDto} from "../task-status/dto/create-task.dto";
 
 const DB_DATA_EXPIRY_IN_DAYS = 30;
 const SECONDS_IN_DAY = 86400;
@@ -22,13 +18,32 @@ const SECONDS_IN_DAY = 86400;
 export class DistanceService {
   constructor(
     @InjectRepository(DistanceRepository)
-    private distanceRepository: DistanceRepository
+    private distanceRepository: DistanceRepository,
+    private tripService: TripService,
+    private taskStatusService: TaskStatusService
   ) {}
 
   async getDistanceResultInChunks(
     params: GetDistanceResultDto,
     user: User
   ): Promise<CalculateDistancesResult> {
+
+    const trip = await this.tripService.getTripByName(params.tripName, user);
+
+    const stackTrace = ['initiating distance calculation'];
+    const createTaskDto: CreateTaskDto = {
+      taskInfo: {
+        type: 'getDistanceResultInChunks',
+        params
+      },
+      status: TaskStatusType.inProgress,
+      detailedStatus: { stackTrace },
+      progress: 0,
+      relatedTrip: trip
+    };
+    const taskStatus = await this.taskStatusService.createTask(createTaskDto, user);
+    console.log(`task #${taskStatus.id} created`);
+
     let { from, to } = params;
     from = Array.from(
       new Set(from.map((x) => JSON.stringify({ lat: x.lat, lng: x.lng })))
@@ -59,13 +74,23 @@ export class DistanceService {
       },
     };
 
+    let message;
     let counter = 0;
     for (const from_chunk of from_chunks) {
       for (const to_chunk of to_chunks) {
         counter++;
-        console.log(`running chunk ${counter}...`);
+        message = `running chunk ${counter} / ${from_chunks.length*to_chunks.length}...`;
+        stackTrace.push(message);
+        console.log(message);
+        await this.taskStatusService.updateTask(taskStatus.id, {
+          progress: Number(((counter-1)/(from_chunks.length*to_chunks.length)).toFixed(2)),
+          detailedStatus: {
+            stackTrace
+          }
+        },user)
+
         const r = await this.getDistanceResult(
-          { from: from_chunk, to: to_chunk },
+          { from: from_chunk, to: to_chunk, tripName: params.tripName },
           user
         );
         result.errors = result.errors.concat(r.errors);
@@ -78,11 +103,28 @@ export class DistanceService {
         result.totals.newResults += r.totals.newResults;
         result.totals.errors += r.totals.errors;
         result.totals.chunks += r.totals.chunks;
-        console.log(
-          `so far found ${result.results.length}/${result.totals.expectedRoutes}`
-        );
+
+        message = `so far found ${result.results.length}/${result.totals.expectedRoutes}`;
+        stackTrace.push(message);
+        console.log(message);
+        await this.taskStatusService.updateTask(taskStatus.id, {
+          progress: Number(((counter)/(from_chunks.length*to_chunks.length)).toFixed(2)),
+          detailedStatus: {
+            stackTrace
+          }
+        },user)
       }
     }
+
+    message = `finished`;
+    stackTrace.push(message);
+    console.log(message);
+    await this.taskStatusService.updateTask(taskStatus.id, {
+      progress: 100,
+      detailedStatus: {
+        stackTrace
+      }
+    },user)
 
     return result;
   }

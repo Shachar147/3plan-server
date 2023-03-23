@@ -9,6 +9,7 @@ import * as bcrypt from 'bcrypt';
 import {Trip} from "../trip/trip.entity";
 import {Distance} from "../distance/distance.entity";
 import {Backups} from "../backups/backups.entity";
+import {TaskStatus} from "../task-status/task-status.entity";
 
 @Entity()
 @Unique(['username'])
@@ -30,6 +31,9 @@ export class User extends BaseEntity {
 
   @OneToMany((type) => Distance, (distance) => distance.addedBy, { eager: true })
   added_distances: Distance[];
+
+  @OneToMany((type) => TaskStatus, (taskStatus) => taskStatus.addedBy, { eager: true })
+  added_tasks: TaskStatus[];
 
   @OneToMany((type) => Backups, (backups) => backups.updatedBy, { eager: true })
   backups: Backups[];
