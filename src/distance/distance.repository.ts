@@ -9,7 +9,7 @@ import { Coordinate } from "../shared/interfaces";
 import {stringToCoordinate} from "../shared/utils";
 
 export interface CalculateDistancesResult {
-  errors: string[];
+  errors: any[];
   results: DistanceResult[];
   totals?: any;
   routesToCalculate?: string[];
@@ -62,12 +62,10 @@ export class DistanceRepository extends Repository<Distance> {
     DistanceDto: updateDistanceDto
   ): Promise<any> {
     const updates = this.updateAndGetDiff(distance, DistanceDto);
-    const isUpdated = updates.length > 0;
-    if (isUpdated) {
-      distance.addedAt = new Date();
-      await distance.save();
-    }
-    return { isUpdated, updates, distance };
+    const isChanged = updates.length > 0;
+    distance.addedAt = new Date();
+    await distance.save();
+    return { isChanged, updates, distance };
   }
 
   // todo complete
@@ -133,63 +131,78 @@ export class DistanceRepository extends Repository<Distance> {
         const travelMode = distance.options.mode.toUpperCase();
 
         // temp - fake
-        for (let i = 0; i < origins.length && i <= 25; i++) {
-          for (let j = 0; j < destinations.length && j <= 25; j++) {
-            results.push({
-              origin: 'N/A',
-              distance: 'N/A',
-              destination: 'N/A',
-              duration: 'N/A',
-              travelMode,
-              from: stringToCoordinate(origins[i]),
-              to: stringToCoordinate(destinations[j]),
-            });
-          }
-        }
-
-        resolve({
-          errors,
-          results
-        })
-
-        // todo complete - add chunks
-        // distance.matrix(origins, destinations, function (err, distances) {
-        //   if (err) {
-        //     reject(err);
-        //   }
-        //   if (!distances) {
-        //     reject("no distances");
-        //   }
-        //   if (distances.status == "OK") {
-        //     for (let i = 0; i < origins.length; i++) {
-        //       for (let j = 0; j < destinations.length; j++) {
-        //         const origin = distances.origin_addresses[i];
-        //         const destination = distances.destination_addresses[j];
-        //         if (distances.rows[0].elements[j].status == "OK") {
-        //           const distance = distances.rows[i].elements[j].distance;
-        //           const duration = distances.rows[i].elements[j].duration;
-        //           results.push({
-        //             origin,
-        //             distance,
-        //             destination,
-        //             duration,
-        //             travelMode,
-        //             from: stringToCoordinate(origins[i]),
-        //             to: stringToCoordinate(destinations[j]),
-        //           });
-        //         } else {
-        //           errors.push(
-        //             destination + " is not reachable by land from " + origin
-        //           );
-        //         }
-        //       }
-        //     }
-        //     resolve({
-        //       errors,
-        //       results,
+        // for (let i = 0; i < origins.length && i <= 25; i++) {
+        //   for (let j = 0; j < destinations.length && j <= 25; j++) {
+        //     results.push({
+        //       origin: 'N/A',
+        //       distance: 'N/A',
+        //       destination: 'N/A',
+        //       duration: 'N/A',
+        //       travelMode,
+        //       from: stringToCoordinate(origins[i]),
+        //       to: stringToCoordinate(destinations[j]),
         //     });
         //   }
-        // });
+        // }
+        //
+        // resolve({
+        //   errors,
+        //   results
+        // })
+
+        // todo complete - add chunks
+        distance.matrix(origins, destinations, function (err, distances) {
+          if (err) {
+            reject(err);
+          }
+          if (!distances) {
+            reject("no distances");
+          }
+
+          console.log({
+            origins: origins.length,
+            destinations: destinations.length,
+            status: distances.status,
+          })
+
+          if (distances.status == "OK") {
+            for (let i = 0; i < origins.length; i++) {
+              for (let j = 0; j < destinations.length; j++) {
+                const origin = distances.origin_addresses[i];
+                const destination = distances.destination_addresses[j];
+                if (distances.rows[0].elements[j].status == "OK") {
+                  const distance = distances.rows[i].elements[j].distance;
+                  const duration = distances.rows[i].elements[j].duration;
+                  results.push({
+                    origin,
+                    distance,
+                    destination,
+                    duration,
+                    travelMode,
+                    from: stringToCoordinate(origins[i]),
+                    to: stringToCoordinate(destinations[j]),
+                  });
+                } else {
+                  errors.push({
+                    errorText: destination + " is not reachable by land from " + origin,
+                    errorData: distances.rows[0].elements[j],
+                    origin,
+                    distance: undefined,
+                    destination,
+                    duration: undefined,
+                    travelMode,
+                    from: stringToCoordinate(origins[i]),
+                    to: stringToCoordinate(destinations[j]),
+                  });
+                }
+              }
+            }
+            resolve({
+              errors,
+              results,
+            });
+          }
+        });
       });
     } catch (e) {
       throw new BadRequestException(
@@ -214,6 +227,17 @@ export class DistanceRepository extends Repository<Distance> {
       .andWhere("distance.travelMode = :travelMode", { travelMode: travelMode })
       .andWhere("distance.to = ANY(:to)", { to: to.map((c) => JSON.stringify(c)) })
       .getMany();
+
+    return query;
+  }
+
+  async getNearbyPlacesByCoordinate(coordinate: Coordinate, user: User) {
+    const queryBuilder = this.createQueryBuilder("distance");
+    const query = await queryBuilder
+        .where("distance.from = :from", { from: JSON.stringify(coordinate) })
+        // .andWhere("distance.travelMode = :travelMode", { travelMode: travelMode })
+        // .andWhere("distance.to = ANY(:to)", { to: to.map((c) => JSON.stringify(c)) })
+        .getMany();
 
     return query;
   }

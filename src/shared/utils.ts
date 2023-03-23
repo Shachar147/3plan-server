@@ -75,3 +75,7 @@ export function stringToCoordinate(coordinateStr: string): Coordinate | undefine
     lng: Number(parts[1])
   }
 }
+
+export async function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}

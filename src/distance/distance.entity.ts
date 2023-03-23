@@ -25,10 +25,10 @@ export class Distance extends BaseEntity {
   @Column()
   travelMode: TravelMode;
 
-  @Column("jsonb")
+  @Column({ type: "jsonb", nullable: true })
   distance: TextValueObject;
 
-  @Column("jsonb")
+  @Column({ type: "jsonb", nullable: true })
   duration: TextValueObject;
 
   @Column()

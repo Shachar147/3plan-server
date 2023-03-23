@@ -1,7 +1,12 @@
 import { Injectable } from "@nestjs/common";
 import { User } from "../user/user.entity";
 import { CreateDistanceDto } from "./dto/create-distance.dto";
-import { coordinateToString, getTimestampInSeconds } from "../shared/utils";
+import {
+  coordinateToString,
+  getTimestampInSeconds,
+  sleep,
+  stringToCoordinate,
+} from "../shared/utils";
 import { InjectRepository } from "@nestjs/typeorm";
 import {
   CalculateDistancesResult,
@@ -25,11 +30,17 @@ export class DistanceService {
     user: User
   ): Promise<CalculateDistancesResult> {
     let { from, to } = params;
-    from = Array.from(new Set(from.map((x) => JSON.stringify({ lat: x.lat, lng: x.lng })))).map((x) => JSON.parse(x));
-    to = Array.from(new Set(to.map((x) => JSON.stringify({ lat: x.lat, lng: x.lng })))).map((x) => JSON.parse(x));
+    from = Array.from(
+      new Set(from.map((x) => JSON.stringify({ lat: x.lat, lng: x.lng })))
+    ).map((x) => JSON.parse(x));
+    to = Array.from(
+      new Set(to.map((x) => JSON.stringify({ lat: x.lat, lng: x.lng })))
+    ).map((x) => JSON.parse(x));
 
-    const from_chunks = chunk(from, 25);
-    const to_chunks = chunk(to, 25);
+    const MAX_IN_CHUNK = 10;
+
+    const from_chunks = chunk(from, MAX_IN_CHUNK);
+    const to_chunks = chunk(to, MAX_IN_CHUNK);
 
     const result = {
       errors: [],
@@ -48,9 +59,15 @@ export class DistanceService {
       },
     };
 
+    let counter = 0;
     for (const from_chunk of from_chunks) {
       for (const to_chunk of to_chunks) {
-        const r = await this.getDistanceResult({from: from_chunk, to: to_chunk}, user);
+        counter++;
+        console.log(`running chunk ${counter}...`);
+        const r = await this.getDistanceResult(
+          { from: from_chunk, to: to_chunk },
+          user
+        );
         result.errors = result.errors.concat(r.errors);
         result.results = Array.from(new Set(result.results.concat(r.results)));
         result.totals.alreadyExisting += r.totals.alreadyExisting;
@@ -58,9 +75,12 @@ export class DistanceService {
         // result.routesToCalculate = Array.from(new Set(result.routesToCalculate.concat(r.routesToCalculate)))
         // result.totals.calculated = result.routesToCalculate.length;
         result.totals.calculated += r.totals.calculated;
-        result.totals.newResults = result.results.length;
+        result.totals.newResults += r.totals.newResults;
         result.totals.errors += r.totals.errors;
         result.totals.chunks += r.totals.chunks;
+        console.log(
+          `so far found ${result.results.length}/${result.totals.expectedRoutes}`
+        );
       }
     }
 
@@ -116,11 +136,13 @@ export class DistanceService {
         ) {
           originsToCalculate[coordinateToString(f)] = 1;
           destinationsToCalculate[coordinateToString(t)] = 1;
-          routesToCalculate.push(JSON.stringify({
-            from: f,
-            to: t,
-            travelMode
-          }))
+          routesToCalculate.push(
+            JSON.stringify({
+              from: f,
+              to: t,
+              travelMode,
+            })
+          );
         }
       });
     });
@@ -156,10 +178,17 @@ export class DistanceService {
         destinations,
         distance
       );
+      await sleep(1000);
       chunks++;
     }
 
     for (const r of result.results) {
+      const upsertDto = (r as unknown) as CreateDistanceDto;
+      await this.distanceRepository.upsertDistance(upsertDto, user);
+    }
+
+    // keep errors too so we won't try again.
+    for (const r of result.errors) {
       const upsertDto = (r as unknown) as CreateDistanceDto;
       await this.distanceRepository.upsertDistance(upsertDto, user);
     }
@@ -172,10 +201,26 @@ export class DistanceService {
         alreadyExisting: dbResults.length,
         expired: expired.length,
         calculated: routesToCalculate.length,
-        // newResults: result.results.length,
+        newResults: result.results.length,
         errors: result.errors.length,
         chunks: chunks,
       },
     };
+  }
+
+  async getNearbyPlacesByCoordinate(coordinateStr: string, user: User) {
+    const coordinate = stringToCoordinate(coordinateStr);
+    const results = (
+      await this.distanceRepository.getNearbyPlacesByCoordinate(
+        coordinate,
+        user
+      )
+    )
+      .filter((x) => x.duration && JSON.stringify(x.from) !== JSON.stringify(x.to))
+      .sort((a, b) => {
+        return Number(a.duration.value) - Number(b.duration.value)
+      });
+    
+    return results;
   }
 }
