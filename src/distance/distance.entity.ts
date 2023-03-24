@@ -1,7 +1,7 @@
 import {
   BaseEntity,
   Column,
-  Entity,
+  Entity, Index,
   ManyToOne,
   PrimaryGeneratedColumn,
   Unique,
@@ -16,11 +16,13 @@ export class Distance extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column("jsonb")
-  from: Coordinate;
+  @Index()
+  @Column()
+  from: string;
 
-  @Column("jsonb")
-  to: Coordinate;
+  @Index()
+  @Column()
+  to: string;
 
   @Column()
   travelMode: TravelMode;

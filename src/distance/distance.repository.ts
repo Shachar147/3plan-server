@@ -6,7 +6,7 @@ import { CreateDistanceDto } from "./dto/create-distance.dto";
 import { updateDistanceDto } from "./dto/update.distance.dto";
 import { TextValueObject, TravelMode } from "./common";
 import { Coordinate } from "../shared/interfaces";
-import {stringToCoordinate} from "../shared/utils";
+import {coordinateToString, stringToCoordinate} from "../shared/utils";
 
 export interface CalculateDistancesResult {
   errors: any[];
@@ -21,8 +21,8 @@ export interface DistanceResult {
   duration: TextValueObject;
   distance: TextValueObject;
   travelMode: TravelMode;
-  from: Coordinate;
-  to: Coordinate;
+  from: string;
+  to: string;
 }
 
 @EntityRepository(Distance)
@@ -68,14 +68,13 @@ export class DistanceRepository extends Repository<Distance> {
     return { isChanged, updates, distance };
   }
 
-  // todo complete
   async upsertDistance(distanceDto: CreateDistanceDto, user: User) {
     const queryBuilder = this.createQueryBuilder("distance");
     const distanceFromDB = await queryBuilder
       .where("distance.from = :from", {
-        from: JSON.stringify(distanceDto.from),
+        from: distanceDto.from,
       })
-      .andWhere("distance.to = :to", { to: JSON.stringify(distanceDto.to) })
+      .andWhere("distance.to = :to", { to: distanceDto.to })
       .getOne();
 
     if (distanceFromDB) {
@@ -96,7 +95,7 @@ export class DistanceRepository extends Repository<Distance> {
     updateDistanceDto: updateDistanceDto
   ): any {
     const updates = [];
-    const complexFields = ["from", "to", "travelMode", "distance", "duration"];
+    const complexFields = ["travelMode", "distance", "duration"];
 
     Object.keys(updateDistanceDto).forEach((key) => {
       const shouldUpdate =
@@ -179,8 +178,8 @@ export class DistanceRepository extends Repository<Distance> {
                     destination,
                     duration,
                     travelMode,
-                    from: stringToCoordinate(origins[i]),
-                    to: stringToCoordinate(destinations[j]),
+                    from: origins[i],
+                    to: destinations[j],
                   });
                 } else {
                   errors.push({
@@ -191,8 +190,8 @@ export class DistanceRepository extends Repository<Distance> {
                     destination,
                     duration: undefined,
                     travelMode,
-                    from: stringToCoordinate(origins[i]),
-                    to: stringToCoordinate(destinations[j]),
+                    from: origins[i],
+                    to: destinations[j],
                   });
                 }
               }
@@ -212,10 +211,6 @@ export class DistanceRepository extends Repository<Distance> {
     }
   }
 
-  async findDistance(from: Coordinate, to: Coordinate): Promise<Distance> {
-    return await this.findOne({ from, to });
-  }
-
   async findDistancesByFromAndTo(
     from: Coordinate[],
     to: Coordinate[],
@@ -223,9 +218,9 @@ export class DistanceRepository extends Repository<Distance> {
   ): Promise<Distance[]> {
     const queryBuilder = this.createQueryBuilder("distance");
     const query = await queryBuilder
-      .where("distance.from = ANY(:from)", { from: from.map((c) => JSON.stringify(c)) })
+      .where("distance.from = ANY(:from)", { from: from.map((c) => coordinateToString(c)) })
       .andWhere("distance.travelMode = :travelMode", { travelMode: travelMode })
-      .andWhere("distance.to = ANY(:to)", { to: to.map((c) => JSON.stringify(c)) })
+      .andWhere("distance.to = ANY(:to)", { to: to.map((c) => coordinateToString(c)) })
       .getMany();
 
     return query;
@@ -234,7 +229,7 @@ export class DistanceRepository extends Repository<Distance> {
   async getNearbyPlacesByCoordinate(coordinate: Coordinate, user: User) {
     const queryBuilder = this.createQueryBuilder("distance");
     const query = await queryBuilder
-        .where("distance.from = :from", { from: JSON.stringify(coordinate) })
+        .where("distance.from = :from", { from: coordinateToString(coordinate) })
         // .andWhere("distance.travelMode = :travelMode", { travelMode: travelMode })
         // .andWhere("distance.to = ANY(:to)", { to: to.map((c) => JSON.stringify(c)) })
         .getMany();

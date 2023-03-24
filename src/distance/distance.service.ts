@@ -179,8 +179,8 @@ export class DistanceService {
         if (
           !dbResults.find(
             (d) =>
-              JSON.stringify(d.to) === JSON.stringify(t) &&
-              JSON.stringify(d.from) === JSON.stringify(f) &&
+              d.to === coordinateToString(t) &&
+              d.from === coordinateToString(f) &&
               d.travelMode === travelMode
           )
         ) {
@@ -266,7 +266,7 @@ export class DistanceService {
         user
       )
     )
-      .filter((x) => x.duration && JSON.stringify(x.from) !== JSON.stringify(x.to))
+      .filter((x) => x.duration && x.from !== x.to)
       .sort((a, b) => {
         return Number(a.duration.value) - Number(b.duration.value)
       });
