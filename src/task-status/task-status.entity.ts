@@ -28,10 +28,10 @@ export class TaskStatus extends BaseEntity {
     @Column()
     status: TaskStatusType;
 
-    @Column({type: "jsonb", nullable: true })
+    @Column("jsonb")
     detailedStatus: object;
 
-    @Column({ nullable: true })
+    @Column('decimal', { nullable: true })
     progress: number
 
     @Column("timestamp", { default: () => "CURRENT_TIMESTAMP" })

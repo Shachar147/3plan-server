@@ -26,7 +26,7 @@ export class DistanceService {
   async getDistanceResultInChunks(
     params: GetDistanceResultDto,
     user: User
-  ): Promise<CalculateDistancesResult> {
+  ): Promise<{ taskId: number }> {
 
     const trip = await this.tripService.getTripByName(params.tripName, user);
 
@@ -44,89 +44,97 @@ export class DistanceService {
     const taskStatus = await this.taskStatusService.createTask(createTaskDto, user);
     console.log(`task #${taskStatus.id} created`);
 
-    let { from, to } = params;
-    from = Array.from(
-      new Set(from.map((x) => JSON.stringify({ lat: x.lat, lng: x.lng })))
-    ).map((x) => JSON.parse(x));
-    to = Array.from(
-      new Set(to.map((x) => JSON.stringify({ lat: x.lat, lng: x.lng })))
-    ).map((x) => JSON.parse(x));
+    const runInBackground = async () => {
+      let { from, to } = params;
+      from = Array.from(
+          new Set(from.map((x) => JSON.stringify({ lat: x.lat, lng: x.lng })))
+      ).map((x) => JSON.parse(x));
+      to = Array.from(
+          new Set(to.map((x) => JSON.stringify({ lat: x.lat, lng: x.lng })))
+      ).map((x) => JSON.parse(x));
 
-    const MAX_IN_CHUNK = 10;
+      const MAX_IN_CHUNK = 10;
 
-    const from_chunks = chunk(from, MAX_IN_CHUNK);
-    const to_chunks = chunk(to, MAX_IN_CHUNK);
+      const from_chunks = chunk(from, MAX_IN_CHUNK);
+      const to_chunks = chunk(to, MAX_IN_CHUNK);
 
-    const result = {
-      errors: [],
-      results: [],
-      from,
-      to,
-      // routesToCalculate: [],
-      totals: {
-        expectedRoutes: from.length * to.length,
-        alreadyExisting: 0,
-        expired: 0,
-        calculated: 0,
-        newResults: 0,
-        errors: 0,
-        chunks: 0,
-      },
-    };
+      const result = {
+        errors: [],
+        results: [],
+        from,
+        to,
+        // routesToCalculate: [],
+        totals: {
+          expectedRoutes: from.length * to.length,
+          alreadyExisting: 0,
+          expired: 0,
+          calculated: 0,
+          newResults: 0,
+          errors: 0,
+          chunks: 0,
+        },
+      };
 
-    let message;
-    let counter = 0;
-    for (const from_chunk of from_chunks) {
-      for (const to_chunk of to_chunks) {
-        counter++;
-        message = `running chunk ${counter} / ${from_chunks.length*to_chunks.length}...`;
-        stackTrace.push(message);
-        console.log(message);
-        await this.taskStatusService.updateTask(taskStatus.id, {
-          progress: Number(((counter-1)/(from_chunks.length*to_chunks.length)).toFixed(2)),
-          detailedStatus: {
-            stackTrace
-          }
-        },user)
+      let message;
+      let counter = 0;
+      for (const from_chunk of from_chunks) {
+        for (const to_chunk of to_chunks) {
+          counter++;
+          message = `running chunk ${counter} / ${from_chunks.length*to_chunks.length}...`;
+          stackTrace.push(message);
+          console.log(message);
+          await this.taskStatusService.updateTask(taskStatus.id, {
+            progress: Number(((counter-1)/(from_chunks.length*to_chunks.length) * 100).toFixed(0)),
+            detailedStatus: {
+              stackTrace
+            }
+          },user)
 
-        const r = await this.getDistanceResult(
-          { from: from_chunk, to: to_chunk, tripName: params.tripName },
-          user
-        );
-        result.errors = result.errors.concat(r.errors);
-        result.results = Array.from(new Set(result.results.concat(r.results)));
-        result.totals.alreadyExisting += r.totals.alreadyExisting;
-        result.totals.expired += r.totals.expired;
-        // result.routesToCalculate = Array.from(new Set(result.routesToCalculate.concat(r.routesToCalculate)))
-        // result.totals.calculated = result.routesToCalculate.length;
-        result.totals.calculated += r.totals.calculated;
-        result.totals.newResults += r.totals.newResults;
-        result.totals.errors += r.totals.errors;
-        result.totals.chunks += r.totals.chunks;
+          const r = await this.getDistanceResult(
+              { from: from_chunk, to: to_chunk, tripName: params.tripName },
+              user
+          );
+          result.errors = result.errors.concat(r.errors);
+          result.results = Array.from(new Set(result.results.concat(r.results)));
+          result.totals.alreadyExisting += r.totals.alreadyExisting;
+          result.totals.expired += r.totals.expired;
+          // result.routesToCalculate = Array.from(new Set(result.routesToCalculate.concat(r.routesToCalculate)))
+          // result.totals.calculated = result.routesToCalculate.length;
+          result.totals.calculated += r.totals.calculated;
+          result.totals.newResults += r.totals.newResults;
+          result.totals.errors += r.totals.errors;
+          result.totals.chunks += r.totals.chunks;
 
-        message = `so far found ${result.results.length}/${result.totals.expectedRoutes}`;
-        stackTrace.push(message);
-        console.log(message);
-        await this.taskStatusService.updateTask(taskStatus.id, {
-          progress: Number(((counter)/(from_chunks.length*to_chunks.length)).toFixed(2)),
-          detailedStatus: {
-            stackTrace
-          }
-        },user)
+          message = `so far found ${result.results.length}/${result.totals.expectedRoutes}`;
+          stackTrace.push(message);
+          console.log(message);
+          await this.taskStatusService.updateTask(taskStatus.id, {
+            progress: Number(((counter)/(from_chunks.length*to_chunks.length) * 100).toFixed(0)),
+            detailedStatus: {
+              stackTrace
+            }
+          },user)
+        }
       }
+
+      message = `finished`;
+      stackTrace.push(message);
+      console.log(message);
+      await this.taskStatusService.updateTask(taskStatus.id, {
+        progress: 100,
+        detailedStatus: {
+          stackTrace
+        }
+      },user)
+
+      return result;
     }
 
-    message = `finished`;
-    stackTrace.push(message);
-    console.log(message);
-    await this.taskStatusService.updateTask(taskStatus.id, {
-      progress: 100,
-      detailedStatus: {
-        stackTrace
-      }
-    },user)
+    runInBackground();
 
-    return result;
+    return {
+      taskId: taskStatus.id
+    };
   }
 
   async getDistanceResult(

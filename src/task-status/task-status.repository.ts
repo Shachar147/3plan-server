@@ -1,7 +1,6 @@
 import { EntityRepository, Repository } from "typeorm";
 import {TaskStatus} from "./task-status.entity";
 import {User} from "../user/user.entity";
-import {Trip} from "../trip/trip.entity";
 import {ConflictException, InternalServerErrorException} from "@nestjs/common";
 import {CreateTaskDto} from "./dto/create-task.dto";
 
@@ -66,12 +65,12 @@ export class TaskStatusRepository extends Repository<TaskStatus> {
         if (progress) updates.progress = progress;
         if (lastUpdateAt) updates.lastUpdateAt = lastUpdateAt;
         if (relatedTrip) updates.relatedTrip = relatedTrip;
-        if (user) updates.user = user;
+        // if (user) updates.addedBy = user;
         updates.lastUpdateAt = new Date();
 
-        const queryBuilder = this.createQueryBuilder('trip');
+        const queryBuilder = this.createQueryBuilder('task_status');
         await queryBuilder
-            .update(Trip)
+            .update(TaskStatus)
             .set(updates)
             .where('id = :id', { id: taskStatus.id })
             .execute();

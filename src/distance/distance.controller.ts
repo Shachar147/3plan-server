@@ -1,4 +1,4 @@
-import {Body, Controller, Get, Param, Post, UseGuards} from "@nestjs/common";
+import {Body, Controller, Get, Param, Post, Query, UseGuards, ValidationPipe} from "@nestjs/common";
 import { DistanceService } from "./distance.service";
 import { User } from "../user/user.entity";
 import { GetUser } from "../auth/get-user.decorator";
@@ -14,7 +14,7 @@ export class DistanceController {
   @Post()
   @UseGuards(AuthGuard())
   getDistanceResult(
-    @Body() createDistanceDto: GetDistanceResultDto,
+    @Body(ValidationPipe) createDistanceDto: GetDistanceResultDto,
     @GetUser() user: User
   ): Promise<any> {
     return this.distanceService.getDistanceResultInChunks(
