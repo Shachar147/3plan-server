@@ -39,15 +39,19 @@ export class DistanceController {
     return this.distanceService.getNearbyPlacesByCoordinate(coordinate, user);
   }
 
-  // @Post('/all-routes')
-  // @UseGuards(AuthGuard())
-  // getAllRoutes(
-  //     @Body() dto: GetAllRoutesDto,
-  //     @GetUser() user: User
-  // ): Promise<any> {
-  //   return this.distanceService.getAllRoutes(
-  //       dto,
-  //       user
-  //   );
-  // }
+  @ApiOperation({
+    summary: "Get trip Routes",
+    description: "Returns all the routes that related to specific trip, by trip's coordinates.",
+  })
+  @ApiParam({
+    name: "tripName",
+    description: "The name of the trip",
+    required: true,
+    type: "string",
+  })
+  @Get("/trip/:tripName")
+  @UseGuards(AuthGuard())
+  getTripRoutes(@Param("tripName") tripName, @GetUser() user: User): Promise<{ total: number, results: Distance[]}> {
+    return this.distanceService.getTripRoutes(tripName, user);
+  }
 }

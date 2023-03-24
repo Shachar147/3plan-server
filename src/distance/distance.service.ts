@@ -10,6 +10,8 @@ import {TripService} from "../trip/trip.service";
 import {TaskStatusService} from "../task-status/task-status.service";
 import {TaskStatusType} from "../task-status/task-status.entity";
 import {CreateTaskDto} from "../task-status/dto/create-task.dto";
+import {Coordinate} from "../shared/interfaces";
+import {TravelMode} from "./common";
 
 const DB_DATA_EXPIRY_IN_DAYS = 30;
 const SECONDS_IN_DAY = 86400;
@@ -272,5 +274,41 @@ export class DistanceService {
       });
     
     return results;
+  }
+
+  allEventsLocations(allEvents: any[]): Coordinate[] {
+    const allLocations = Array.from(
+        new Set(
+            allEvents
+                .filter((x) => x.location?.latitude && x.location?.longitude)
+                .map((x) =>
+                    JSON.stringify({
+                      lat: x.location?.latitude,
+                      lng: x.location?.longitude,
+                      eventName: x.title,
+                    })
+                )
+        )
+    ).map((x) => JSON.parse(x));
+
+    // if there are multiple evnets with same location but different name, take only one of them.
+    const filtered: Record<string, any> = {};
+    allLocations.forEach((x) => {
+      const key = JSON.stringify({ lat: x.lat, lng: x.lng });
+      filtered[key] = x;
+    });
+
+    return Object.values(filtered);
+  }
+
+  async getTripRoutes(tripName: string, user: User, travelMode: TravelMode = 'DRIVING') {
+    const trip = await this.tripService.getTripByName(tripName, user);
+    const coordinates = this.allEventsLocations(trip.allEvents as unknown as any[]);
+
+    const results = await this.distanceRepository.findDistancesByFromAndTo(coordinates, coordinates, travelMode);
+    return {
+      total: results.length,
+      results
+    }
   }
 }
