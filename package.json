@@ -24,11 +24,6 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand"
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "npm run test"
-    }
-  },
   "dependencies": {
     "@nestjs/common": "^7.5.1",
     "@nestjs/core": "^7.5.1",

@@ -1,7 +1,6 @@
-import {Coordinate} from "../../shared/interfaces";
 import {TextValueObject, TravelMode} from "../common";
 
-export class CreateDistanceDto {
+export class UpsertDistanceDto {
   from: string;
   to: string;
   distance: TextValueObject;

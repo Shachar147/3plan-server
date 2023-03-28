@@ -2,32 +2,15 @@ import { Distance } from "./distance.entity";
 import { EntityRepository, Repository } from "typeorm";
 import { User } from "../user/user.entity";
 import { BadRequestException } from "@nestjs/common";
-import { CreateDistanceDto } from "./dto/create-distance.dto";
-import { updateDistanceDto } from "./dto/update.distance.dto";
-import { TextValueObject, TravelMode } from "./common";
+import { UpsertDistanceDto } from "./dto/upsert-distance.dto";
+import {CalculateDistancesResult, DistanceDiff, TravelMode} from "./common";
 import { Coordinate } from "../shared/interfaces";
-import {coordinateToString, stringToCoordinate} from "../shared/utils";
-
-export interface CalculateDistancesResult {
-  errors: any[];
-  results: DistanceResult[];
-  totals?: any;
-  routesToCalculate?: string[];
-}
-
-export interface DistanceResult {
-  origin: string;
-  destination: string;
-  duration: TextValueObject;
-  distance: TextValueObject;
-  travelMode: TravelMode;
-  from: string;
-  to: string;
-}
+import {coordinateToString} from "../shared/utils";
 
 @EntityRepository(Distance)
 export class DistanceRepository extends Repository<Distance> {
-  async createDistance(dto: CreateDistanceDto, user: User) {
+
+  async createDistance(dto: UpsertDistanceDto, user: User) {
     const dis = new Distance();
     dis.destination = dto.destination;
     dis.distance = dto.distance;
@@ -50,31 +33,32 @@ export class DistanceRepository extends Repository<Distance> {
       throw e;
     }
 
-    // @ts-ignore
-    dis.addedBy = {
-      id: user.id,
-      username: user.username,
-    };
+    return {
+      ...dis,
+      addedBy: {
+        id: user.id,
+        username: user.username,
+      }
+    }
   }
 
   async updateDistance(
     distance: Distance,
-    DistanceDto: updateDistanceDto
+    dto: UpsertDistanceDto
   ): Promise<any> {
-    const updates = this.updateAndGetDiff(distance, DistanceDto);
+    const updates = this.updateAndGetDiff(distance, dto);
     const isChanged = updates.length > 0;
     distance.addedAt = new Date();
     await distance.save();
     return { isChanged, updates, distance };
   }
 
-  async upsertDistance(distanceDto: CreateDistanceDto, user: User) {
+  async upsertDistance(distanceDto: UpsertDistanceDto, user: User) {
+    const { from, to } = distanceDto;
     const queryBuilder = this.createQueryBuilder("distance");
     const distanceFromDB = await queryBuilder
-      .where("distance.from = :from", {
-        from: distanceDto.from,
-      })
-      .andWhere("distance.to = :to", { to: distanceDto.to })
+      .where("distance.from = :from", { from })
+      .andWhere("distance.to = :to", { to })
       .getOne();
 
     if (distanceFromDB) {
@@ -82,47 +66,31 @@ export class DistanceRepository extends Repository<Distance> {
     } else {
       await this.createDistance(distanceDto, user);
     }
-
-    // if (distanceFromDb) {
-    //   await this.updateDistance(distanceFromDb, distanceDto);
-    // } else {
-    //   await this.createDistance(distanceDto, user, result, distance);
-    // }
   }
 
-  updateAndGetDiff(
-    distance: Distance,
-    updateDistanceDto: updateDistanceDto
-  ): any {
+  updateAndGetDiff(distance: Distance, dto: UpsertDistanceDto): DistanceDiff[] {
     const updates = [];
     const complexFields = ["travelMode", "distance", "duration"];
 
-    Object.keys(updateDistanceDto).forEach((key) => {
+    Object.keys(dto).forEach((key) => {
       const shouldUpdate =
-        (complexFields.includes(key) &&
-          JSON.stringify(updateDistanceDto[key]) !==
-            JSON.stringify(distance[key])) ||
-        (!complexFields.includes(key) &&
-          updateDistanceDto[key] !== distance[key]);
+          (complexFields.includes(key) && JSON.stringify(dto[key]) !== JSON.stringify(distance[key])) ||
+          (!complexFields.includes(key) && dto[key] !== distance[key]);
 
       if (shouldUpdate) {
         updates.push({
           what: key,
           was: distance[key],
-          now: updateDistanceDto[key],
+          now: dto[key],
         });
-        distance[key] = updateDistanceDto[key];
+        distance[key] = dto[key];
       }
     });
 
     return updates;
   }
 
-  async calculateDistances(
-    origins: string[],
-    destinations: string[],
-    distance
-  ): Promise<CalculateDistancesResult> {
+  async calculateDistances(origins: string[], destinations: string[], distance): Promise<CalculateDistancesResult> {
     const errors = [];
     const results = [];
     try {
@@ -149,7 +117,6 @@ export class DistanceRepository extends Repository<Distance> {
         //   results
         // })
 
-        // todo complete - add chunks
         distance.matrix(origins, destinations, function (err, distances) {
           if (err) {
             reject(err);
@@ -157,12 +124,6 @@ export class DistanceRepository extends Repository<Distance> {
           if (!distances) {
             reject("no distances");
           }
-
-          console.log({
-            origins: origins.length,
-            destinations: destinations.length,
-            status: distances.status,
-          })
 
           if (distances.status == "OK") {
             for (let i = 0; i < origins.length; i++) {
@@ -196,18 +157,12 @@ export class DistanceRepository extends Repository<Distance> {
                 }
               }
             }
-            resolve({
-              errors,
-              results,
-            });
+            resolve({ errors, results });
           }
         });
       });
     } catch (e) {
-      throw new BadRequestException(
-        "DistanceNotExist",
-        `the distance is not exist`
-      );
+      throw new BadRequestException("distanceCalcError", `oops something wen't wrong: ${JSON.stringify(e)}`);
     }
   }
 
@@ -217,23 +172,17 @@ export class DistanceRepository extends Repository<Distance> {
     travelMode: TravelMode
   ): Promise<Distance[]> {
     const queryBuilder = this.createQueryBuilder("distance");
-    const query = await queryBuilder
+    return await queryBuilder
       .where("distance.from = ANY(:from)", { from: from.map((c) => coordinateToString(c)) })
       .andWhere("distance.travelMode = :travelMode", { travelMode: travelMode })
       .andWhere("distance.to = ANY(:to)", { to: to.map((c) => coordinateToString(c)) })
       .getMany();
-
-    return query;
   }
 
   async getNearbyPlacesByCoordinate(coordinate: Coordinate, user: User) {
     const queryBuilder = this.createQueryBuilder("distance");
-    const query = await queryBuilder
+    return await queryBuilder
         .where("distance.from = :from", { from: coordinateToString(coordinate) })
-        // .andWhere("distance.travelMode = :travelMode", { travelMode: travelMode })
-        // .andWhere("distance.to = ANY(:to)", { to: to.map((c) => JSON.stringify(c)) })
         .getMany();
-
-    return query;
   }
 }

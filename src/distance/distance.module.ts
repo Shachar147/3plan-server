@@ -5,7 +5,7 @@ import { AuthModule } from "../auth/auth.module";
 import { PassportModule } from "@nestjs/passport";
 import { DistanceRepository } from "./distance.repository";
 import { TypeOrmModule } from "@nestjs/typeorm";
-import { TaskStatusModule } from "../task-status/task-status.module";
+import { TaskModule } from "../task/task.module";
 import { TripModule } from "../trip/trip.module";
 
 @Module({
@@ -14,7 +14,7 @@ import { TripModule } from "../trip/trip.module";
     HttpModule,
     AuthModule,
     PassportModule,
-    TaskStatusModule,
+    TaskModule,
     TripModule,
   ],
   controllers: [DistanceController],

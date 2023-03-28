@@ -1,26 +1,33 @@
-import {Body, Controller, Get, Param, Post, Query, UseGuards, ValidationPipe} from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  UseGuards,
+  ValidationPipe,
+} from "@nestjs/common";
 import { DistanceService } from "./distance.service";
 import { User } from "../user/user.entity";
 import { GetUser } from "../auth/get-user.decorator";
 import { AuthGuard } from "@nestjs/passport";
-import {GetDistanceResultDto} from "./dto/get-distance-result.dto";
-import {ApiOperation, ApiParam} from "@nestjs/swagger";
-import {Distance} from "./distance.entity";
+import { CalcDistancesDto } from "./dto/calc-distances.dto";
+import { ApiOperation, ApiParam } from "@nestjs/swagger";
+import { Distance } from "./distance.entity";
+import {TaskCreatedResult, TripRoutesResult} from "../task/common";
 
 @Controller("distance")
 export class DistanceController {
   constructor(private distanceService: DistanceService) {}
 
+  @ApiOperation({
+    summary: "Calculate distances",
+    description: "Calculate distances & durations between array of origins and array of destinations.",
+  })
   @Post()
   @UseGuards(AuthGuard())
-  getDistanceResult(
-    @Body(ValidationPipe) createDistanceDto: GetDistanceResultDto,
-    @GetUser() user: User
-  ): Promise<any> {
-    return this.distanceService.getDistanceResultInChunks(
-      createDistanceDto,
-      user
-    );
+  calcDistances(@Body(ValidationPipe) dto: CalcDistancesDto, @GetUser() user: User): Promise<TaskCreatedResult> {
+    return this.distanceService.calcDistancesInChunks(dto, user);
   }
 
   @ApiOperation({
@@ -41,7 +48,8 @@ export class DistanceController {
 
   @ApiOperation({
     summary: "Get trip Routes",
-    description: "Returns all the routes that related to specific trip, by trip's coordinates.",
+    description:
+      "Returns all the routes that related to specific trip, by trip's coordinates.",
   })
   @ApiParam({
     name: "tripName",
@@ -51,7 +59,7 @@ export class DistanceController {
   })
   @Get("/trip/:tripName")
   @UseGuards(AuthGuard())
-  getTripRoutes(@Param("tripName") tripName, @GetUser() user: User): Promise<{ total: number, results: Distance[]}> {
+  getTripRoutes(@Param("tripName") tripName, @GetUser() user: User): Promise<TripRoutesResult> {
     return this.distanceService.getTripRoutes(tripName, user);
   }
 }

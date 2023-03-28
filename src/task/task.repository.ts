@@ -1,17 +1,16 @@
 import { EntityRepository, Repository } from "typeorm";
-import {TaskStatus} from "./task-status.entity";
+import {Task} from "./task.entity";
 import {User} from "../user/user.entity";
-import {ConflictException, InternalServerErrorException} from "@nestjs/common";
+import {InternalServerErrorException} from "@nestjs/common";
 import {CreateTaskDto} from "./dto/create-task.dto";
 
-
-@EntityRepository(TaskStatus)
-export class TaskStatusRepository extends Repository<TaskStatus> {
+@EntityRepository(Task)
+export class TaskRepository extends Repository<Task> {
 
     async createTask(
         createTaskDto: CreateTaskDto,
         user: User,
-    ): Promise<TaskStatus> {
+    ): Promise<Task> {
         const {
             taskInfo,
             status,
@@ -20,34 +19,29 @@ export class TaskStatusRepository extends Repository<TaskStatus> {
             lastUpdateAt,
             relatedTrip
         } = createTaskDto;
-        const taskStatus = new TaskStatus();
-        taskStatus.taskInfo = taskInfo;
-        taskStatus.status = status;
-        taskStatus.detailedStatus = detailedStatus;
-        taskStatus.progress = progress;
-        taskStatus.lastUpdateAt = lastUpdateAt;
-        taskStatus.relatedTrip = relatedTrip;
-        taskStatus.addedBy = user;
+        const task = new Task();
+        task.taskInfo = taskInfo;
+        task.status = status;
+        task.detailedStatus = detailedStatus;
+        task.progress = progress;
+        task.lastUpdateAt = lastUpdateAt;
+        task.relatedTrip = relatedTrip;
+        task.addedBy = user;
 
         try {
-            await taskStatus.save();
+            await task.save();
         } catch (error) {
-            if (Number(error.code) === 23505) {
-                // duplicate task
-                throw new ConflictException("Task already exists");
-            } else {
-                throw new InternalServerErrorException();
-            }
+            throw new InternalServerErrorException();
         }
 
-        return taskStatus;
+        return task;
     }
 
     async updateTask(
         updateTaskDto: Partial<CreateTaskDto>,
-        taskStatus: TaskStatus,
+        taskStatus: Task,
         user: User,
-    ): Promise<TaskStatus> {
+    ): Promise<Task> {
         const {
             taskInfo,
             status,
@@ -68,9 +62,9 @@ export class TaskStatusRepository extends Repository<TaskStatus> {
         // if (user) updates.addedBy = user;
         updates.lastUpdateAt = new Date();
 
-        const queryBuilder = this.createQueryBuilder('task_status');
+        const queryBuilder = this.createQueryBuilder('task');
         await queryBuilder
-            .update(TaskStatus)
+            .update(Task)
             .set(updates)
             .where('id = :id', { id: taskStatus.id })
             .execute();

@@ -1,37 +1,5 @@
 import {Coordinate} from "./interfaces";
 
-export function SubstringTo(page: string, n: number, endChar: string) {
-  let string = '';
-  while (n < page.length && page[n] != endChar) {
-    string += page[n];
-    n++;
-  }
-  return string;
-}
-
-export function SubstringToPhaseSubstringToPhase(page, n, endKey) {
-  let string = '';
-  let lastIndex = page.indexOf(endKey, n+1);
-  if (lastIndex === -1) lastIndex = page.length -1;
-
-  while (n < page.length && n < lastIndex) {
-    string += page[n];
-    n++;
-  }
-  return [string, n];
-}
-
-export function GetInBetween(page, n, startKey, endKey, addKeyLength) {
-  n = page.indexOf(startKey, n);
-  if (n != -1) {
-    if (addKeyLength) {
-      n += startKey.length;
-    }
-    return SubstringTo(page, n, endKey);
-  }
-  return '';
-}
-
 export function deepClone(obj) {
   return JSON.parse(JSON.stringify(obj));
 }
@@ -78,4 +46,14 @@ export function stringToCoordinate(coordinateStr: string): Coordinate | undefine
 
 export async function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+export function getPercentage(value: number, from: number) {
+  return Number((((value) / (from)) * 100).toFixed(0));
+}
+
+export function getUniqueListOfCoordinates(arr: Coordinate[]): Coordinate[]{
+  return Array.from(
+      new Set(arr.map((x) => JSON.stringify({ lat: x.lat, lng: x.lng })))
+  ).map((x) => JSON.parse(x));
 }

@@ -2,7 +2,7 @@ import {Coordinate} from "../../shared/interfaces";
 import {ApiProperty} from "@nestjs/swagger";
 import {IsNotEmpty} from "class-validator";
 
-export class GetDistanceResultDto {
+export class CalcDistancesDto {
     @ApiProperty({ required: true })
     @IsNotEmpty({
         message: 'missing: from',

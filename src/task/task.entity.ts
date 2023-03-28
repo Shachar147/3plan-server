@@ -4,21 +4,13 @@ import {
     Entity,
     ManyToOne,
     PrimaryGeneratedColumn,
-    Unique,
 } from "typeorm";
 import { User } from "../user/user.entity";
-import {Coordinate} from "../shared/interfaces";
 import {Trip} from "../trip/trip.entity";
-
-export enum TaskStatusType {
-    pending = 'pending',
-    inProgress = 'inProgress',
-    failed = 'failed',
-    succeeded = 'succeeded'
-}
+import {TaskStatus} from "./common";
 
 @Entity()
-export class TaskStatus extends BaseEntity {
+export class Task extends BaseEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
@@ -26,7 +18,7 @@ export class TaskStatus extends BaseEntity {
     taskInfo: object
 
     @Column()
-    status: TaskStatusType;
+    status: TaskStatus;
 
     @Column("jsonb")
     detailedStatus: object;

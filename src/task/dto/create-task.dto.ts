@@ -1,7 +1,8 @@
 import {ApiProperty} from "@nestjs/swagger";
-import {IsNotEmpty, IsOptional} from "class-validator";
+import {IsNotEmpty} from "class-validator";
 import {Trip} from "../../trip/trip.entity";
-import {TaskStatusType} from "../task-status.entity";
+import {TaskStatus, TaskType} from "../common";
+import {CalcDistancesDto} from "../../distance/dto/calc-distances.dto";
 
 export class CreateTaskDto {
     @ApiProperty({ required: false })
@@ -11,7 +12,7 @@ export class CreateTaskDto {
     @IsNotEmpty({
         message: 'missing: status',
     })
-    status: TaskStatusType;
+    status: TaskStatus;
 
     @ApiProperty({ required: false })
     detailedStatus: object;
@@ -27,4 +28,18 @@ export class CreateTaskDto {
         message: 'missing: trip',
     })
     relatedTrip: Trip;
+
+
+    static build(params: CalcDistancesDto, trip: Trip): CreateTaskDto {
+        return {
+            taskInfo: {
+                type: TaskType.calcDistance,
+                params,
+            },
+            status: TaskStatus.inProgress,
+            detailedStatus: {},
+            progress: 0,
+            relatedTrip: trip,
+        } as CreateTaskDto;
+    }
 }

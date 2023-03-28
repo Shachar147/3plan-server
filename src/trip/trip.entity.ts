@@ -6,8 +6,7 @@ import {
   Unique, ManyToOne, OneToMany,
 } from 'typeorm';
 import {User} from "../user/user.entity";
-import {Backups} from "../backups/backups.entity";
-import {TaskStatus} from "../task-status/task-status.entity";
+import {Task} from "../task/task.entity";
 
 @Unique(['name', 'userId'])
 @Entity()
@@ -58,6 +57,6 @@ export class Trip extends BaseEntity {
   @Column('timestamp', { default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
 
-  @OneToMany((type) => TaskStatus, (taskStatus) => taskStatus.relatedTrip, { eager: true })
-  trip_tasks: TaskStatus[];
+  @OneToMany((type) => Task, (task) => task.relatedTrip, { eager: true })
+  trip_tasks: Task[];
 }
