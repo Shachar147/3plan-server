@@ -36,7 +36,7 @@ export class CreateTaskDto {
                 type: TaskType.calcDistance,
                 params,
             },
-            status: TaskStatus.inProgress,
+            status: TaskStatus.IN_PROGRESS,
             detailedStatus: {},
             progress: 0,
             relatedTrip: trip,

@@ -59,7 +59,7 @@ export class DistanceController {
   })
   @Get("/trip/:tripName")
   @UseGuards(AuthGuard())
-  getTripRoutes(@Param("tripName") tripName, @GetUser() user: User): Promise<TripRoutesResult> {
+  getTripCachedRoutes(@Param("tripName") tripName, @GetUser() user: User): Promise<TripRoutesResult> {
     return this.distanceService.getTripRoutes(tripName, user);
   }
 }

@@ -1,22 +1,24 @@
 import {Injectable, Logger} from "@nestjs/common";
-import { User } from "../user/user.entity";
-import { UpsertDistanceDto } from "./dto/upsert-distance.dto";
+import {User} from "../user/user.entity";
+import {UpsertDistanceDto} from "./dto/upsert-distance.dto";
 import {
-  coordinateToString, getPercentage,
-  getTimestampInSeconds, getUniqueListOfCoordinates,
+  coordinateToString,
+  getPercentage,
+  getTimestampInSeconds,
+  getUniqueListOfCoordinates,
   sleep,
   stringToCoordinate,
 } from "../shared/utils";
-import { InjectRepository } from "@nestjs/typeorm";
+import {InjectRepository} from "@nestjs/typeorm";
 import {DistanceRepository,} from "./distance.repository";
-import { CalcDistancesDto } from "./dto/calc-distances.dto";
-import { chunk } from "lodash";
-import { TripService } from "../trip/trip.service";
-import { TaskService } from "../task/task.service";
-import { CreateTaskDto } from "../task/dto/create-task.dto";
-import { Coordinate } from "../shared/interfaces";
+import {CalcDistancesDto} from "./dto/calc-distances.dto";
+import {chunk} from "lodash";
+import {TripService} from "../trip/trip.service";
+import {TaskService} from "../task/task.service";
+import {CreateTaskDto} from "../task/dto/create-task.dto";
+import {Coordinate} from "../shared/interfaces";
 import {CalculateDistancesResult, TravelMode} from "./common";
-import {TaskCreatedResult, TripRoutesResult} from "../task/common";
+import {TaskCreatedResult, TaskStatus, TripRoutesResult} from "../task/common";
 import {Distance} from "./distance.entity";
 import {Task} from "../task/task.entity";
 
@@ -70,68 +72,85 @@ export class DistanceService {
   }
 
   async _calcDistancesInChunks(params: CalcDistancesDto, task: Task, user: User){
-    let { from: _from, to: _to } = params;
+    try {
+      let {from: _from, to: _to} = params;
 
-    const from = getUniqueListOfCoordinates(_from)
-    const to = getUniqueListOfCoordinates(_to);
+      const from = getUniqueListOfCoordinates(_from)
+      const to = getUniqueListOfCoordinates(_to);
 
-    const from_chunks = chunk(from, this.MAX_IN_CHUNK);
-    const to_chunks = chunk(to, this.MAX_IN_CHUNK);
+      const from_chunks = chunk(from, this.MAX_IN_CHUNK);
+      const to_chunks = chunk(to, this.MAX_IN_CHUNK);
 
-    const result = {
-      ...defaultCalculateDistancesResult,
-      from,
-      to,
-      totals: {
-        ...defaultCalculateDistancesResult.totals,
-        expectedRoutes: from.length * to.length,
-      },
-    };
-
-    let counter = 0;
-    const totalChunks = from_chunks.length * to_chunks.length;
-
-    for (const from_chunk of from_chunks) {
-      for (const to_chunk of to_chunks) {
-        counter++;
-        this.logger.log(`[${user.id}::${user.username}] running chunk ${counter} / ${totalChunks}...`);
-        await this.taskService.updateTask(
-            task.id,
-            {
-              progress: getPercentage(counter-1, totalChunks),
-              detailedStatus: { chunk: counter, totalChunks }
-            },
-            user
-        );
-
-        const r = await this._calcDistances({ from: from_chunk, to: to_chunk, tripName: params.tripName }, user);
-        result.errors = result.errors.concat(r.errors);
-        result.results = result.results.concat(r.results); // Array.from(new Set(result.results.concat(r.results)));
-        result.totals.alreadyExisting += r.totals.alreadyExisting;
-        result.totals.expired += r.totals.expired;
-        result.totals.calculated += r.totals.calculated;
-        result.totals.newResults += r.totals.newResults;
-        result.totals.errors += r.totals.errors;
-        result.totals.chunks += r.totals.chunks;
-
-        this.logger.log(`[${user.id}::${user.username}] so far found ${result.results.length}/${result.totals.expectedRoutes}`);
-      }
-    }
-
-    this.logger.log(`[${user.id}::${user.username}] finished`);
-    await this.taskService.updateTask(
-        task.id,
-        {
-          progress: 100,
-          detailedStatus: {
-            chunk: counter,
-            totalChunks
-          }
+      const result = {
+        ...defaultCalculateDistancesResult,
+        from,
+        to,
+        totals: {
+          ...defaultCalculateDistancesResult.totals,
+          expectedRoutes: from.length * to.length,
         },
-        user
-    );
+      };
 
-    return result;
+      let counter = 0;
+      const totalChunks = from_chunks.length * to_chunks.length;
+
+      for (const from_chunk of from_chunks) {
+        for (const to_chunk of to_chunks) {
+          counter++;
+          this.logger.log(`[${user.id}::${user.username}] running chunk ${counter} / ${totalChunks}...`);
+          await this.taskService.updateTask(
+              task.id,
+              {
+                status: counter === 1 ? TaskStatus.PENDING : TaskStatus.IN_PROGRESS,
+                progress: getPercentage(counter - 1, totalChunks),
+                detailedStatus: {chunk: counter, totalChunks}
+              },
+              user
+          );
+
+          const r = await this._calcDistances({from: from_chunk, to: to_chunk, tripName: params.tripName}, user);
+          result.errors = result.errors.concat(r.errors);
+          result.results = result.results.concat(r.results); // Array.from(new Set(result.results.concat(r.results)));
+          result.totals.alreadyExisting += r.totals.alreadyExisting;
+          result.totals.expired += r.totals.expired;
+          result.totals.calculated += r.totals.calculated;
+          result.totals.newResults += r.totals.newResults;
+          result.totals.errors += r.totals.errors;
+          result.totals.chunks += r.totals.chunks;
+
+          this.logger.log(`[${user.id}::${user.username}] so far found ${result.results.length}/${result.totals.expectedRoutes}`);
+        }
+      }
+
+      this.logger.log(`[${user.id}::${user.username}] finished`);
+      await this.taskService.updateTask(
+          task.id,
+          {
+            status: TaskStatus.SUCCEEDED,
+            progress: 100,
+            detailedStatus: {
+              chunk: counter,
+              totalChunks
+            }
+          },
+          user
+      );
+
+      return result;
+    } catch (e) {
+      await this.taskService.updateTask(
+          task.id,
+          {
+            status: TaskStatus.FAILED,
+            detailedStatus: {
+              error: e
+            }
+          },
+          user
+      );
+
+      throw e;
+    }
   };
 
   async _getDBResults(params: CalcDistancesDto, travelMode: TravelMode): Promise<{ dbResults: Distance[], expired: Distance[] }> {
