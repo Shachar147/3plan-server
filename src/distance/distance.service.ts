@@ -177,7 +177,7 @@ export class DistanceService {
     }
   }
 
-  async _isExistsInDB(from: Coordinate, to:Coordinate, travelMode: TravelMode, dbResults: Distance[]): Promise<boolean> {
+  _isExistsInDB(from: Coordinate, to:Coordinate, travelMode: TravelMode, dbResults: Distance[]): boolean {
     return !!dbResults.find(
         (d) =>
             d.to === coordinateToString(to) &&
