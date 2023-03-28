@@ -78,6 +78,9 @@ export class DistanceService {
       const from = getUniqueListOfCoordinates(_from)
       const to = getUniqueListOfCoordinates(_to);
 
+      // get already existing db results, filter out expired ones.
+      const { dbResults, expired } = await this._getDBResults(params, "DRIVING")
+
       const from_chunks = chunk(from, this.MAX_IN_CHUNK);
       const to_chunks = chunk(to, this.MAX_IN_CHUNK);
 
@@ -108,9 +111,9 @@ export class DistanceService {
               user
           );
 
-          const r = await this._calcDistances({from: from_chunk, to: to_chunk, tripName: params.tripName}, user);
+          const r = await this._calcDistances({from: from_chunk, to: to_chunk, tripName: params.tripName}, user, dbResults, expired);
           result.errors = result.errors.concat(r.errors);
-          result.results = result.results.concat(r.results); // Array.from(new Set(result.results.concat(r.results)));
+          result.results = Array.from(new Set(result.results.concat(r.results)));
           result.totals.alreadyExisting += r.totals.alreadyExisting;
           result.totals.expired += r.totals.expired;
           result.totals.calculated += r.totals.calculated;
@@ -178,15 +181,17 @@ export class DistanceService {
   }
 
   _isExistsInDB(from: Coordinate, to:Coordinate, travelMode: TravelMode, dbResults: Distance[]): boolean {
-    return !!dbResults.find(
+    const idx = dbResults.findIndex(
         (d) =>
-            d.to === coordinateToString(to) &&
-            d.from === coordinateToString(from) &&
+            d.to == coordinateToString(to) &&
+            d.from == coordinateToString(from) &&
             d.travelMode === travelMode
     )
+
+    return idx !== -1;
   }
 
-  async _getDistanceResultKey(from: Coordinate, to: Coordinate, travelMode: TravelMode){
+  _getDistanceResultKey(from: Coordinate, to: Coordinate, travelMode: TravelMode){
     return JSON.stringify({
       from,
       to,
@@ -194,7 +199,7 @@ export class DistanceService {
     })
   }
 
-  async _calcDistances(params: CalcDistancesDto, user: User): Promise<CalculateDistancesResult> {
+  async _calcDistances(params: CalcDistancesDto, user: User, dbResults: Distance[] | undefined = undefined, expired: Distance[] | undefined = undefined): Promise<CalculateDistancesResult> {
     // todo - seek for alternative with nestjs.
     const distance = require("google-distance-matrix");
     const googleKey = "AIzaSyA7I3QU1khdOUoOwQm4xPhv2_jt_cwFSNU";
@@ -202,7 +207,11 @@ export class DistanceService {
     const travelMode = distance.options.mode.toUpperCase();
 
     // get already existing db results, filter out expired ones.
-    const { dbResults, expired } = await this._getDBResults(params, travelMode)
+    if (dbResults == undefined || expired == undefined) {
+      const query = await this._getDBResults(params, travelMode)
+      dbResults = query.dbResults;
+      expired = query.expired;
+    }
 
     // build list of routes we need to calculate
     const { from, to } = params;
@@ -212,6 +221,7 @@ export class DistanceService {
     from.forEach((f) => {
       to.forEach((t) => {
         if (!this._isExistsInDB(t,f,travelMode,dbResults)) {
+          console.log(`from:${coordinateToString(f)} to:${coordinateToString(t)} travel: ${coordinateToString(travelMode)} does not exist`)
           originsToCalculate[coordinateToString(f)] = 1;
           destinationsToCalculate[coordinateToString(t)] = 1;
           routesToCalculate.push(this._getDistanceResultKey(f,t,travelMode));
@@ -224,6 +234,7 @@ export class DistanceService {
     // build params for google api
     let chunks = 0;
     if (routesToCalculate.length) {
+      console.error("getting routes via Google")
       const origins = Object.keys(originsToCalculate);
       const destinations = Object.keys(destinationsToCalculate);
       result = await this.distanceRepository.calculateDistances(origins, destinations, distance);
