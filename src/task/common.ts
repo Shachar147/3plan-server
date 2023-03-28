@@ -5,10 +5,10 @@ export enum TaskType {
 }
 
 export enum TaskStatus {
-    pending = 'pending',
-    inProgress = 'inProgress',
-    failed = 'failed',
-    succeeded = 'succeeded'
+    PENDING = 'PENDING',
+    IN_PROGRESS = 'IN_PROGRESS',
+    FAILED = 'FAILED',
+    SUCCEEDED = 'SUCCEEDED'
 }
 
 export interface TaskCreatedResult {
