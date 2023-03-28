@@ -33,7 +33,7 @@ export class TaskController {
         return await this.taskService.getTaskById(user, id);
     }
 
-    @ApiOperation({ summary: "Get Task by trip name", description: "get specific task by trip name" })
+    @ApiOperation({ summary: "Get Task by trip name", description: "get the last active task by trip name" })
     @Get("/trip/:name")
     @UseGuards(AuthGuard())
     async getTaskByTripName(@Param("name") name: string, @GetUser() user: User) {

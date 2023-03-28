@@ -266,7 +266,7 @@ export class DistanceService {
       });
   }
 
-  allEventsLocations(allEvents: any[]): Coordinate[] {
+  _extractEventsUniqueLocations(allEvents: any[]): Coordinate[] {
     const allLocations = Array.from(
       new Set(
         allEvents
@@ -293,7 +293,7 @@ export class DistanceService {
 
   async getTripRoutes(tripName: string, user: User, travelMode: TravelMode = "DRIVING"): Promise<TripRoutesResult> {
     const trip = await this.tripService.getTripByName(tripName, user);
-    const coordinates = this.allEventsLocations((trip.allEvents as unknown) as any[]);
+    const coordinates = this._extractEventsUniqueLocations((trip.allEvents as unknown) as any[]);
     const results = await this.distanceRepository.findDistancesByFromAndTo(coordinates, coordinates, travelMode);
 
     return {
