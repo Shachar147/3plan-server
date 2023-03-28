@@ -1,34 +1,4 @@
-export function SubstringTo(page: string, n: number, endChar: string) {
-  let string = '';
-  while (n < page.length && page[n] != endChar) {
-    string += page[n];
-    n++;
-  }
-  return string;
-}
-
-export function SubstringToPhase(page, n, endKey) {
-  let string = '';
-  let lastIndex = page.indexOf(endKey, n+1);
-  if (lastIndex === -1) lastIndex = page.length -1;
-
-  while (n < page.length && n < lastIndex) {
-    string += page[n];
-    n++;
-  }
-  return [string, n];
-}
-
-export function GetInBetween(page, n, startKey, endKey, addKeyLength) {
-  n = page.indexOf(startKey, n);
-  if (n != -1) {
-    if (addKeyLength) {
-      n += startKey.length;
-    }
-    return SubstringTo(page, n, endKey);
-  }
-  return '';
-}
+import {Coordinate} from "./interfaces";
 
 export function deepClone(obj) {
   return JSON.parse(JSON.stringify(obj));
@@ -50,4 +20,40 @@ export function nth(d) {
     default:
       return 'th';
   }
+}
+
+export function getTimestampInSeconds () {
+  return Math.floor(Date.now() / 1000)
+}
+
+export function coordinateToString(coordinate: Coordinate): string {
+  return `${coordinate.lat},${coordinate.lng}`;
+}
+
+export function stringToCoordinate(coordinateStr: string): Coordinate | undefined {
+  const parts = coordinateStr.split(',');
+  if (parts.length !== 2){
+    return undefined;
+  }
+  if (Number.isNaN(Number(parts[0])) || Number.isNaN(Number(parts[1]))) {
+    return undefined;
+  }
+  return {
+    lat: Number(parts[0]),
+    lng: Number(parts[1])
+  }
+}
+
+export async function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+export function getPercentage(value: number, from: number) {
+  return Number((((value) / (from)) * 100).toFixed(0));
+}
+
+export function getUniqueListOfCoordinates(arr: Coordinate[]): Coordinate[]{
+  return Array.from(
+      new Set(arr.map((x) => JSON.stringify({ lat: x.lat, lng: x.lng })))
+  ).map((x) => JSON.parse(x));
 }

@@ -3,9 +3,10 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
-  Unique, ManyToOne,
+  Unique, ManyToOne, OneToMany,
 } from 'typeorm';
 import {User} from "../user/user.entity";
+import {Task} from "../task/task.entity";
 
 @Unique(['name', 'userId'])
 @Entity()
@@ -55,4 +56,7 @@ export class Trip extends BaseEntity {
 
   @Column('timestamp', { default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
+
+  @OneToMany((type) => Task, (task) => task.relatedTrip, { eager: true })
+  trip_tasks: Task[];
 }

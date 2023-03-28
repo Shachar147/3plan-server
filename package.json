@@ -24,11 +24,6 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand"
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "npm run test:mac"
-    }
-  },
   "dependencies": {
     "@nestjs/common": "^7.5.1",
     "@nestjs/core": "^7.5.1",
@@ -53,6 +48,7 @@
     "handlebars": "^4.7.7",
     "inquirer": "^6.0.0",
     "lint-staged": "^10.5.4",
+    "lodash": "^4.17.21",
     "minimist": "^1.2.8",
     "nba": "^4.13.0",
     "node-fetch": "^2.6.9",

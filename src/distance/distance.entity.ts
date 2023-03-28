@@ -1,51 +1,47 @@
 import {
-    BaseEntity,
-    Column,
-    Entity,
-    ManyToOne,
-    PrimaryGeneratedColumn,
-    Unique,
+  BaseEntity,
+  Column,
+  Entity, Index,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  Unique,
 } from "typeorm";
-import { IsOptional } from "class-validator";
-import {User} from "../user/user.entity";
+import { User } from "../user/user.entity";
+import { TextValueObject, TravelMode } from "./common";
+import {Coordinate} from "../shared/interfaces";
 
 @Entity()
-@Unique("uniqueFields", ["from_lat", "from_lng" , "to_lat" , "to_lng"])
+@Unique("uniqueFields", ["from", "to", "travelMode"])
 export class Distance extends BaseEntity {
-    @PrimaryGeneratedColumn()
-    id: number;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @Column()
-    from_lat: string;
+  @Index()
+  @Column()
+  from: string;
 
-    @Column()
-    from_lng: string;
+  @Index()
+  @Column()
+  to: string;
 
-    @Column()
-    to_lat: string;
+  @Column()
+  travelMode: TravelMode;
 
-    @Column()
-    to_lng: number;
+  @Column({ type: "jsonb", nullable: true })
+  distance: TextValueObject;
 
-    @Column()
-    travel_mode: string;
+  @Column({ type: "jsonb", nullable: true })
+  duration: TextValueObject;
 
-    @Column()
-    distance: string;
+  @Column()
+  origin: string;
 
-    @Column()
-    duration: string;
+  @Column()
+  destination: string;
 
-    @Column()
-    from: string;
+  @Column("timestamp", { default: () => "CURRENT_TIMESTAMP" })
+  addedAt: Date;
 
-    @Column()
-    to: string;
-
-    @Column()
-    distance_value: string;
-
-    @ManyToOne((type) => User, (user) => user.added_distances, { eager: false })
-    addedBy: User;
-
+  @ManyToOne((type) => User, (user) => user.added_distances, { eager: false })
+  addedBy: User;
 }

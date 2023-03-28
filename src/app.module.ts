@@ -11,6 +11,7 @@ import { TinderService } from './integrations/tinder/tinder.service';
 import { TinderModule } from './integrations/tinder/tinder.module';
 import { DistanceModule } from './distance/distance.module';
 import { BackupsModule } from './backups/backups.module';
+import { TaskModule } from './task/task.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { BackupsModule } from './backups/backups.module';
     HttpModule,
     DistanceModule,
     BackupsModule,
+    TaskModule,
   ],
   controllers: [AppController],
   providers: [AppService, TinderService],
