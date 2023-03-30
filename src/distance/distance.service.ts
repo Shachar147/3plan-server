@@ -1,6 +1,6 @@
-import {Injectable, Logger} from "@nestjs/common";
-import {User} from "../user/user.entity";
-import {UpsertDistanceDto} from "./dto/upsert-distance.dto";
+import { Injectable, Logger } from "@nestjs/common";
+import { User } from "../user/user.entity";
+import { UpsertDistanceDto } from "./dto/upsert-distance.dto";
 import {
   coordinateToString,
   getPercentage,
@@ -9,18 +9,22 @@ import {
   sleep,
   stringToCoordinate,
 } from "../shared/utils";
-import {InjectRepository} from "@nestjs/typeorm";
-import {DistanceRepository,} from "./distance.repository";
-import {CalcDistancesDto} from "./dto/calc-distances.dto";
-import {chunk} from "lodash";
-import {TripService} from "../trip/trip.service";
-import {TaskService} from "../task/task.service";
-import {CreateTaskDto} from "../task/dto/create-task.dto";
-import {Coordinate} from "../shared/interfaces";
-import {CalculateDistancesResult, TravelMode} from "./common";
-import {TaskCreatedResult, TaskStatus, TripRoutesResult} from "../task/common";
-import {Distance} from "./distance.entity";
-import {Task} from "../task/task.entity";
+import { InjectRepository } from "@nestjs/typeorm";
+import { DistanceRepository } from "./distance.repository";
+import { CalcDistancesDto } from "./dto/calc-distances.dto";
+import { chunk } from "lodash";
+import { TripService } from "../trip/trip.service";
+import { TaskService } from "../task/task.service";
+import { CreateTaskDto } from "../task/dto/create-task.dto";
+import { Coordinate } from "../shared/interfaces";
+import { CalculateDistancesResult, TravelMode } from "./common";
+import {
+  TaskCreatedResult,
+  TaskStatus,
+  TripRoutesResult,
+} from "../task/common";
+import { Distance } from "./distance.entity";
+import { Task } from "../task/task.entity";
 
 const defaultCalculateDistancesResult = {
   results: [],
@@ -56,7 +60,10 @@ export class DistanceService {
    * @param params - from: Coordinate[], to: Coordinate[], tripName: string
    * @param user
    */
-  async calcDistancesInChunks(params: CalcDistancesDto, user: User): Promise<TaskCreatedResult> {
+  async calcDistancesInChunks(
+    params: CalcDistancesDto,
+    user: User
+  ): Promise<TaskCreatedResult> {
     const trip = await this.tripService.getTripByName(params.tripName, user);
     const createTaskDto: CreateTaskDto = CreateTaskDto.build(params, trip);
 
@@ -71,15 +78,22 @@ export class DistanceService {
     };
   }
 
-  async _calcDistancesInChunks(params: CalcDistancesDto, task: Task, user: User){
+  async _calcDistancesInChunks(
+    params: CalcDistancesDto,
+    task: Task,
+    user: User
+  ) {
     try {
-      let {from: _from, to: _to} = params;
+      let { from: _from, to: _to } = params;
 
-      const from = getUniqueListOfCoordinates(_from)
+      const from = getUniqueListOfCoordinates(_from);
       const to = getUniqueListOfCoordinates(_to);
 
       // get already existing db results, filter out expired ones.
-      const { dbResults, expired } = await this._getDBResults(params, "DRIVING")
+      const { dbResults, expired } = await this._getDBResults(
+        params,
+        "DRIVING"
+      );
 
       const from_chunks = chunk(from, this.MAX_IN_CHUNK);
       const to_chunks = chunk(to, this.MAX_IN_CHUNK);
@@ -100,20 +114,30 @@ export class DistanceService {
       for (const from_chunk of from_chunks) {
         for (const to_chunk of to_chunks) {
           counter++;
-          this.logger.log(`[${user.id}::${user.username}] running chunk ${counter} / ${totalChunks}...`);
+          this.logger.log(
+            `[${user.id}::${user.username}] running chunk ${counter} / ${totalChunks}...`
+          );
           await this.taskService.updateTask(
-              task.id,
-              {
-                status: counter === 1 ? TaskStatus.PENDING : TaskStatus.IN_PROGRESS,
-                progress: getPercentage(counter - 1, totalChunks),
-                detailedStatus: {chunk: counter, totalChunks}
-              },
-              user
+            task.id,
+            {
+              status:
+                counter === 1 ? TaskStatus.PENDING : TaskStatus.IN_PROGRESS,
+              progress: getPercentage(counter - 1, totalChunks),
+              detailedStatus: { chunk: counter, totalChunks },
+            },
+            user
           );
 
-          const r = await this._calcDistances({from: from_chunk, to: to_chunk, tripName: params.tripName}, user, dbResults, expired);
+          const r = await this._calcDistances(
+            { from: from_chunk, to: to_chunk, tripName: params.tripName },
+            user,
+            dbResults,
+            expired
+          );
           result.errors = result.errors.concat(r.errors);
-          result.results = Array.from(new Set(result.results.concat(r.results)));
+          result.results = Array.from(
+            new Set(result.results.concat(r.results))
+          );
           result.totals.alreadyExisting += r.totals.alreadyExisting;
           result.totals.expired += r.totals.expired;
           result.totals.calculated += r.totals.calculated;
@@ -121,50 +145,60 @@ export class DistanceService {
           result.totals.errors += r.totals.errors;
           result.totals.chunks += r.totals.chunks;
 
-          this.logger.log(`[${user.id}::${user.username}] so far found ${result.results.length}/${result.totals.expectedRoutes}`);
+          this.logger.log(
+            `[${user.id}::${user.username}] so far found ${result.results.length}/${result.totals.expectedRoutes}`
+          );
         }
       }
 
       this.logger.log(`[${user.id}::${user.username}] finished`);
       await this.taskService.updateTask(
-          task.id,
-          {
-            status: TaskStatus.SUCCEEDED,
-            progress: 100,
-            detailedStatus: {
-              chunk: counter,
-              totalChunks
-            }
+        task.id,
+        {
+          status: TaskStatus.SUCCEEDED,
+          progress: 100,
+          detailedStatus: {
+            chunk: counter,
+            totalChunks,
           },
-          user
+        },
+        user
       );
 
       return result;
     } catch (e) {
       await this.taskService.updateTask(
-          task.id,
-          {
-            status: TaskStatus.FAILED,
-            detailedStatus: {
-              error: e
-            }
+        task.id,
+        {
+          status: TaskStatus.FAILED,
+          detailedStatus: {
+            error: e,
           },
-          user
+        },
+        user
       );
 
       throw e;
     }
-  };
+  }
 
-  async _getDBResults(params: CalcDistancesDto, travelMode: TravelMode): Promise<{ dbResults: Distance[], expired: Distance[] }> {
-    const {from, to } = params;
+  async _getDBResults(
+    params: CalcDistancesDto,
+    travelMode: TravelMode
+  ): Promise<{ dbResults: Distance[]; expired: Distance[] }> {
+    const { from, to } = params;
 
     const expired = [];
-    let dbResults = await this.distanceRepository.findDistancesByFromAndTo(from, to, travelMode);
+    let dbResults = await this.distanceRepository.findDistancesByFromAndTo(
+      from,
+      to,
+      travelMode
+    );
 
     dbResults = dbResults.filter((r) => {
       const diffInDays =
-          (getTimestampInSeconds() - r.addedAt.getTime() / 1000) / this.SECONDS_IN_DAY;
+        (getTimestampInSeconds() - r.addedAt.getTime() / 1000) /
+        this.SECONDS_IN_DAY;
 
       const isValid = diffInDays <= this.DB_DATA_EXPIRY_IN_DAYS;
 
@@ -176,30 +210,45 @@ export class DistanceService {
     });
 
     return {
-      dbResults, expired
-    }
+      dbResults,
+      expired,
+    };
   }
 
-  _isExistsInDB(from: Coordinate, to:Coordinate, travelMode: TravelMode, dbResults: Distance[]): boolean {
+  _isExistsInDB(
+    from: Coordinate,
+    to: Coordinate,
+    travelMode: TravelMode,
+    dbResults: Distance[]
+  ): boolean {
     const idx = dbResults.findIndex(
-        (d) =>
-            d.to == coordinateToString(to) &&
-            d.from == coordinateToString(from) &&
-            d.travelMode === travelMode
-    )
+      (d) =>
+        d.to == coordinateToString(to) &&
+        d.from == coordinateToString(from) &&
+        d.travelMode === travelMode
+    );
 
     return idx !== -1;
   }
 
-  _getDistanceResultKey(from: Coordinate, to: Coordinate, travelMode: TravelMode){
+  _getDistanceResultKey(
+    from: Coordinate,
+    to: Coordinate,
+    travelMode: TravelMode
+  ) {
     return JSON.stringify({
       from,
       to,
       travelMode,
-    })
+    });
   }
 
-  async _calcDistances(params: CalcDistancesDto, user: User, dbResults: Distance[] | undefined = undefined, expired: Distance[] | undefined = undefined): Promise<CalculateDistancesResult> {
+  async _calcDistances(
+    params: CalcDistancesDto,
+    user: User,
+    dbResults: Distance[] | undefined = undefined,
+    expired: Distance[] | undefined = undefined
+  ): Promise<CalculateDistancesResult> {
     // todo - seek for alternative with nestjs.
     const distance = require("google-distance-matrix");
     const googleKey = "AIzaSyA7I3QU1khdOUoOwQm4xPhv2_jt_cwFSNU";
@@ -208,7 +257,7 @@ export class DistanceService {
 
     // get already existing db results, filter out expired ones.
     if (dbResults == undefined || expired == undefined) {
-      const query = await this._getDBResults(params, travelMode)
+      const query = await this._getDBResults(params, travelMode);
       dbResults = query.dbResults;
       expired = query.expired;
     }
@@ -220,11 +269,15 @@ export class DistanceService {
     const routesToCalculate = [];
     from.forEach((f) => {
       to.forEach((t) => {
-        if (!this._isExistsInDB(t,f,travelMode,dbResults)) {
-          console.log(`from:${coordinateToString(f)} to:${coordinateToString(t)} travel: ${coordinateToString(travelMode)} does not exist`)
+        if (!this._isExistsInDB(t, f, travelMode, dbResults)) {
+          console.log(
+            `from:${coordinateToString(f)} to:${coordinateToString(
+              t
+            )} travel: ${coordinateToString(travelMode)} does not exist`
+          );
           originsToCalculate[coordinateToString(f)] = 1;
           destinationsToCalculate[coordinateToString(t)] = 1;
-          routesToCalculate.push(this._getDistanceResultKey(f,t,travelMode));
+          routesToCalculate.push(this._getDistanceResultKey(f, t, travelMode));
         }
       });
     });
@@ -234,10 +287,14 @@ export class DistanceService {
     // build params for google api
     let chunks = 0;
     if (routesToCalculate.length) {
-      console.error("getting routes via Google")
+      console.error("getting routes via Google");
       const origins = Object.keys(originsToCalculate);
       const destinations = Object.keys(destinationsToCalculate);
-      result = await this.distanceRepository.calculateDistances(origins, destinations, distance);
+      result = await this.distanceRepository.calculateDistances(
+        origins,
+        destinations,
+        distance
+      );
       await sleep(1000);
       chunks = 1;
     }
@@ -268,10 +325,17 @@ export class DistanceService {
     };
   }
 
-  async getNearbyPlacesByCoordinate(coordinateStr: string, user: User): Promise<Distance[]> {
+  async getNearbyPlacesByCoordinate(
+    coordinateStr: string,
+    user: User
+  ): Promise<Distance[]> {
     const coordinate = stringToCoordinate(coordinateStr);
-    const results = await this.distanceRepository.getNearbyPlacesByCoordinate(coordinate, user);
-    return results.filter((x) => x.duration && x.from !== x.to)
+    const results = await this.distanceRepository.getNearbyPlacesByCoordinate(
+      coordinate,
+      user
+    );
+    return results
+      .filter((x) => x.duration && x.from !== x.to)
       .sort((a, b) => {
         return Number(a.duration.value) - Number(b.duration.value);
       });
@@ -302,10 +366,25 @@ export class DistanceService {
     return Object.values(filtered);
   }
 
-  async getTripRoutes(tripName: string, user: User, travelMode: TravelMode = "DRIVING"): Promise<TripRoutesResult> {
+  async getTripRoutes(
+    tripName: string,
+    user: User,
+    travelMode: TravelMode = "DRIVING"
+  ): Promise<TripRoutesResult> {
     const trip = await this.tripService.getTripByName(tripName, user);
-    const coordinates = this._extractEventsUniqueLocations((trip.allEvents as unknown) as any[]);
-    const results = await this.distanceRepository.findDistancesByFromAndTo(coordinates, coordinates, travelMode);
+
+    const calendarEvents: any[] = trip.calendarEvents as unknown as any[]
+    const sidebarEvents: Record<string, any[]> = trip.sidebarEvents as unknown as Record<string, any[]>;
+
+    // @ts-ignore
+    const allEvents = [...Object.values(sidebarEvents).flat(), ...calendarEvents]
+
+    const coordinates = this._extractEventsUniqueLocations(allEvents);
+    const results = await this.distanceRepository.findDistancesByFromAndTo(
+      coordinates,
+      coordinates,
+      travelMode
+    );
 
     return {
       total: results.length,

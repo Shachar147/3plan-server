@@ -170,7 +170,7 @@ export class TripService {
 
       // all events
       // @ts-ignore
-      const modifiedAllEvents = trip.allEvents.map((event) => {
+      const modifiedAllEvents = ([...trip.calendarEvents, ...trip.sidebarEvents] as any[]).map((event) => {
         if (Object.keys(event).includes("extendedProps")) {
           totalExtendedPropsFixes.push({
             id: event.id,
