@@ -10,6 +10,7 @@ export interface CalculateDistancesResult {
   results: DistanceResult[];
   totals?: any;
   routesToCalculate?: string[];
+  numOfGoogleCalls: number;
 }
 
 export interface DistanceResult {

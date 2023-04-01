@@ -17,7 +17,8 @@ export class TaskRepository extends Repository<Task> {
             detailedStatus,
             progress,
             lastUpdateAt,
-            relatedTrip
+            relatedTrip,
+            numOfGoogleCalls
         } = createTaskDto;
         const task = new Task();
         task.taskInfo = taskInfo;
@@ -27,6 +28,7 @@ export class TaskRepository extends Repository<Task> {
         task.lastUpdateAt = lastUpdateAt;
         task.relatedTrip = relatedTrip;
         task.addedBy = user;
+        task.numOfGoogleCalls = numOfGoogleCalls;
 
         try {
             await task.save();
@@ -49,6 +51,7 @@ export class TaskRepository extends Repository<Task> {
             progress,
             lastUpdateAt,
             relatedTrip,
+            numOfGoogleCalls
         } = updateTaskDto;
 
         const updates: any = {};
@@ -59,6 +62,7 @@ export class TaskRepository extends Repository<Task> {
         if (progress) updates.progress = progress;
         if (lastUpdateAt) updates.lastUpdateAt = lastUpdateAt;
         if (relatedTrip) updates.relatedTrip = relatedTrip;
+        if (numOfGoogleCalls) updates.numOfGoogleCalls = numOfGoogleCalls;
         // if (user) updates.addedBy = user;
         updates.lastUpdateAt = new Date();
 

@@ -29,6 +29,8 @@ export class CreateTaskDto {
     })
     relatedTrip: Trip;
 
+    numOfGoogleCalls?: number
+
 
     static build(params: CalcDistancesDto, trip: Trip): CreateTaskDto {
         return {
@@ -39,6 +41,7 @@ export class CreateTaskDto {
             status: TaskStatus.IN_PROGRESS,
             detailedStatus: {},
             progress: 0,
+            numOfGoogleCalls: 0,
             relatedTrip: trip,
         } as CreateTaskDto;
     }

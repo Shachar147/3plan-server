@@ -37,4 +37,7 @@ export class Task extends BaseEntity {
 
     @ManyToOne((type) => Trip, (trip) => trip.trip_tasks, { eager: false })
     relatedTrip: Trip;
+
+    @Column({ default: 0})
+    numOfGoogleCalls: number
 }

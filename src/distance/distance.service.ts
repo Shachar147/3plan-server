@@ -37,6 +37,7 @@ const defaultCalculateDistancesResult = {
     errors: 0,
     chunks: 0,
   },
+  numOfGoogleCalls: 0
 };
 
 @Injectable()
@@ -47,6 +48,8 @@ export class DistanceService {
   private readonly MAX_IN_CHUNK = 10;
   private readonly DB_DATA_EXPIRY_IN_DAYS = 30;
   private readonly SECONDS_IN_DAY = 86400;
+
+  private travelModes: TravelMode[] = ["DRIVING", "WALKING"]
 
   constructor(
     @InjectRepository(DistanceRepository)
@@ -83,6 +86,8 @@ export class DistanceService {
     task: Task,
     user: User
   ) {
+    let numOfGoogleCalls = 0;
+
     try {
       let { from: _from, to: _to } = params;
 
@@ -90,10 +95,7 @@ export class DistanceService {
       const to = getUniqueListOfCoordinates(_to);
 
       // get already existing db results, filter out expired ones.
-      const { dbResults, expired } = await this._getDBResults(
-        params,
-        "DRIVING"
-      );
+      const { dbResults, expired } = await this._getDBResults(params);
 
       const from_chunks = chunk(from, this.MAX_IN_CHUNK);
       const to_chunks = chunk(to, this.MAX_IN_CHUNK);
@@ -104,7 +106,7 @@ export class DistanceService {
         to,
         totals: {
           ...defaultCalculateDistancesResult.totals,
-          expectedRoutes: from.length * to.length,
+          expectedRoutes: from.length * to.length * this.travelModes.length,
         },
       };
 
@@ -124,6 +126,7 @@ export class DistanceService {
                 counter === 1 ? TaskStatus.PENDING : TaskStatus.IN_PROGRESS,
               progress: getPercentage(counter - 1, totalChunks),
               detailedStatus: { chunk: counter, totalChunks },
+              numOfGoogleCalls
             },
             user
           );
@@ -132,8 +135,12 @@ export class DistanceService {
             { from: from_chunk, to: to_chunk, tripName: params.tripName },
             user,
             dbResults,
-            expired
+            expired,
+            numOfGoogleCalls
           );
+
+          numOfGoogleCalls = r.numOfGoogleCalls;
+
           result.errors = result.errors.concat(r.errors);
           result.results = Array.from(
             new Set(result.results.concat(r.results))
@@ -161,6 +168,7 @@ export class DistanceService {
             chunk: counter,
             totalChunks,
           },
+          numOfGoogleCalls
         },
         user
       );
@@ -174,6 +182,7 @@ export class DistanceService {
           detailedStatus: {
             error: e,
           },
+          numOfGoogleCalls
         },
         user
       );
@@ -184,7 +193,7 @@ export class DistanceService {
 
   async _getDBResults(
     params: CalcDistancesDto,
-    travelMode: TravelMode
+    travelMode?: TravelMode
   ): Promise<{ dbResults: Distance[]; expired: Distance[] }> {
     const { from, to } = params;
 
@@ -247,68 +256,77 @@ export class DistanceService {
     params: CalcDistancesDto,
     user: User,
     dbResults: Distance[] | undefined = undefined,
-    expired: Distance[] | undefined = undefined
+    expired: Distance[] | undefined = undefined,
+    numOfGoogleCalls: number
   ): Promise<CalculateDistancesResult> {
-    // todo - seek for alternative with nestjs.
-    const distance = require("google-distance-matrix");
-    const googleKey = "AIzaSyA7I3QU1khdOUoOwQm4xPhv2_jt_cwFSNU";
-    distance.key(googleKey);
-    const travelMode = distance.options.mode.toUpperCase();
 
-    // get already existing db results, filter out expired ones.
-    if (dbResults == undefined || expired == undefined) {
-      const query = await this._getDBResults(params, travelMode);
-      dbResults = query.dbResults;
-      expired = query.expired;
-    }
-
-    // build list of routes we need to calculate
-    const { from, to } = params;
-    const originsToCalculate: Record<string, number> = {};
-    const destinationsToCalculate = {};
     const routesToCalculate = [];
-    from.forEach((f) => {
-      to.forEach((t) => {
-        if (!this._isExistsInDB(t, f, travelMode, dbResults)) {
-          console.log(
-            `from:${coordinateToString(f)} to:${coordinateToString(
-              t
-            )} travel: ${coordinateToString(travelMode)} does not exist`
-          );
-          originsToCalculate[coordinateToString(f)] = 1;
-          destinationsToCalculate[coordinateToString(t)] = 1;
-          routesToCalculate.push(this._getDistanceResultKey(f, t, travelMode));
-        }
-      });
-    });
-
     let result: CalculateDistancesResult = defaultCalculateDistancesResult;
-
-    // build params for google api
     let chunks = 0;
-    if (routesToCalculate.length) {
-      console.error("getting routes via Google");
-      const origins = Object.keys(originsToCalculate);
-      const destinations = Object.keys(destinationsToCalculate);
-      result = await this.distanceRepository.calculateDistances(
-        origins,
-        destinations,
-        distance
-      );
-      await sleep(1000);
-      chunks = 1;
-    }
 
-    // upsert db for all returned results
-    for (const r of result.results) {
-      const upsertDto = (r as unknown) as UpsertDistanceDto;
-      await this.distanceRepository.upsertDistance(upsertDto, user);
-    }
+    for (let i=0; i< this.travelModes.length; i++) {
+      const travelMode = this.travelModes[i];
 
-    // keep errors too so we won't try again.
-    for (const r of result.errors) {
-      const upsertDto = (r as unknown) as UpsertDistanceDto;
-      await this.distanceRepository.upsertDistance(upsertDto, user);
+      // todo - seek for alternative with nestjs.
+      const distance = require("google-distance-matrix");
+      const googleKey = "AIzaSyA7I3QU1khdOUoOwQm4xPhv2_jt_cwFSNU";
+      distance.key(googleKey);
+      distance.options.mode = travelMode.toLowerCase();
+
+      // get already existing db results, filter out expired ones.
+      if (dbResults == undefined || expired == undefined) {
+        const query = await this._getDBResults(params, travelMode);
+        dbResults = query.dbResults;
+        expired = query.expired;
+      }
+
+      // build list of routes we need to calculate
+      const { from, to } = params;
+      const originsToCalculate: Record<string, number> = {};
+      const destinationsToCalculate = {};
+
+      from.forEach((f) => {
+        to.forEach((t) => {
+          if (!this._isExistsInDB(t, f, travelMode, dbResults)) {
+            console.log(
+                `from:${coordinateToString(f)} to:${coordinateToString(t)} travel: ${travelMode} does not exist`
+            );
+            originsToCalculate[coordinateToString(f)] = 1;
+            destinationsToCalculate[coordinateToString(t)] = 1;
+            routesToCalculate.push(
+              this._getDistanceResultKey(f, t, travelMode)
+            );
+          }
+        });
+      });
+
+      // build params for google api
+      if (routesToCalculate.length) {
+        console.error("getting routes via Google");
+        const origins = Object.keys(originsToCalculate);
+        const destinations = Object.keys(destinationsToCalculate);
+        result = await this.distanceRepository.calculateDistances(
+          origins,
+          destinations,
+          distance,
+            numOfGoogleCalls
+        );
+        numOfGoogleCalls = result.numOfGoogleCalls;
+        await sleep(1000);
+        chunks++;
+      }
+
+      // upsert db for all returned results
+      for (const r of result.results) {
+        const upsertDto = (r as unknown) as UpsertDistanceDto;
+        await this.distanceRepository.upsertDistance(upsertDto, user);
+      }
+
+      // keep errors too so we won't try again.
+      for (const r of result.errors) {
+        const upsertDto = (r as unknown) as UpsertDistanceDto;
+        await this.distanceRepository.upsertDistance(upsertDto, user);
+      }
     }
 
     return {
@@ -322,6 +340,7 @@ export class DistanceService {
         errors: result.errors.length,
         chunks: chunks,
       },
+      numOfGoogleCalls
     };
   }
 
@@ -369,15 +388,21 @@ export class DistanceService {
   async getTripRoutes(
     tripName: string,
     user: User,
-    travelMode: TravelMode = "DRIVING"
+    travelMode?: TravelMode
   ): Promise<TripRoutesResult> {
     const trip = await this.tripService.getTripByName(tripName, user);
 
-    const calendarEvents: any[] = trip.calendarEvents as unknown as any[]
-    const sidebarEvents: Record<string, any[]> = trip.sidebarEvents as unknown as Record<string, any[]>;
+    const calendarEvents: any[] = (trip.calendarEvents as unknown) as any[];
+    const sidebarEvents: Record<
+      string,
+      any[]
+    > = (trip.sidebarEvents as unknown) as Record<string, any[]>;
 
-    // @ts-ignore
-    const allEvents = [...Object.values(sidebarEvents).flat(), ...calendarEvents]
+    const allEvents = [
+      // @ts-ignore
+      ...Object.values(sidebarEvents).flat(),
+      ...calendarEvents,
+    ];
 
     const coordinates = this._extractEventsUniqueLocations(allEvents);
     const results = await this.distanceRepository.findDistancesByFromAndTo(
