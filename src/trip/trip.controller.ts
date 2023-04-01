@@ -67,6 +67,20 @@ export class TripController {
     });
   }
 
+  @Get("/:name/coordinates")
+  @UseGuards(AuthGuard())
+  async getTripCoordinatesByName(
+      @Param("name") name,
+      @GetUser() user: User,
+      @Req() request: Request
+  ) {
+    const results = await this.tripService.getTripCoordinatesByName(name, user, request)
+    return {
+      total: results.length,
+      results
+    }
+  }
+
   @ApiOperation({ summary: "Get Trip", description: "Get specific trip by id" })
   @ApiParam({
     name: "id",

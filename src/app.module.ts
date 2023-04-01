@@ -12,6 +12,7 @@ import { TinderModule } from './integrations/tinder/tinder.module';
 import { DistanceModule } from './distance/distance.module';
 import { BackupsModule } from './backups/backups.module';
 import { TaskModule } from './task/task.module';
+import { GoogleMapsModule } from './google-maps/google-maps.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { TaskModule } from './task/task.module';
     DistanceModule,
     BackupsModule,
     TaskModule,
+    GoogleMapsModule,
   ],
   controllers: [AppController],
   providers: [AppService, TinderService],

@@ -529,4 +529,26 @@ export class TripService {
 
     // await queryRunner.manager.save(trips);
   }
+
+  async getTripCoordinatesByName(name: string, user:User, request:Request) {
+    const trip = await this.getTripByName(name, user);
+    if (!trip) {
+      throw new NotFoundException(`Trip with name ${name} not found`);
+    }
+
+    const { sidebarEvents, calendarEvents } = trip;
+
+    // @ts-ignore
+    const allEvents = [...Object.values(sidebarEvents).flat(), ...calendarEvents]
+
+    const allCoordinates = Array.from(new Set(allEvents.filter((x) => x.location?.latitude && x.location?.longitude).map((x) => JSON.stringify({
+      lat: x.location.latitude,
+      lng: x.location.longitude
+    })))).map((x) => JSON.parse(x)).map((x) => ({
+      ...x,
+      eventName: allEvents.find((y) => y.location?.latitude === x.lat && y.location?.longitude === x.lng)?.title
+    }));
+
+    return allCoordinates;
+  }
 }
