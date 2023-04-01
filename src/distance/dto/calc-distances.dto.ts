@@ -1,6 +1,7 @@
 import {Coordinate} from "../../shared/interfaces";
 import {ApiProperty} from "@nestjs/swagger";
 import {IsNotEmpty} from "class-validator";
+import {TravelMode} from "../common";
 
 export class CalcDistancesDto {
     @ApiProperty({ required: true })

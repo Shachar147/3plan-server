@@ -3,13 +3,12 @@ import { EntityRepository, Repository } from "typeorm";
 import { User } from "../user/user.entity";
 import { BadRequestException } from "@nestjs/common";
 import { UpsertDistanceDto } from "./dto/upsert-distance.dto";
-import {CalculateDistancesResult, DistanceDiff, TravelMode} from "./common";
+import { CalculateDistancesResult, DistanceDiff, TravelMode } from "./common";
 import { Coordinate } from "../shared/interfaces";
-import {coordinateToString} from "../shared/utils";
+import { coordinateToString } from "../shared/utils";
 
 @EntityRepository(Distance)
 export class DistanceRepository extends Repository<Distance> {
-
   async createDistance(dto: UpsertDistanceDto, user: User) {
     const dis = new Distance();
     dis.destination = dto.destination;
@@ -38,8 +37,8 @@ export class DistanceRepository extends Repository<Distance> {
       addedBy: {
         id: user.id,
         username: user.username,
-      }
-    }
+      },
+    };
   }
 
   async updateDistance(
@@ -54,11 +53,12 @@ export class DistanceRepository extends Repository<Distance> {
   }
 
   async upsertDistance(distanceDto: UpsertDistanceDto, user: User) {
-    const { from, to } = distanceDto;
+    const { from, to, travelMode } = distanceDto;
     const queryBuilder = this.createQueryBuilder("distance");
     const distanceFromDB = await queryBuilder
       .where("distance.from = :from", { from })
       .andWhere("distance.to = :to", { to })
+      .andWhere("distance.travelMode = :travelMode", { travelMode })
       .getOne();
 
     if (distanceFromDB) {
@@ -74,8 +74,9 @@ export class DistanceRepository extends Repository<Distance> {
 
     Object.keys(dto).forEach((key) => {
       const shouldUpdate =
-          (complexFields.includes(key) && JSON.stringify(dto[key]) !== JSON.stringify(distance[key])) ||
-          (!complexFields.includes(key) && dto[key] !== distance[key]);
+        (complexFields.includes(key) &&
+          JSON.stringify(dto[key]) !== JSON.stringify(distance[key])) ||
+        (!complexFields.includes(key) && dto[key] !== distance[key]);
 
       if (shouldUpdate) {
         updates.push({
@@ -90,7 +91,12 @@ export class DistanceRepository extends Repository<Distance> {
     return updates;
   }
 
-  async calculateDistances(origins: string[], destinations: string[], distance): Promise<CalculateDistancesResult> {
+  async calculateDistances(
+    origins: string[],
+    destinations: string[],
+    distance,
+    numOfGoogleCalls: number
+  ): Promise<CalculateDistancesResult> {
     const errors = [];
     const results = [];
     try {
@@ -118,6 +124,8 @@ export class DistanceRepository extends Repository<Distance> {
         // })
 
         distance.matrix(origins, destinations, function (err, distances) {
+          numOfGoogleCalls++;
+
           if (err) {
             reject(err);
           }
@@ -131,20 +139,19 @@ export class DistanceRepository extends Repository<Distance> {
                 const origin = distances.origin_addresses[i];
                 const destination = distances.destination_addresses[j];
                 if (distances.rows[0].elements[j].status == "OK") {
-                  const distance = distances.rows[i].elements[j].distance;
-                  const duration = distances.rows[i].elements[j].duration;
                   results.push({
                     origin,
-                    distance,
+                    distance: distances.rows[i].elements[j].distance,
                     destination,
-                    duration,
+                    duration: distances.rows[i].elements[j].duration,
                     travelMode,
                     from: origins[i],
                     to: destinations[j],
                   });
                 } else {
                   errors.push({
-                    errorText: destination + " is not reachable by land from " + origin,
+                    errorText:
+                      destination + " is not reachable by land from " + origin,
                     errorData: distances.rows[0].elements[j],
                     origin,
                     distance: undefined,
@@ -157,32 +164,43 @@ export class DistanceRepository extends Repository<Distance> {
                 }
               }
             }
-            resolve({ errors, results });
+            resolve({ errors, results, numOfGoogleCalls });
           }
         });
       });
     } catch (e) {
-      throw new BadRequestException("distanceCalcError", `oops something wen't wrong: ${JSON.stringify(e)}`);
+      throw new BadRequestException(
+        "distanceCalcError",
+        `oops something wen't wrong: ${JSON.stringify(e)}`
+      );
     }
   }
 
   async findDistancesByFromAndTo(
     from: Coordinate[],
     to: Coordinate[],
-    travelMode: TravelMode
+    travelMode?: TravelMode
   ): Promise<Distance[]> {
     const queryBuilder = this.createQueryBuilder("distance");
-    return await queryBuilder
-      .where("distance.from = ANY(:from)", { from: from.map((c) => coordinateToString(c)) })
-      .andWhere("distance.travelMode = :travelMode", { travelMode: travelMode })
-      .andWhere("distance.to = ANY(:to)", { to: to.map((c) => coordinateToString(c)) })
-      .getMany();
+    let query = queryBuilder
+      .where("distance.from = ANY(:from)", {
+        from: from.map((c) => coordinateToString(c)),
+      })
+      .andWhere("distance.to = ANY(:to)", {
+        to: to.map((c) => coordinateToString(c)),
+      });
+    if (travelMode) {
+      query = query.andWhere("distance.travelMode = :travelMode", {
+        travelMode: travelMode,
+      });
+    }
+    return query.getMany();
   }
 
   async getNearbyPlacesByCoordinate(coordinate: Coordinate, user: User) {
     const queryBuilder = this.createQueryBuilder("distance");
     return await queryBuilder
-        .where("distance.from = :from", { from: coordinateToString(coordinate) })
-        .getMany();
+      .where("distance.from = :from", { from: coordinateToString(coordinate) })
+      .getMany();
   }
 }
