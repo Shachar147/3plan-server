@@ -1,10 +1,14 @@
 import { Controller, Get } from "@nestjs/common";
 import { LatLngLiteral, TravelMode } from "@googlemaps/google-maps-services-js";
 import { GoogleMapsService } from "./google-maps.service";
+import {GraphHopperService} from "./open-street-map.service";
 
 @Controller("google-maps")
 export class GoogleMapsController {
-  constructor(private readonly googleMapsService: GoogleMapsService) {}
+  constructor(
+      private readonly googleMapsService: GoogleMapsService,
+      private readonly openStreetMapService: GraphHopperService
+  ) {}
 
   @Get()
   async getRoutes(): Promise<any> {
@@ -100,12 +104,18 @@ export class GoogleMapsController {
     const routes = await Promise.all(
       [TravelMode.driving, TravelMode.walking].map(
         async (mode) => {
-          const rows = await this.googleMapsService.getRoutes(
-            locations,
-            locations,
-            mode,
-            "AIzaSyAZ41yXMXj5w8S0nX9hXuh5Rr_0z2chNyw",
-            // "AIzaSyA7I3QU1khdOUoOwQm4xPhv2_jt_cwFSNU"
+          // const rows = await this.googleMapsService.getRoutes(
+          //   locations,
+          //   locations,
+          //   mode,
+          //   "AIzaSyAZ41yXMXj5w8S0nX9hXuh5Rr_0z2chNyw",
+          //   // "AIzaSyA7I3QU1khdOUoOwQm4xPhv2_jt_cwFSNU"
+          // );
+          const rows = await this.openStreetMapService.getRoutes(
+              locations.map((x) => [x.lat, x.lng]),
+              locations.map((x) => [x.lat, x.lng]),
+              // @ts-ignore
+              mode
           );
           return { mode, rows };
         }
