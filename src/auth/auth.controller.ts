@@ -1,8 +1,8 @@
 import {
   Body,
-  Controller,
+  Controller, NotFoundException,
   Post,
-  Req,
+  Req, UnauthorizedException,
   UseGuards,
   UsePipes,
   ValidationPipe,
@@ -85,12 +85,36 @@ export class AuthController {
       'Test Token. supply JWT token and get matching username. useful for debug purposes.',
   })
   @ApiBearerAuth('JWT')
-  @Post('/test')
+  @Post('/isLoggedIn')
   @UseGuards(AuthGuard())
-  test(@GetUser() user: User) {
-    console.log(user);
+  isLoggedIn(@GetUser() user: User) {
     return {
-      loggedInUser: user,
+      loggedIn: true,
+      loggedInUser: {
+        id: user.id,
+        username: user.username
+      },
+    };
+  }
+
+  @ApiOperation({
+    summary: 'Test',
+    description:
+        'Test Token. supply JWT token and get matching username. useful for debug purposes.',
+  })
+  @ApiBearerAuth('JWT')
+  @Post('/isAdmin')
+  @UseGuards(AuthGuard())
+  isAdmin(@GetUser() user: User) {
+    if (user.username !== 'Shachar'){
+      throw new UnauthorizedException();
+    }
+    return {
+      loggedIn: true,
+      loggedInUser: {
+        id: user.id,
+        username: user.username
+      },
     };
   }
 }

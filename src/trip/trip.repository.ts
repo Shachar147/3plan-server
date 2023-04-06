@@ -222,7 +222,7 @@ export class TripRepository extends Repository<Trip> {
     const { search } = filterDto;
 
     const query = this.createQueryBuilder("trip")
-        .select(["trip.name", "trip.dateRange"]); // Specify the columns we want to select
+        .select(["trip.id", "trip.name", "trip.dateRange"]); // Specify the columns we want to select
 
     if (search)
       query.where("(trip.name LIKE :search)", { search: `%${search}%` });
