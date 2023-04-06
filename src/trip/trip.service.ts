@@ -29,6 +29,10 @@ export class TripService {
     return await this.tripRepository.getTrips(filterDto, user);
   }
 
+  async getTripsShort(filterDto: ListTripsDto, user: User) {
+    return await this.tripRepository.getTripsShort(filterDto, user);
+  }
+
   async getTrip(id: number, user: User) {
     const found = await this.tripRepository.findOne(id);
     if (!found || (found && found.user.id !== user.id)) {

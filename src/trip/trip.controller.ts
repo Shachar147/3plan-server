@@ -53,6 +53,20 @@ export class TripController {
     };
   }
 
+  @ApiOperation({ summary: "Get Trips Short", description: "Get all trips basic info" })
+  @Get('short')
+  @UseGuards(AuthGuard())
+  async getTripsShort(
+      @Query(ValidationPipe) filterDto: ListTripsDto,
+      @GetUser() user: User
+  ) {
+    const trips = await this.tripService.getTripsShort(filterDto, user);
+    return {
+      total: trips.length,
+      data: trips,
+    };
+  }
+
   @Put("/migrate/extended-props/wet")
   migrate() {
     return this.tripService.migrate({

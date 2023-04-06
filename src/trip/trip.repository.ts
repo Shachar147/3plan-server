@@ -218,6 +218,30 @@ export class TripRepository extends Repository<Trip> {
     }
   }
 
+  async getTripsShort(filterDto: ListTripsDto, user: User): Promise<Trip[]> {
+    const { search } = filterDto;
+
+    const query = this.createQueryBuilder("trip")
+        .select(["trip.name", "trip.dateRange"]); // Specify the columns we want to select
+
+    if (search)
+      query.where("(trip.name LIKE :search)", { search: `%${search}%` });
+    query.andWhere("(trip.userId = :userId)", {
+      userId: user.id,
+    });
+
+    try {
+      const trips = await query.getMany();
+      return trips;
+    } catch (error) {
+      this.logger.error(
+          `Failed to get trips . Filters: ${JSON.stringify(filterDto)}"`,
+          error.stack
+      );
+      throw new InternalServerErrorException();
+    }
+  }
+
   async _getTripByName(name: string, user: User) {
     const findOne = async (name: string, user: User) => {
       return await this.createQueryBuilder("trip")
