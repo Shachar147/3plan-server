@@ -181,7 +181,7 @@ export class TripController {
     @Req() request: Request
   ) {
     const result = await this.tripService.updateTripByName(name, updateTripDto, user, request);
-    this.myWebSocketGateway.send(JSON.stringify(result));
+    this.myWebSocketGateway.send(JSON.stringify(result), user.id);
     return result;
   }
 
