@@ -1,16 +1,21 @@
 import { Server } from 'ws';
 import { Injectable } from '@nestjs/common';
+import * as http from "http";
 
 @Injectable()
 export class MyWebSocketGateway {
-    private server: Server;
+    private wsServer: Server;
     private clients: Record<number, Set<WebSocket>>;
 
     constructor() {
-        this.server = new Server({ port: 8080 });
         this.clients = {};
+        console.log("here");
+    }
 
-        this.server.on('connection', (socket, req) => {
+    init(httpServer: http.Server) {
+        console.log("there", httpServer);
+        this.wsServer = new Server({ server: httpServer });
+        httpServer.on('connection', (socket, req) => {
 
             // Access the custom headers or query parameters from the WebSocket request
             const userId: string = new URL(req.url, `http://${req.headers.host}`).searchParams.get('uid');
@@ -19,13 +24,13 @@ export class MyWebSocketGateway {
             this.clients[userId].add(socket);
             console.log('Client connected', userId);
 
-            // socket.on('message', (message) => {
-            //     console.log('Received message:', message);
-            //     // Handle WebSocket message
-            //
-            //     // Broadcast the object to all connected clients
-            //     this.server.emit('message', message);
-            // });
+            socket.on('message', (message) => {
+                console.log('Received message:', message);
+                // Handle WebSocket message
+
+                // Broadcast the object to all connected clients
+                this.wsServer.emit('message', message);
+            });
 
             socket.on('close', () => {
                 console.log('Client disconnected', userId);
@@ -41,10 +46,10 @@ export class MyWebSocketGateway {
         console.log(`There are ${Object.keys(this.clients).length} logged in clients.`)
         // console.log("Got Message:", message);
         console.log("Sending message only to user: ", userId);
-        console.log(`user ${userId} have ${this.clients[userId].size} opened sessions`);
+        console.log(`user ${userId} have ${this.clients[userId]?.size ?? 0} opened sessions`);
 
         // Send a message to all connected clients
-        this.clients[userId].forEach(client => {
+        this.clients[userId]?.forEach(client => {
             client.send(message);
         });
     }

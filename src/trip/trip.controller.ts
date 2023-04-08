@@ -10,7 +10,7 @@ import {
   Query,
   ValidationPipe,
   UsePipes,
-  UseGuards, Req, Inject,
+  UseGuards, Req, Inject, Injectable,
 } from "@nestjs/common";
 import { ListTripsDto } from "./dto/list-trips-dto";
 import { TripService } from "./trip.service";
@@ -31,14 +31,14 @@ import {DuplicateTripDto} from "./dto/duplicate-trip-dto";
 import { Request } from 'express';
 import {MyWebSocketGateway} from "../websocket.gateway";
 
+@Injectable()
 @ApiBearerAuth("JWT")
 @ApiTags("Trips")
 @Controller("trip")
 export class TripController {
   constructor(
       private tripService: TripService,
-      @Inject(MyWebSocketGateway)
-      private readonly myWebSocketGateway: MyWebSocketGateway,
+      @Inject(MyWebSocketGateway) private readonly myWebSocketGateway: MyWebSocketGateway,
 
   ) {}
 
