@@ -152,7 +152,7 @@ export class TripController {
   @Put("/:id")
   @UsePipes(new ValidationPipe({ transform: true }))
   @UseGuards(AuthGuard())
-  updateTrip(
+  async updateTrip(
     @Param("id", ParseIntPipe) id,
     @Body() updateTripDto: UpdateTripDto,
     @GetUser() user: User,
