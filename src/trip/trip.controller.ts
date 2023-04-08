@@ -10,7 +10,7 @@ import {
   Query,
   ValidationPipe,
   UsePipes,
-  UseGuards, Req,
+  UseGuards, Req, Inject,
 } from "@nestjs/common";
 import { ListTripsDto } from "./dto/list-trips-dto";
 import { TripService } from "./trip.service";
@@ -29,6 +29,7 @@ import { GetUser } from "../auth/get-user.decorator";
 import { User } from "../user/user.entity";
 import {DuplicateTripDto} from "./dto/duplicate-trip-dto";
 import { Request } from 'express';
+import {MyWebSocketGateway} from "../websocket.gateway";
 
 @ApiBearerAuth("JWT")
 @ApiTags("Trips")
@@ -36,6 +37,8 @@ import { Request } from 'express';
 export class TripController {
   constructor(
       private tripService: TripService,
+      @Inject(MyWebSocketGateway)
+      private readonly myWebSocketGateway: MyWebSocketGateway,
 
   ) {}
 
@@ -171,13 +174,15 @@ export class TripController {
   @Put("/name/:name")
   @UsePipes(new ValidationPipe({ transform: true }))
   @UseGuards(AuthGuard())
-  updateTripByName(
+  async updateTripByName(
     @Param("name") name,
     @Body() updateTripDto: UpdateTripDto,
     @GetUser() user: User,
     @Req() request: Request
   ) {
-    return this.tripService.updateTripByName(name, updateTripDto, user, request);
+    const result = await this.tripService.updateTripByName(name, updateTripDto, user, request);
+    this.myWebSocketGateway.send(JSON.stringify(result));
+    return result;
   }
 
   @ApiOperation({ summary: "Delete Trip", description: "Delete trip by id" })
