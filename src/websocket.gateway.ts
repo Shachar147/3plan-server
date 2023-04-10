@@ -13,7 +13,8 @@ export class MyWebSocketGateway {
     }
 
     init(httpServer: http.Server) {
-        console.log("there", httpServer);
+        // console.log("there", httpServer);
+        console.log("Initializing Websockets gateway...");
         this.wsServer = new Server({ server: httpServer });
         httpServer.on('connection', (socket, req) => {
 
@@ -22,7 +23,7 @@ export class MyWebSocketGateway {
 
             this.clients[userId] = this.clients[userId] || new Set<WebSocket>();
             this.clients[userId].add(socket);
-            console.log('Client connected', userId);
+            console.log(`Client #${userId} connected`, `(${this.clients[userId].size} open sessions)`);
 
             socket.on('message', (message) => {
                 console.log('Received message:', message);
@@ -38,6 +39,8 @@ export class MyWebSocketGateway {
                 this.clients[userId].delete(socket);
             });
         });
+
+        console.log("WebSocket gateway initialized");
     }
 
     send(message: string, userId: number): void {
