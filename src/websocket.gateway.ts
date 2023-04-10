@@ -9,7 +9,6 @@ export class MyWebSocketGateway {
 
     constructor() {
         this.clients = {};
-        console.log("here");
     }
 
     init(httpServer: http.Server) {
@@ -34,7 +33,7 @@ export class MyWebSocketGateway {
             });
 
             socket.on('close', () => {
-                console.log('Client disconnected', userId);
+                console.log(`Client #${userId} disconnected`, this.clients[userId].size > 2 ? `(There are still ${this.clients[userId].size} sessions)` : this.clients[userId].size > 1 ? `(There is still 1 open session)` : "");
                 // Handle WebSocket disconnection
                 this.clients[userId].delete(socket);
             });
@@ -44,12 +43,7 @@ export class MyWebSocketGateway {
     }
 
     send(message: string, userId: number): void {
-
-        console.log("")
-        console.log(`There are ${Object.keys(this.clients).length} logged in clients.`)
-        // console.log("Got Message:", message);
-        console.log("Sending message only to user: ", userId);
-        console.log(`user ${userId} have ${this.clients[userId]?.size ?? 0} opened sessions`);
+        console.log(`Sending Message to user #${userId}, to ${this.clients[userId]?.size ?? 0} sessions.`)
 
         // Send a message to all connected clients
         this.clients[userId]?.forEach(client => {
