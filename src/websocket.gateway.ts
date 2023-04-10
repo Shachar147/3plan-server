@@ -5,7 +5,7 @@ import * as http from "http";
 @Injectable()
 export class MyWebSocketGateway {
     private wsServer: Server;
-    private clients: Record<number, Set<WebSocket>>;
+    private clients: Record<number, Set<{ socket: WebSocket, socketId: string}>>;
 
     constructor() {
         this.clients = {};
@@ -20,9 +20,10 @@ export class MyWebSocketGateway {
 
             // Access the custom headers or query parameters from the WebSocket request
             const userId: string = new URL(req.url, `http://${req.headers.host}`).searchParams.get('uid');
+            const socketId: string = new URL(req.url, `http://${req.headers.host}`).searchParams.get('sid');
 
             this.clients[userId] = this.clients[userId] || new Set<WebSocket>();
-            this.clients[userId].add(socket);
+            this.clients[userId].add({ socket, socketId });
             console.log(`Client #${userId} connected`, `(${this.clients[userId].size} open sessions)`);
 
             socket.on('message', (message) => {
@@ -43,7 +44,14 @@ export class MyWebSocketGateway {
         console.log("WebSocket gateway initialized");
     }
 
-    send(message: string, userId: number): void {
+    /***
+     *
+     * @param message - the message we want to send to the clients
+     * @param userId - the relevant user id we want to update
+     * @param updatedBySocketId - the id of the socket that initiated this update. (to be able to display different messages to the initiator / other clients)
+     *
+     */
+    send(message: string, userId: number, updatedBySocketId: string): void {
 
         console.log("")
         console.log(`There are ${Object.keys(this.clients).length} logged in clients.`)
@@ -53,7 +61,7 @@ export class MyWebSocketGateway {
 
         // Send a message to all connected clients
         this.clients[userId]?.forEach(client => {
-            client.send(message);
+            client.socket.send(JSON.stringify({ message, updatedBySocketId }));
         });
     }
 }
