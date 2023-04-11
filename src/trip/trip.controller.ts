@@ -159,7 +159,7 @@ export class TripController {
     @Req() request: Request
   ) {
     const result = await this.tripService.updateTrip(id, updateTripDto, user, request);
-    this.myWebSocketGateway.send(JSON.stringify(result), user.id);
+    this.myWebSocketGateway.send(JSON.stringify(result), user.id, request.headers.cid.toString());
     return result;
   }
 
@@ -183,7 +183,7 @@ export class TripController {
     @Req() request: Request
   ) {
     const result = await this.tripService.updateTripByName(name, updateTripDto, user, request);
-    this.myWebSocketGateway.send(JSON.stringify(result), user.id);
+    this.myWebSocketGateway.send(JSON.stringify(result), user.id, request.headers.cid.toString());
     return result;
   }
 
