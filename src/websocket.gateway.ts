@@ -58,7 +58,7 @@ export class MyWebSocketGateway {
      * @param initiatedByClientId - the id of the client that initiated this update. (to be able to display different messages to the initiator / other clients)
      *
      */
-    send(message: string, userId: number, initiatedByClientId: string): void {
+    send(message: string, userId: number, initiatedByClientId?: string): void {
 
         console.log(`${webSocketsLogPrefix} Sending Message to user #${userId}, to ${this.clients[userId]?.size ?? 0} sessions.`)
 
