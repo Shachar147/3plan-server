@@ -55,16 +55,16 @@ export class MyWebSocketGateway {
      *
      * @param message - the message we want to send to the clients
      * @param userId - the relevant user id we want to update
-     * @param updatedBySocketId - the id of the socket that initiated this update. (to be able to display different messages to the initiator / other clients)
+     * @param initiatedByClientId - the id of the client that initiated this update. (to be able to display different messages to the initiator / other clients)
      *
      */
-    send(message: string, userId: number, updatedBySocketId: string): void {
+    send(message: string, userId: number, initiatedByClientId: string): void {
 
         console.log(`${webSocketsLogPrefix} Sending Message to user #${userId}, to ${this.clients[userId]?.size ?? 0} sessions.`)
 
         // Send a message to all connected clients
         this.clients[userId]?.forEach(client => {
-            client.socket.send(JSON.stringify({ message, updatedBySocketId }));
+            client.socket.send(JSON.stringify({ message, initiatedByClientId }));
         });
     }
 }
