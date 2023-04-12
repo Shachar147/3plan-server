@@ -1,8 +1,9 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-import * as config from 'config';
 import * as bodyParser from 'body-parser';
+import { Server } from 'ws';
+import {MyWebSocketGateway} from "./websocket.gateway";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: true });
@@ -39,9 +40,22 @@ async function bootstrap() {
   app.use(bodyParser.json({limit: '50mb'}));
   app.use(bodyParser.urlencoded({limit: '50mb', extended: true}));
 
-  console.log("heorku port: ", process.env.PORT);
+  // Create WebSocket server instance
+  const server = new Server({ noServer: true });
 
+  // console.log("heroku port: ", process.env.PORT);
   await app.listen(process.env.PORT || 3001);
+
+  // Initialize the WebSocket gateway with the http.Server instance
+  const webSocketGateway = app.get(MyWebSocketGateway);
+  webSocketGateway.init(server);
+
+  // Attach WebSocket server to the HTTP server
+  app.getHttpServer().on('upgrade', (req, socket, head) => {
+    server.handleUpgrade(req, socket, head, (ws) => {
+      server.emit('connection', ws, req);
+    });
+  });
 }
 bootstrap();
 

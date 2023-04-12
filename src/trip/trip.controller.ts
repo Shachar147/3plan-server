@@ -10,7 +10,7 @@ import {
   Query,
   ValidationPipe,
   UsePipes,
-  UseGuards, Req,
+  UseGuards, Req, Inject, Injectable,
 } from "@nestjs/common";
 import { ListTripsDto } from "./dto/list-trips-dto";
 import { TripService } from "./trip.service";
@@ -29,13 +29,16 @@ import { GetUser } from "../auth/get-user.decorator";
 import { User } from "../user/user.entity";
 import {DuplicateTripDto} from "./dto/duplicate-trip-dto";
 import { Request } from 'express';
+import {MyWebSocketGateway} from "../websocket.gateway";
 
+@Injectable()
 @ApiBearerAuth("JWT")
 @ApiTags("Trips")
 @Controller("trip")
 export class TripController {
   constructor(
       private tripService: TripService,
+      @Inject(MyWebSocketGateway) private readonly myWebSocketGateway: MyWebSocketGateway,
 
   ) {}
 
@@ -149,13 +152,15 @@ export class TripController {
   @Put("/:id")
   @UsePipes(new ValidationPipe({ transform: true }))
   @UseGuards(AuthGuard())
-  updateTrip(
+  async updateTrip(
     @Param("id", ParseIntPipe) id,
     @Body() updateTripDto: UpdateTripDto,
     @GetUser() user: User,
     @Req() request: Request
   ) {
-    return this.tripService.updateTrip(id, updateTripDto, user, request);
+    const result = await this.tripService.updateTrip(id, updateTripDto, user, request);
+    this.myWebSocketGateway.send(JSON.stringify(result), user.id, request.headers.cid?.toString() ?? "");
+    return result;
   }
 
   @ApiOperation({
@@ -171,13 +176,15 @@ export class TripController {
   @Put("/name/:name")
   @UsePipes(new ValidationPipe({ transform: true }))
   @UseGuards(AuthGuard())
-  updateTripByName(
+  async updateTripByName(
     @Param("name") name,
     @Body() updateTripDto: UpdateTripDto,
     @GetUser() user: User,
     @Req() request: Request
   ) {
-    return this.tripService.updateTripByName(name, updateTripDto, user, request);
+    const result = await this.tripService.updateTripByName(name, updateTripDto, user, request);
+    this.myWebSocketGateway.send(JSON.stringify(result), user.id, request.headers.cid?.toString() ?? "");
+    return result;
   }
 
   @ApiOperation({ summary: "Delete Trip", description: "Delete trip by id" })

@@ -8,6 +8,7 @@ import { AuthModule } from '../auth/auth.module';
 import { PassportModule } from '@nestjs/passport';
 import {BackupsModule} from "../backups/backups.module";
 import {BackupsRepository} from "../backups/backups.repository";
+import {MyWebSocketGateway} from "../websocket.gateway";
 
 @Module({
   imports: [
@@ -16,10 +17,10 @@ import {BackupsRepository} from "../backups/backups.repository";
     HttpModule,
     AuthModule,
     PassportModule,
-    BackupsModule,
+    BackupsModule
   ],
   controllers: [TripController],
-  providers: [TripService],
+  providers: [TripService, MyWebSocketGateway],
   exports: [TripService],
 })
 export class TripModule {}
