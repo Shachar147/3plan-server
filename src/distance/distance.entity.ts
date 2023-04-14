@@ -8,7 +8,6 @@ import {
 } from "typeorm";
 import { User } from "../user/user.entity";
 import { TextValueObject, TravelMode } from "./common";
-import {Coordinate} from "../shared/interfaces";
 
 @Entity()
 @Unique("uniqueFields", ["from", "to", "travelMode"])
