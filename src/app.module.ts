@@ -13,6 +13,7 @@ import { DistanceModule } from './distance/distance.module';
 import { BackupsModule } from './backups/backups.module';
 import { TaskModule } from './task/task.module';
 import { StatisticsModule } from './statistics/statistics.module';
+import {EmailModule} from "./mail-sender/email.module";
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { StatisticsModule } from './statistics/statistics.module';
     BackupsModule,
     TaskModule,
     StatisticsModule,
+      EmailModule,
   ],
   controllers: [AppController],
   providers: [AppService, TinderService],
