@@ -1,5 +1,5 @@
 import {ApiProperty} from "@nestjs/swagger";
-import {IsNotEmpty} from "class-validator";
+import {IsNotEmpty, IsOptional} from "class-validator";
 
 export class ReportEventDto {
     @ApiProperty({ required: true })
@@ -13,6 +13,10 @@ export class ReportEventDto {
         message: 'missing: context',
     })
     context: string;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    content: object;
 
     @ApiProperty({ required: true })
     @IsNotEmpty({

@@ -21,6 +21,9 @@ export class BIEvents extends BaseEntity {
     @Column({ nullable: true})
     context: string;
 
+    @Column("jsonb", { nullable: true})
+    content: object
+
     @Index()
     @Column()
     isMobile: boolean;

@@ -9,14 +9,14 @@ import {InternalServerErrorException} from "@nestjs/common";
 export class BiEventsRepository extends Repository<BIEvents> {
 
     async reportEvent(dto: ReportEventDto, user: User) {
-        const { action, context, isMobile } = dto;
+        const { action, context, isMobile, content } = dto;
         const biEvent = new BIEvents();
         biEvent.user = user;
         biEvent.action = action;
         biEvent.context = context;
         biEvent.isMobile = isMobile;
-        await biEvent.save();
-        return {};
+        biEvent.content = content;
+        return await biEvent.save();
     }
 
     async getEventsByUser(dto: GetEventsFilterDto, user: User, filterByUser?: boolean) {

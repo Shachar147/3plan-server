@@ -9,4 +9,7 @@ export class GetEventsFilterDto {
 
     @IsOptional()
     isMobile: boolean;
+
+    @IsOptional()
+    includePrice: boolean;
 }
