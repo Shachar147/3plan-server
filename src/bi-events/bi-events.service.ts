@@ -16,16 +16,12 @@ export class BiEventsService {
         private googlePricesService: GooglePricesService,
     ) {}
 
-    getEventType(event: { action: string }) {
-        return event.action;
-    }
-
     async reportEvent(dto: ReportEventDto, user: User) {
         const result = await this.biEventsRepository.reportEvent(dto, user);
 
         return {
             ...result,
-            price: this.googlePricesService.getRequestPrice(this.getEventType(result))
+            price: this.googlePricesService.getRequestPrice(result.action, (result?.content as unknown as any)?.numOfElements)
         }
     }
 
@@ -35,7 +31,7 @@ export class BiEventsService {
         if (dto.includePrice) {
             const resultsWithPrices = results.map((result) => ({
                 ...result,
-                price: this.googlePricesService.getRequestPrice(this.getEventType(result))
+                price: this.googlePricesService.getRequestPrice(result.action, (result?.content as unknown as any)?.numOfElements)
             })).filter((x) => x.price);
 
             // Use reduce to sum all the prices

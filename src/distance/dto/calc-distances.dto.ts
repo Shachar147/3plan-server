@@ -1,7 +1,6 @@
 import {Coordinate} from "../../shared/interfaces";
 import {ApiProperty} from "@nestjs/swagger";
 import {IsNotEmpty} from "class-validator";
-import {TravelMode} from "../common";
 
 export class CalcDistancesDto {
     @ApiProperty({ required: true })
@@ -21,4 +20,7 @@ export class CalcDistancesDto {
         message: 'missing: tripName',
     })
     tripName: string;
+
+    @ApiProperty()
+    isMobile?: boolean
 }

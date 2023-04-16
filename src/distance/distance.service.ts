@@ -25,6 +25,7 @@ import {
 } from "../task/common";
 import { Distance } from "./distance.entity";
 import { Task } from "../task/task.entity";
+import {BiEventsService} from "../bi-events/bi-events.service";
 
 const defaultCalculateDistancesResult = {
   results: [],
@@ -54,6 +55,7 @@ export class DistanceService {
   constructor(
     @InjectRepository(DistanceRepository)
     private distanceRepository: DistanceRepository,
+    private biEventsService: BiEventsService,
     private tripService: TripService,
     private taskService: TaskService
   ) {}
@@ -269,7 +271,7 @@ export class DistanceService {
 
       // todo - seek for alternative with nestjs.
       const distance = require("google-distance-matrix");
-      const googleKey = "AIzaSyA7I3QU1khdOUoOwQm4xPhv2_jt_cwFSNU";
+      const googleKey = "AIzaSyCMQu_tMSsoPs4tdX7_iiqJxD6XgmamWzA"; // "AIzaSyA7I3QU1khdOUoOwQm4xPhv2_jt_cwFSNU";
       distance.key(googleKey);
       distance.options.mode = travelMode.toLowerCase();
 
@@ -309,8 +311,19 @@ export class DistanceService {
           origins,
           destinations,
           distance,
-            numOfGoogleCalls
+          numOfGoogleCalls
         );
+
+        // report bi event
+        this.biEventsService.reportEvent({
+          action: 'google_map:distance_matrix_request',
+          context: 'calculatingDistance',
+          isMobile: params.isMobile,
+          content: {
+            numOfElements: origins.length * destinations.length,
+          }
+        }, user)
+
         numOfGoogleCalls = result.numOfGoogleCalls;
         await sleep(1000);
         chunks++;

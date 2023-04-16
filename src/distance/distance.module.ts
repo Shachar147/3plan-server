@@ -7,6 +7,8 @@ import { DistanceRepository } from "./distance.repository";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { TaskModule } from "../task/task.module";
 import { TripModule } from "../trip/trip.module";
+import {BiEventsService} from "../bi-events/bi-events.service";
+import {BiEventsModule} from "../bi-events/bi-events.module";
 
 @Module({
   imports: [
@@ -16,6 +18,7 @@ import { TripModule } from "../trip/trip.module";
     PassportModule,
     TaskModule,
     TripModule,
+    BiEventsModule
   ],
   controllers: [DistanceController],
   providers: [DistanceService],
