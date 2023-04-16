@@ -14,7 +14,8 @@ import {GooglePricesService} from "./google-prices.service";
     PassportModule,
   ],
   controllers: [BiEventsController],
-  providers: [BiEventsService, GooglePricesService]
+  providers: [BiEventsService, GooglePricesService],
+  exports: [BiEventsService]
 })
 export class BiEventsModule {
 
