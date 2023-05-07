@@ -59,4 +59,7 @@ export class Trip extends BaseEntity {
 
   @OneToMany((type) => Task, (task) => task.relatedTrip, { eager: true })
   trip_tasks: Task[];
+
+  @Column('boolean', { default: false })
+  isLocked: boolean;
 }

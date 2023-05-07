@@ -1,6 +1,6 @@
 import {
   Body,
-  Controller, NotFoundException,
+  Controller, Get, NotFoundException,
   Post,
   Req, UnauthorizedException,
   UseGuards,
@@ -70,7 +70,9 @@ export class AuthController {
   async singIn(
     @Body(ValidationPipe) authCredentialsDto: AuthCredentialsDto,
   ): Promise<{ accessToken: string; expiresIn: number; expiresAt: number }> {
-    const { accessToken } = await this.authService.signIn(authCredentialsDto);
+    const { accessToken, id } = await this.authService.signIn(authCredentialsDto);
+
+    await this.authService.setLastLoginAt(id);
 
     return {
       accessToken,
@@ -116,5 +118,11 @@ export class AuthController {
         username: user.username
       },
     };
+  }
+
+  @Get('/users')
+  @UseGuards(AuthGuard())
+  getUsers(@GetUser() user: User) {
+    return this.authService.getUsers();
   }
 }

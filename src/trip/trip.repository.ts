@@ -138,6 +138,7 @@ export class TripRepository extends Repository<Trip> {
       sidebarEvents,
       allEvents,
       calendarLocale,
+      isLocked
     } = updateTripDto;
 
     // backup
@@ -153,6 +154,7 @@ export class TripRepository extends Repository<Trip> {
     if (allEvents) updates.allEvents = allEvents;
     if (calendarLocale) updates.calendarLocale = calendarLocale;
     if (user) updates.user = user;
+    if (isLocked != undefined) updates.isLocked = isLocked;
     updates.lastUpdateAt = new Date();
 
     const queryBuilder = this.createQueryBuilder('trip');
@@ -163,28 +165,6 @@ export class TripRepository extends Repository<Trip> {
         .execute();
 
     trip = await this._getTripByName(trip.name, user)
-
-    // if (name) trip.name = name;
-    // if (dateRange) trip.dateRange = dateRange;
-    // if (categories) trip.categories = categories;
-    // if (calendarEvents) trip.calendarEvents = calendarEvents;
-    // if (sidebarEvents) trip.sidebarEvents = sidebarEvents;
-    // if (allEvents) trip.allEvents = allEvents;
-    // if (calendarLocale) trip.calendarLocale = calendarLocale;
-    // if (user) trip.user = user;
-    //
-    // trip.lastUpdateAt = new Date();
-    //
-    // try {
-    //   await trip.save();
-    // } catch (error) {
-    //   if (Number(error.code) === 23505) {
-    //     // duplicate trip name
-    //     throw new ConflictException("Trip already exists");
-    //   } else {
-    //     throw new InternalServerErrorException();
-    //   }
-    // }
 
     return trip;
   }

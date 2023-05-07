@@ -5,6 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { JwtPayload } from './jwt-payload.interface';
 import { debug_mode } from '../config/server.config';
+import {getTimestampInSeconds} from "../shared/utils";
 
 @Injectable()
 export class AuthService {
@@ -22,7 +23,7 @@ export class AuthService {
 
   async signIn(
     authCredentialsDto: AuthCredentialsDto,
-  ): Promise<{ accessToken: string }> {
+  ): Promise<{ accessToken: string, id: number }> {
     const { id, username } = await this.userRepository.validateUserPassword(
       authCredentialsDto,
     );
@@ -39,6 +40,27 @@ export class AuthService {
         `Generated JWT token with payload: ${JSON.stringify(payload)}.`,
       );
 
-    return { accessToken };
+    return { accessToken, id };
+  }
+
+  async setLastLoginAt(id: number) {
+    const user = await this.userRepository.findOne(
+        { id }
+    );
+    if (user) {
+      user.lastLoginAt = new Date();
+      user.numOfLogins++;
+      await user.save();
+    }
+  }
+
+  async getUsers() {
+    return (await this.userRepository.find({})).map((x) => ({
+      id: x.id,
+      username: x.username,
+      joinedAt: x.joinedAt,
+      lastLoginAt: x.lastLoginAt,
+      numOfLogins: x.numOfLogins
+    })).sort((a, b) => (b.lastLoginAt?.getTime() ?? 0) - (a.lastLoginAt?.getTime() ?? 0))
   }
 }
