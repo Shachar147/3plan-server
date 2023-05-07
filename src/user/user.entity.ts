@@ -42,6 +42,15 @@ export class User extends BaseEntity {
   @OneToMany((type) => BIEvents, (event) => event.user, { eager: false })
   events: BIEvents[];
 
+  @Column('timestamp', { nullable: true })
+  lastLoginAt: Date;
+
+  @Column('timestamp', { default: () => 'CURRENT_TIMESTAMP' })
+  joinedAt: Date;
+
+  @Column( { default: 0 })
+  numOfLogins: number;
+
   async validatePassword(password: string): Promise<boolean> {
     const hash = await bcrypt.hash(password, this.salt);
     return hash === this.password;
