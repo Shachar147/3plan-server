@@ -533,4 +533,9 @@ export class TripService {
 
     // await queryRunner.manager.save(trips);
   }
+
+    async toggleLockTrip(name: string, isLocked: boolean, user: User, request: Request) {
+      const trip = await this.getTripByName(name, user);
+      return this.tripRepository.updateTrip({ isLocked }, trip, user, request, this.backupsService);
+    }
 }

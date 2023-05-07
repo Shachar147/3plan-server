@@ -1,4 +1,5 @@
 import {
+  IsBoolean,
   IsNotEmpty, IsOptional,
   IsString,
 } from 'class-validator';
@@ -36,24 +37,26 @@ export class UpdateTripDto {
   allEvents: "jsonb";
 
   @ApiProperty({ required: true })
-  @IsOptional()
   @IsNotEmpty({
     message: 'missing: calendarEvents',
   })
   calendarEvents: "jsonb";
 
   @ApiProperty({ required: true })
-  @IsOptional()
   @IsNotEmpty({
     message: 'missing: sidebarEvents',
   })
   sidebarEvents: "jsonb";
 
   @ApiProperty({ required: true })
-  @IsOptional()
   @IsNotEmpty({
     message: 'missing: calendarLocale',
   })
   @IsString()
   calendarLocale: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsBoolean()
+  isLocked: boolean;
 }

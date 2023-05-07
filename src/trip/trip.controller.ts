@@ -142,6 +142,50 @@ export class TripController {
     return this.tripService.duplicateTripByName(name, duplicateTripDto, user, request);
   }
 
+  @ApiOperation({
+    summary: "Lock Trip By Name",
+    description: "Lock trip by name",
+  })
+  @ApiParam({
+    name: "name",
+    description: "trip name",
+    required: true,
+    type: "string",
+  })
+  @UseGuards(AuthGuard())
+  @Put("/lock/name/:name")
+  async lockTrip(
+      @Param("name") name,
+      @GetUser() user: User,
+      @Req() request: Request
+  ) {
+    const result = await this.tripService.toggleLockTrip(name, true, user, request);
+    this.myWebSocketGateway.send(JSON.stringify(result), user.id, request.headers.cid?.toString() ?? "");
+    return result;
+  }
+
+  @ApiOperation({
+    summary: "Unlock Trip By Name",
+    description: "Unlock trip by name",
+  })
+  @ApiParam({
+    name: "name",
+    description: "trip name",
+    required: true,
+    type: "string",
+  })
+  @UseGuards(AuthGuard())
+  @Put("/unlock/name/:name")
+  async unlockTrip(
+      @Param("name") name,
+      @GetUser() user: User,
+      @Req() request: Request
+  ) {
+    const result = await this.tripService.toggleLockTrip(name, false, user, request);
+    this.myWebSocketGateway.send(JSON.stringify(result), user.id, request.headers.cid?.toString() ?? "");
+    return result;
+  }
+
   @ApiOperation({ summary: "Update Trip", description: "Update trip by id" })
   @ApiParam({
     name: "id",
