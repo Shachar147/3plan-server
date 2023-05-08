@@ -186,27 +186,6 @@ export class TripController {
     return result;
   }
 
-  @ApiOperation({ summary: "Update Trip", description: "Update trip by id" })
-  @ApiParam({
-    name: "id",
-    description: "trip id",
-    required: true,
-    type: "number",
-  })
-  @Put("/:id")
-  @UsePipes(new ValidationPipe({ transform: true }))
-  @UseGuards(AuthGuard())
-  async updateTrip(
-    @Param("id", ParseIntPipe) id,
-    @Body() updateTripDto: UpdateTripDto,
-    @GetUser() user: User,
-    @Req() request: Request
-  ) {
-    const result = await this.tripService.updateTrip(id, updateTripDto, user, request);
-    this.myWebSocketGateway.send(JSON.stringify(result), user.id, request.headers.cid?.toString() ?? "");
-    return result;
-  }
-
   @ApiOperation({
     summary: "Update Trip By Name",
     description: "Update trip by name",
@@ -227,6 +206,27 @@ export class TripController {
     @Req() request: Request
   ) {
     const result = await this.tripService.updateTripByName(name, updateTripDto, user, request);
+    this.myWebSocketGateway.send(JSON.stringify(result), user.id, request.headers.cid?.toString() ?? "");
+    return result;
+  }
+
+  @ApiOperation({ summary: "Update Trip", description: "Update trip by id" })
+  @ApiParam({
+    name: "id",
+    description: "trip id",
+    required: true,
+    type: "number",
+  })
+  @Put("/:id")
+  @UsePipes(new ValidationPipe({ transform: true }))
+  @UseGuards(AuthGuard())
+  async updateTrip(
+      @Param("id", ParseIntPipe) id,
+      @Body() updateTripDto: UpdateTripDto,
+      @GetUser() user: User,
+      @Req() request: Request
+  ) {
+    const result = await this.tripService.updateTrip(id, updateTripDto, user, request);
     this.myWebSocketGateway.send(JSON.stringify(result), user.id, request.headers.cid?.toString() ?? "");
     return result;
   }
