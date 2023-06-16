@@ -6,6 +6,7 @@ import { UpsertDistanceDto } from "./dto/upsert-distance.dto";
 import { CalculateDistancesResult, DistanceDiff, TravelMode } from "./common";
 import { Coordinate } from "../shared/interfaces";
 import { coordinateToString } from "../shared/utils";
+import {matrix} from "./apis/woosmap.service";
 
 @EntityRepository(Distance)
 export class DistanceRepository extends Repository<Distance> {
@@ -100,7 +101,7 @@ export class DistanceRepository extends Repository<Distance> {
     const errors = [];
     const results = [];
     try {
-      return new Promise((resolve, reject) => {
+      return new Promise(async (resolve, reject) => {
         const travelMode = distance.options.mode.toUpperCase();
 
         // temp - fake
@@ -123,6 +124,15 @@ export class DistanceRepository extends Repository<Distance> {
         //   results
         // })
 
+        try {
+          const {results, errors} = await matrix(origins, destinations, distance.travelMode)
+          resolve({errors, results, numOfGoogleCalls});
+          return;
+        } catch (e) {
+          debugger;
+        }
+
+        // todo replace
         distance.matrix(origins, destinations, function (err, distances) {
           numOfGoogleCalls++;
 

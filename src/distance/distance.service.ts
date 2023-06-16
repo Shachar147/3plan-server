@@ -269,7 +269,7 @@ export class DistanceService {
 
       // todo - seek for alternative with nestjs.
       const distance = require("google-distance-matrix");
-      const googleKey = "AIzaSyA7I3QU1khdOUoOwQm4xPhv2_jt_cwFSNU";
+      const googleKey = "AIzaSyDiKc4HxX5G7EfneIZBN_Hlk2_luoT_yvo";
       distance.key(googleKey);
       distance.options.mode = travelMode.toLowerCase();
 
