@@ -15,6 +15,7 @@ import { TaskModule } from './task/task.module';
 import { StatisticsModule } from './statistics/statistics.module';
 import {EmailModule} from "./mail-sender/email.module";
 import { BiEventsModule } from './bi-events/bi-events.module';
+import { SharedTripsModule } from './shared-trips/shared-trips.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { BiEventsModule } from './bi-events/bi-events.module';
     StatisticsModule,
       EmailModule,
       BiEventsModule,
+      SharedTripsModule,
   ],
   controllers: [AppController],
   providers: [AppService, TinderService],

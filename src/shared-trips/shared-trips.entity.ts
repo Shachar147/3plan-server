@@ -1,0 +1,66 @@
+import {
+    BaseEntity,
+    Entity,
+    PrimaryGeneratedColumn,
+    Column,
+    Unique, ManyToOne, OneToMany,
+} from 'typeorm';
+import {User} from "../user/user.entity";
+import {Task} from "../task/task.entity";
+
+@Unique(['name', 'userId'])
+@Entity()
+export class SharedTripsu extends BaseEntity {
+    @PrimaryGeneratedColumn()
+    id: number;
+
+    // todo complete
+    @ManyToOne((type) => User, (user) => user.trips, { eager: false })
+    invitedBy: User;
+
+    @Column()
+    userId: number;
+
+    @Column()
+    name: string;
+
+    @Column({
+        type: 'jsonb'
+    })
+    dateRange: 'jsonb';
+
+    @Column({
+        type: 'jsonb'
+    })
+    categories: 'jsonb';
+
+    @Column({
+        type: 'jsonb'
+    })
+    allEvents: 'jsonb';
+
+    @Column({
+        type: 'jsonb'
+    })
+    calendarEvents: 'jsonb';
+
+    @Column({
+        type: 'jsonb'
+    })
+    sidebarEvents: 'jsonb';
+
+    @Column()
+    calendarLocale: string;
+
+    @Column('timestamp', { nullable: true })
+    lastUpdateAt: Date;
+
+    @Column('timestamp', { default: () => 'CURRENT_TIMESTAMP' })
+    createdAt: Date;
+
+    @OneToMany((type) => Task, (task) => task.relatedTrip, { eager: true })
+    trip_tasks: Task[];
+
+    @Column('boolean', { default: false })
+    isLocked: boolean;
+}
