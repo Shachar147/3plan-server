@@ -113,6 +113,19 @@ export class TripController {
     return this.tripService.getTripByName(name, user);
   }
 
+  @ApiOperation({ summary: "Duplicate Trip", description: "Duplicate trip by name" })
+  @Post("/duplicate")
+  @UsePipes(new ValidationPipe({ transform: true }))
+  @UseGuards(AuthGuard())
+  duplicateTripByName(
+      @Body() duplicateTripDto: DuplicateTripDto,
+      @GetUser() user: User,
+      @Req() request: Request
+  ) {
+    const { name } = duplicateTripDto;
+    return this.tripService.duplicateTripByName(name, duplicateTripDto, user, request);
+  }
+
   @ApiOperation({ summary: "Create Trip", description: "Create a trip." })
   @Post()
   @UsePipes(new ValidationPipe({ transform: true }))
@@ -127,19 +140,6 @@ export class TripController {
   @UseGuards(AuthGuard())
   upsertTrip(@Body() createTripDto: CreateTripDto, @GetUser() user: User, @Req() request: Request) {
     return this.tripService.upsertTrip(createTripDto, user, request);
-  }
-
-  @ApiOperation({ summary: "Duplicate Trip", description: "Duplicate trip by name" })
-  @Post("/duplicate")
-  @UsePipes(new ValidationPipe({ transform: true }))
-  @UseGuards(AuthGuard())
-  duplicateTripByName(
-      @Body() duplicateTripDto: DuplicateTripDto,
-      @GetUser() user: User,
-      @Req() request: Request
-  ) {
-    const { name } = duplicateTripDto;
-    return this.tripService.duplicateTripByName(name, duplicateTripDto, user, request);
   }
 
   @ApiOperation({
