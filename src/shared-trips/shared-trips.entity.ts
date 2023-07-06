@@ -10,13 +10,16 @@ import {Task} from "../task/task.entity";
 
 @Unique(['name', 'userId'])
 @Entity()
-export class SharedTripsu extends BaseEntity {
+export class SharedTrips extends BaseEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
     // todo complete
-    @ManyToOne((type) => User, (user) => user.trips, { eager: false })
-    invitedBy: User;
+    @ManyToOne((type) => User, (user) => user.sharedByMe, { eager: false })
+    sentBy: User;
+
+    @ManyToOne((type) => User, (user) => user.sharedTrips, { eager: false })
+    acceptedBy: User;
 
     @Column()
     userId: number;

@@ -11,6 +11,7 @@ import {Distance} from "../distance/distance.entity";
 import {Backups} from "../backups/backups.entity";
 import {Task} from "../task/task.entity";
 import {BIEvents} from "../bi-events/bi-events.entity";
+import {SharedTrips} from "../shared-trips/shared-trips.entity";
 
 @Entity()
 @Unique(['username'])
@@ -50,6 +51,9 @@ export class User extends BaseEntity {
 
   @Column( { default: 0 })
   numOfLogins: number;
+
+  @OneToMany((type) => SharedTrips, (sharedTrip) => sharedTrip.sentBy, { eager: false })
+  sharedByMe: SharedTrips[];
 
   async validatePassword(password: string): Promise<boolean> {
     const hash = await bcrypt.hash(password, this.salt);
