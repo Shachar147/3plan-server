@@ -21,6 +21,10 @@ async function bootstrap() {
     .build();
   const document = SwaggerModule.createDocument(app, swaggerConfig);
 
+  // to create a swagger documentation page on /api :
+  // not sure if it's a smart Idea tho, since it'll expose the whole API to attackers
+  // SwaggerModule.setup('api', app, document);
+
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const fs = require('fs');
   fs.writeFileSync(
