@@ -267,4 +267,48 @@ export class TripController {
   ): Promise<DeleteResult> {
     return this.tripService.deleteTripByName(name, user, request);
   }
+
+  @ApiOperation({
+    summary: "Hide Trip By Name",
+    description: "Hide trip by name",
+  })
+  @ApiParam({
+    name: "name",
+    description: "trip name",
+    required: true,
+    type: "string",
+  })
+  @UseGuards(AuthGuard())
+  @Put("/hide/name/:name")
+  async hideTrip(
+      @Param("name") name,
+      @GetUser() user: User,
+      @Req() request: Request
+  ) {
+    const result = await this.tripService.toggleHideTrip(name, true, user, request);
+    this.myWebSocketGateway.send(JSON.stringify(result), user.id, request.headers.cid?.toString() ?? "");
+    return result;
+  }
+
+  @ApiOperation({
+    summary: "Unhide Trip By Name",
+    description: "Unhide trip by name",
+  })
+  @ApiParam({
+    name: "name",
+    description: "trip name",
+    required: true,
+    type: "string",
+  })
+  @UseGuards(AuthGuard())
+  @Put("/unhide/name/:name")
+  async unhideTrip(
+      @Param("name") name,
+      @GetUser() user: User,
+      @Req() request: Request
+  ) {
+    const result = await this.tripService.toggleHideTrip(name, false, user, request);
+    this.myWebSocketGateway.send(JSON.stringify(result), user.id, request.headers.cid?.toString() ?? "");
+    return result;
+  }
 }
