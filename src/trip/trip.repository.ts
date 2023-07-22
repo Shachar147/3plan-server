@@ -138,7 +138,8 @@ export class TripRepository extends Repository<Trip> {
       sidebarEvents,
       allEvents,
       calendarLocale,
-      isLocked
+      isLocked,
+      isHidden
     } = updateTripDto;
 
     // backup
@@ -155,6 +156,7 @@ export class TripRepository extends Repository<Trip> {
     if (calendarLocale) updates.calendarLocale = calendarLocale;
     if (user) updates.user = user;
     if (isLocked != undefined) updates.isLocked = isLocked;
+    if (isHidden != undefined) updates.isHidden = isHidden;
     updates.lastUpdateAt = new Date();
 
     const queryBuilder = this.createQueryBuilder('trip');

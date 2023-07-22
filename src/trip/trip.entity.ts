@@ -62,4 +62,7 @@ export class Trip extends BaseEntity {
 
   @Column('boolean', { default: false })
   isLocked: boolean;
+
+  @Column('boolean', { default: false })
+  isHidden: boolean;
 }

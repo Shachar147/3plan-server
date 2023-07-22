@@ -62,4 +62,9 @@ export class UpdateTripDto {
   @IsOptional()
   @IsBoolean()
   isLocked: boolean;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsBoolean()
+  isHidden: boolean;
 }

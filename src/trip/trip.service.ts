@@ -538,4 +538,9 @@ export class TripService {
       const trip = await this.getTripByName(name, user);
       return this.tripRepository.updateTrip({ isLocked }, trip, user, request, this.backupsService);
     }
+
+  async toggleHideTrip(name: string, isHidden: boolean, user: User, request: Request) {
+    const trip = await this.getTripByName(name, user);
+    return this.tripRepository.updateTrip({ isHidden }, trip, user, request, this.backupsService);
+  }
 }
