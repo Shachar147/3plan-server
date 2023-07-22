@@ -52,8 +52,11 @@ export class User extends BaseEntity {
   @Column( { default: 0 })
   numOfLogins: number;
 
-  @OneToMany((type) => SharedTrips, (sharedTrip) => sharedTrip.sentBy, { eager: false })
-  sharedByMe: SharedTrips[];
+  @OneToMany((type) => SharedTrips, (sharedTrip) => sharedTrip.invitedByUser, { eager: false })
+  sharedTripsByMe: SharedTrips[];
+
+  @OneToMany((type) => SharedTrips, (sharedTrip) => sharedTrip.userId, { eager: false })
+  sharedTrips: SharedTrips[];
 
   async validatePassword(password: string): Promise<boolean> {
     const hash = await bcrypt.hash(password, this.salt);

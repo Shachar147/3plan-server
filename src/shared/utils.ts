@@ -57,3 +57,13 @@ export function getUniqueListOfCoordinates(arr: Coordinate[]): Coordinate[]{
       new Set(arr.map((x) => JSON.stringify({ lat: x.lat, lng: x.lng })))
   ).map((x) => JSON.parse(x));
 }
+
+export function addHours(dt: Date, hours: number): Date {
+  dt.setHours(dt.getHours() + hours);
+  return dt;
+}
+
+export function addMinutes(dt: Date, minutes: number): Date {
+  dt.setMinutes(dt.getMinutes() + minutes);
+  return dt;
+}

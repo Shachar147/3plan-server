@@ -3,67 +3,42 @@ import {
     Entity,
     PrimaryGeneratedColumn,
     Column,
-    Unique, ManyToOne, OneToMany,
+    Unique, ManyToOne,
 } from 'typeorm';
 import {User} from "../user/user.entity";
-import {Task} from "../task/task.entity";
 
-@Unique(['name', 'userId'])
+export const inviteLinkExpiredTimeMinutes = 1;
+
+@Unique(['tripId', 'userId', 'canRead', 'canWrite'])
 @Entity()
 export class SharedTrips extends BaseEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
-    // todo complete
-    @ManyToOne((type) => User, (user) => user.sharedByMe, { eager: false })
-    sentBy: User;
+    @Column()
+    tripId: number
 
-    @ManyToOne((type) => User, (user) => user.sharedTrips, { eager: false })
-    acceptedBy: User;
+    @ManyToOne((type) => User, (user) => user.sharedTripsByMe, { eager: false })
+    invitedByUser: User;
 
     @Column()
-    userId: number;
+    canRead: boolean;
 
     @Column()
-    name: string;
-
-    @Column({
-        type: 'jsonb'
-    })
-    dateRange: 'jsonb';
-
-    @Column({
-        type: 'jsonb'
-    })
-    categories: 'jsonb';
-
-    @Column({
-        type: 'jsonb'
-    })
-    allEvents: 'jsonb';
-
-    @Column({
-        type: 'jsonb'
-    })
-    calendarEvents: 'jsonb';
-
-    @Column({
-        type: 'jsonb'
-    })
-    sidebarEvents: 'jsonb';
+    canWrite: boolean;
 
     @Column()
-    calendarLocale: string;
-
-    @Column('timestamp', { nullable: true })
-    lastUpdateAt: Date;
+    inviteLink: string;
 
     @Column('timestamp', { default: () => 'CURRENT_TIMESTAMP' })
-    createdAt: Date;
+    invitedAt: Date;
 
-    @OneToMany((type) => Task, (task) => task.relatedTrip, { eager: true })
-    trip_tasks: Task[];
+    @Column({ type: 'timestamp', default: () => `CURRENT_TIMESTAMP + INTERVAL '${inviteLinkExpiredTimeMinutes} minutes'` })
+    expiredAt: Date;
 
-    @Column('boolean', { default: false })
-    isLocked: boolean;
+    @ManyToOne((type) => User, (user) => user.sharedTripsByMe, { eager: false, nullable: true })
+    userId: User;
+
+    @Column('timestamp', { nullable: true })
+    acceptedAt: Date;
 }
