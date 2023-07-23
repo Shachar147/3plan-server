@@ -206,7 +206,8 @@ export class TripRepository extends Repository<Trip> {
 
     const sharedTripRepository = getRepository(SharedTrips); // Access the SharedTrip repository directly
     const shared_query = sharedTripRepository.createQueryBuilder("shared-trips")
-        .where("shared-trips.userId = :userId", { userId: user.id });
+        .where("shared-trips.userId = :userId", { userId: user.id })
+        .andWhere('shared-trips.isDeleted = :isDeleted', { isDeleted: false });
     const sharedTrips = await shared_query.getMany();
     const tripIds = sharedTrips.map((x) => x.tripId);
 
@@ -277,7 +278,8 @@ export class TripRepository extends Repository<Trip> {
   async getSharedTrips(user: User) {
     const sharedTripRepository = getRepository(SharedTrips); // Access the SharedTrip repository directly
     const shared_query = sharedTripRepository.createQueryBuilder("shared-trips")
-        .where("shared-trips.userId = :userId", { userId: user.id });
+        .where("shared-trips.userId = :userId", { userId: user.id })
+        .andWhere('shared-trips.isDeleted = :isDeleted', { isDeleted: false });
     return await shared_query.getMany(); // shared trips
   }
 

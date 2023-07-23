@@ -9,7 +9,7 @@ import {User} from "../user/user.entity";
 
 export const inviteLinkExpiredTimeMinutes = 5;
 
-@Unique(['tripId', 'userId', 'canRead', 'canWrite'])
+@Unique(['tripId', 'userId', 'canRead', 'canWrite', 'isDeleted', 'deletedAt'])
 @Entity()
 export class SharedTrips extends BaseEntity {
     @PrimaryGeneratedColumn()
@@ -47,4 +47,10 @@ export class SharedTrips extends BaseEntity {
 
     @Column({ type: 'bigint', nullable: true })
     acceptedAt: number;
+
+    @Column({ default: false })
+    isDeleted: boolean;
+
+    @Column({ type: 'bigint', nullable: true })
+    deletedAt: number;
 }

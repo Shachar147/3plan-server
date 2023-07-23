@@ -28,6 +28,7 @@ export class SharedTripsRepository extends Repository<SharedTrips> {
                     invitedByUserId: invitedByUser.id
                 })
                 .andWhere('shared-trips.expiredAt > :currentTime', { currentTime })
+                .andWhere('shared-trips.isDeleted = :isDeleted', { isDeleted: false })
                 .andWhere("shared-trips.user is NULL");
 
             console.log(query.getSql())
@@ -43,6 +44,7 @@ export class SharedTripsRepository extends Repository<SharedTrips> {
         const query = this.createQueryBuilder("shared-trips")
             .where("shared-trips.inviteLink = :token", { token })
             .andWhere('shared-trips.expiredAt > :currentTime', { currentTime })
+            .andWhere('shared-trips.isDeleted = :isDeleted', { isDeleted: false })
             .andWhere("shared-trips.userId is NULL");
         const found = await query.getOne();
 
@@ -56,7 +58,7 @@ export class SharedTripsRepository extends Repository<SharedTrips> {
         sharedTrip.canWrite = canWrite;
         sharedTrip.invitedByUser = invitedByUserId;
         sharedTrip.inviteLink = uuidv4();
-        sharedTrip.expiredAt = parseInt(addMinutes(new Date(), inviteLinkExpiredTimeMinutes).getTime().toString());
+        sharedTrip.expiredAt = parseInt((addMinutes(new Date(), inviteLinkExpiredTimeMinutes).getTime()/1000).toString());
         sharedTrip.invitedAt = parseInt((new Date().getTime()/1000).toString());
 
         try {
@@ -77,7 +79,9 @@ export class SharedTripsRepository extends Repository<SharedTrips> {
     async getSharedWithMeTripIds(user: User): Promise<number[]> {
         const result = await this.createQueryBuilder("shared-trips")
             .select("shared-trips.tripId")
-            .where("shared-trips.userId = :userId", { userId: user.id }).getMany();
+            .where("shared-trips.userId = :userId", { userId: user.id })
+            .andWhere('shared-trips.isDeleted = :isDeleted', { isDeleted: false })
+            .getMany();
 
         return result.map((x) => x.tripId);
     }

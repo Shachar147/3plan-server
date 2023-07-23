@@ -32,11 +32,28 @@ export class SharedTripsService {
                 `invite link is invalid. probably expired.`
             );
         } else {
+
+            const currentTime = parseInt((new Date().getTime()/1000).toString());
+
+            // remove previous share links of this user for this trip
+            const prevPermissions =
+                await this.sharedTripsRepository.createQueryBuilder("shared-trips")
+                    .where("shared-trips.tripId = :id", { id: inviteLinkData.tripId })
+                    .andWhere('shared-trips.userId = :userId', { userId: user.id })
+                    .andWhere('shared-trips.isDeleted = :isDeleted', { isDeleted: false })
+                    .getMany();
+            for (let i=0; i< prevPermissions.length; i++){
+                const prev = prevPermissions[i];
+                prev.isDeleted = true;
+                prev.deletedAt = currentTime;
+                await prev.save();
+            }
+
             if (inviteLinkData.invitedByUserId == user.id) {
                 return inviteLinkData;
             }
             inviteLinkData.user = user;
-            inviteLinkData.acceptedAt = parseInt((new Date().getTime()/1000).toString());
+            inviteLinkData.acceptedAt = currentTime;
             return await inviteLinkData.save();
         }
     }
