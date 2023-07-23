@@ -216,7 +216,7 @@ export class TripRepository extends Repository<Trip> {
     }
 
     // Specify the columns we want to select
-    const shortColumns = ["trip.id", "trip.name", "trip.dateRange", "trip.lastUpdateAt", "trip.createdAt", "trip.isHidden"]
+    const shortColumns = ["trip.id", "trip.name", "trip.dateRange", "trip.lastUpdateAt", "trip.createdAt", "trip.isHidden"];
 
     const query = this.createQueryBuilder("trip")
         .select(shortColumns)
