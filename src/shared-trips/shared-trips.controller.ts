@@ -1,11 +1,10 @@
 import {
     Body,
-    Controller,
+    Controller, Delete, Get,
     Injectable,
-    Param,
-    ParseIntPipe,
-    Post,
-    UseGuards,
+    Param, ParseIntPipe,
+    Post, Put, Req,
+    UseGuards, UsePipes,
     ValidationPipe
 } from '@nestjs/common';
 import {ApiBearerAuth, ApiOperation, ApiParam, ApiTags} from "@nestjs/swagger";
@@ -17,6 +16,8 @@ import {CreateInviteLinkDto} from "./dto/create-invite-link-dto";
 import {TripService} from "../trip/trip.service";
 import {inviteLinkExpiredTimeMinutes} from "./shared-trips.entity";
 import {UseInviteLinkDto} from "./dto/use-invite-link-dto";
+import {Request} from "express";
+import {UpdatePermissionDto} from "./dto/update-permission-dto";
 
 @Injectable()
 @ApiBearerAuth("JWT")
@@ -79,5 +80,61 @@ export class SharedTripsController {
         const { tripId } = await this.sharedTripsService.useInviteLink(token, user);
         const trip = await this.tripsService.getTrip(tripId, user, true);
         return trip;
+    }
+
+    @ApiParam({
+        name: 'tripName',
+        description: 'trip name',
+        required: true,
+        type: 'string',
+    })
+    @ApiOperation({ summary: "Use Invite Link", description: "Use invite link for specific trip" })
+    @Get('/collaborators/name/:tripName')
+    @UseGuards(AuthGuard())
+    async getTripCollaborators(
+        @Param("tripName") tripName: string,
+        @GetUser() user: User
+    ) {
+        return await this.sharedTripsService.getTripCollaborators(tripName, user)
+    }
+
+    @ApiOperation({ summary: "Delete Permission by id", description: "Delete permission by id" })
+    @ApiParam({
+        name: "id",
+        description: "permissions id",
+        required: true,
+        type: "number",
+    })
+    @Delete("/:id")
+    @UseGuards(AuthGuard())
+    async deletePermission(
+        @Param("id", ParseIntPipe) id,
+        @GetUser() user: User,
+        @Req() request: Request
+    ) {
+        const result = await this.sharedTripsService.deletePermission(id, user, request);
+        // this.myWebSocketGateway.send(JSON.stringify(result), user.id, request.headers.cid?.toString() ?? "");
+        return result;
+    }
+
+    @ApiOperation({ summary: "Update Permission", description: "Update permission by id" })
+    @ApiParam({
+        name: "id",
+        description: "permission id",
+        required: true,
+        type: "number",
+    })
+    @Put("/:id")
+    @UsePipes(new ValidationPipe({ transform: true }))
+    @UseGuards(AuthGuard())
+    async updatePermission(
+        @Param("id", ParseIntPipe) id,
+        @Body() updatePermissionDto: UpdatePermissionDto,
+        @GetUser() user: User,
+        @Req() request: Request
+    ) {
+        const result = await this.sharedTripsService.updatePermission(id, updatePermissionDto, user, request);
+        // this.myWebSocketGateway.send(JSON.stringify(result), user.id, request.headers.cid?.toString() ?? "");
+        return result;
     }
 }
