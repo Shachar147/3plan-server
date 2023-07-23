@@ -291,7 +291,8 @@ export class TripController {
       @Req() request: Request
   ) {
     const result = await this.tripService.toggleHideTrip(name, true, user, request);
-    this.myWebSocketGateway.send(JSON.stringify(result), user.id, request.headers.cid?.toString() ?? "");
+    // this.myWebSocketGateway.send(JSON.stringify(result), user.id, request.headers.cid?.toString() ?? "");
+    this.myWebSocketGateway.send(JSON.stringify(result), `t${result.id}`, request.headers.cid?.toString() ?? "");
     return result;
   }
 
@@ -313,7 +314,8 @@ export class TripController {
       @Req() request: Request
   ) {
     const result = await this.tripService.toggleHideTrip(name, false, user, request);
-    this.myWebSocketGateway.send(JSON.stringify(result), user.id, request.headers.cid?.toString() ?? "");
+    // this.myWebSocketGateway.send(JSON.stringify(result), user.id, request.headers.cid?.toString() ?? "");
+    this.myWebSocketGateway.send(JSON.stringify(result), `t${reslt.id}`, request.headers.cid?.toString() ?? "");
     return result;
   }
 }
