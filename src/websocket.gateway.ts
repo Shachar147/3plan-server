@@ -60,6 +60,8 @@ export class MyWebSocketGateway {
      */
     send(message: string, userId: number, initiatedByClientId?: string): void {
 
+        // todo: think of a way to send sockets when 2 different users are on the same trip
+
         console.log(`${webSocketsLogPrefix} Sending Message to user #${userId}, to ${this.clients[userId]?.size ?? 0} sessions.`)
 
         // Send a message to all connected clients

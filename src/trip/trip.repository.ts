@@ -155,7 +155,7 @@ export class TripRepository extends Repository<Trip> {
     if (sidebarEvents) updates.sidebarEvents = sidebarEvents;
     if (allEvents) updates.allEvents = allEvents;
     if (calendarLocale) updates.calendarLocale = calendarLocale;
-    if (user) updates.user = user;
+    // if (user) updates.user = user; <- not working well on shared trips
     if (isLocked != undefined) updates.isLocked = isLocked;
     if (isHidden != undefined) updates.isHidden = isHidden;
     updates.lastUpdateAt = new Date();
@@ -274,26 +274,50 @@ export class TripRepository extends Repository<Trip> {
     }
   }
 
+  async getSharedTrips(user: User) {
+    const sharedTripRepository = getRepository(SharedTrips); // Access the SharedTrip repository directly
+    const shared_query = sharedTripRepository.createQueryBuilder("shared-trips")
+        .where("shared-trips.userId = :userId", { userId: user.id });
+    return await shared_query.getMany(); // shared trips
+  }
+
   async _getTripByName(name: string, user: User) {
-    const findOne = async (name: string, user: User) => {
-      return await this.createQueryBuilder("trip")
+
+    const sharedTrips = await this.getSharedTrips(user);
+
+    const findOne = async (name: string, user: User, sharedTrips: SharedTrips[]) => {
+      let trip = await this.createQueryBuilder("trip")
           .where("LOWER(trip.name) = LOWER(:name)", {name})
           .andWhere("(trip.userId = :userId)", {
             userId: user.id,
           })
           .getOne();
+
+      if (!trip && sharedTrips.length > 0) {
+        trip = await this.createQueryBuilder("trip")
+            .where("LOWER(trip.name) = LOWER(:name)", {name})
+            .where('trip.id IN (:...ids)', { ids: sharedTrips.map((x) => x.tripId) }) // Use the IN keyword with :...ids to pass the array of ids
+            .getOne();
+
+        // @ts-ignore
+        trip?.canRead = sharedTrips.find((x) => x.tripId == trip.id)?.canRead ?? false;
+
+        // @ts-ignore
+        trip?.canWrite = sharedTrips.find((x) => x.tripId == trip.id)?.canWrite ?? false;
+      }
+      return trip;
     }
 
-    let found = await findOne(name, user);
+    let found = await findOne(name, user, sharedTrips);
     if (!found) {
 
       name = name.replace(/\-/ig," ");
-      found = await findOne(name, user);
+      found = await findOne(name, user, sharedTrips);
 
       if (!found) {
         const lsName = name.replace(/\s/ig, "-")
 
-        const lsNameFound = await findOne(lsName, user);
+        const lsNameFound = await findOne(lsName, user, sharedTrips);
         if (!lsNameFound) {
           throw new NotFoundException(`Trip with name ${name} not found`);
         }
