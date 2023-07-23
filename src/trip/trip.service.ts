@@ -32,7 +32,6 @@ export class TripService {
   async getTripsShort(filterDto: ListTripsDto, user: User) {
     const promises = await Promise.all([
       this.tripRepository.getTripsShort(filterDto, user),
-      // this.tripRepository.getTripsShort(filterDto, user)
       this.tripRepository.getSharedTripsShort(filterDto, user)
     ]);
     return {
