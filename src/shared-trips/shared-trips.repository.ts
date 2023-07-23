@@ -1,8 +1,9 @@
 import {ConflictException, Injectable, InternalServerErrorException, Logger} from "@nestjs/common";
 import {EntityRepository, Raw, Repository} from "typeorm";
-import {SharedTrips} from "./shared-trips.entity";
+import {inviteLinkExpiredTimeMinutes, SharedTrips} from "./shared-trips.entity";
 import {User} from "../user/user.entity";
 import {v4 as uuidv4} from 'uuid';
+import {addMinutes} from "../shared/utils";
 
 
 @Injectable()
@@ -13,8 +14,7 @@ export class SharedTripsRepository extends Repository<SharedTrips> {
     async getExistingUnacceptedInvitelink(tripId: number, canRead: boolean, canWrite: boolean, invitedByUser: User) {
         const findOne = async (tripId: number, canRead: boolean, canWrite: boolean, invitedByUser: User) => {
 
-            const dt = new Date();
-            const currentTime = new Date(dt.setMinutes(dt.getMinutes() - dt.getTimezoneOffset())).toISOString()
+            const currentTime = parseInt((new Date().getTime()/1000).toString());
 
             const query = this.createQueryBuilder("shared-trips")
                 .where("shared-trips.tripId = :id", { id: tripId })
@@ -27,8 +27,8 @@ export class SharedTripsRepository extends Repository<SharedTrips> {
                 .andWhere("shared-trips.invitedByUserId = :invitedByUserId", {
                     invitedByUserId: invitedByUser.id
                 })
-                // .andWhere('shared-trips.expiredAt > :currentTime', { currentTime })
-                .andWhere("shared-trips.userId is NULL");
+                .andWhere('shared-trips.expiredAt > :currentTime', { currentTime })
+                .andWhere("shared-trips.user is NULL");
 
             console.log(query.getSql())
 
@@ -38,6 +38,17 @@ export class SharedTripsRepository extends Repository<SharedTrips> {
         return await findOne(tripId, canRead, canWrite, invitedByUser);
     }
 
+    async isTokenValid(token: string) {
+        const currentTime = parseInt((new Date().getTime()/1000).toString());
+        const query = this.createQueryBuilder("shared-trips")
+            .where("shared-trips.inviteLink = :token", { token })
+            .andWhere('shared-trips.expiredAt > :currentTime', { currentTime })
+            .andWhere("shared-trips.userId is NULL");
+        const found = await query.getOne();
+
+        return found;
+    }
+
     async createInviteLink(tripId: number, canRead: boolean, canWrite: boolean, invitedByUserId: User): Promise<SharedTrips> {
         const sharedTrip = new SharedTrips();
         sharedTrip.tripId = tripId;
@@ -45,10 +56,13 @@ export class SharedTripsRepository extends Repository<SharedTrips> {
         sharedTrip.canWrite = canWrite;
         sharedTrip.invitedByUser = invitedByUserId;
         sharedTrip.inviteLink = uuidv4();
+        sharedTrip.expiredAt = parseInt(addMinutes(new Date(), inviteLinkExpiredTimeMinutes).getTime().toString());
+        sharedTrip.invitedAt = parseInt((new Date().getTime()/1000).toString());
 
         try {
             await sharedTrip.save();
         } catch (error) {
+            console.error(error);
             if (Number(error.code) === 23505) {
                 // duplicate trip name
                 throw new ConflictException("Invite Link already exists");
@@ -58,5 +72,13 @@ export class SharedTripsRepository extends Repository<SharedTrips> {
         }
 
         return sharedTrip;
+    }
+
+    async getSharedWithMeTripIds(user: User): Promise<number[]> {
+        const result = await this.createQueryBuilder("shared-trips")
+            .select("shared-trips.tripId")
+            .where("shared-trips.userId = :userId", { userId: user.id }).getMany();
+
+        return result.map((x) => x.tripId);
     }
 }

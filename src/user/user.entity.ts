@@ -55,7 +55,7 @@ export class User extends BaseEntity {
   @OneToMany((type) => SharedTrips, (sharedTrip) => sharedTrip.invitedByUser, { eager: false })
   sharedTripsByMe: SharedTrips[];
 
-  @OneToMany((type) => SharedTrips, (sharedTrip) => sharedTrip.userId, { eager: false })
+  @OneToMany((type) => SharedTrips, (sharedTrip) => sharedTrip.user, { eager: false })
   sharedTrips: SharedTrips[];
 
   async validatePassword(password: string): Promise<boolean> {

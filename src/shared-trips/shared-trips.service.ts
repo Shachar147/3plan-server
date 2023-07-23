@@ -1,9 +1,7 @@
-import {Injectable, Logger} from '@nestjs/common';
+import {BadRequestException, Injectable, Logger} from '@nestjs/common';
 import {InjectRepository} from "@nestjs/typeorm";
 import {User} from "../user/user.entity";
 import {SharedTripsRepository} from "./shared-trips.repository";
-import {addMinutes} from "../shared/utils";
-import {inviteLinkExpiredTimeMinutes} from "./shared-trips.entity";
 
 @Injectable()
 export class SharedTripsService {
@@ -19,15 +17,27 @@ export class SharedTripsService {
     async createInviteLink(tripId: number, canRead: boolean, canWrite: boolean, user: User) {
         const existingLink = await this.sharedTripsRepository.getExistingUnacceptedInvitelink(tripId, canRead, canWrite, user);
         if (existingLink) {
-            // todo complete: this logic of checking if link is expired and if not extend it's expiry not working well.
-            // const currentTime = new Date(dt.setMinutes(dt.getMinutes() - dt.getTimezoneOffset())).toISOString()
-            // const dt = addMinutes(new Date(), inviteLinkExpiredTimeMinutes);
-            // existingLink.expiredAt = new Date(dt.setMinutes(dt.getMinutes() + dt.getTimezoneOffset()));
-            // existingLink.expiredAt = new Date(new Date().getTime()/1000 + inviteLinkExpiredTimeMinutes * 1000 * 60 * 60);
-            // return await existingLink.save();
-            return existingLink;
+            existingLink.expiredAt = parseInt((new Date().getTime()/1000).toString());
+            return await existingLink.save();
         }
 
         return await this.sharedTripsRepository.createInviteLink(tripId, canRead, canWrite, user);
+    }
+
+    async useInviteLink(token: string, user: User) {
+        const inviteLinkData = await this.sharedTripsRepository.isTokenValid(token);
+        if (!inviteLinkData){
+            throw new BadRequestException(
+                "invalidInviteLink",
+                `invite link is invalid. probably expired.`
+            );
+        } else {
+            if (inviteLinkData.invitedByUserId == user.id) {
+                return inviteLinkData;
+            }
+            inviteLinkData.user = user;
+            inviteLinkData.acceptedAt = parseInt((new Date().getTime()/1000).toString());
+            return await inviteLinkData.save();
+        }
     }
 }

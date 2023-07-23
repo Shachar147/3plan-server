@@ -1,4 +1,4 @@
-import { EntityRepository, Repository } from "typeorm";
+import {EntityRepository, getRepository, Repository} from "typeorm";
 import { CreateTripDto } from "./dto/create-trip-dto";
 import { UpdateTripDto } from "./dto/update-trip-dto";
 import { ListTripsDto } from "./dto/list-trips-dto";
@@ -14,6 +14,7 @@ import { DuplicateTripDto } from "./dto/duplicate-trip-dto";
 import { CreateBackupDto } from "../backups/dto/create-backup-dto";
 import { BackupsService } from "../backups/backups.service";
 import { Request } from "express";
+import {SharedTrips} from "../shared-trips/shared-trips.entity";
 
 @Injectable()
 @EntityRepository(Trip)
@@ -200,17 +201,65 @@ export class TripRepository extends Repository<Trip> {
     }
   }
 
+  async getSharedTripsShort(filterDto: ListTripsDto, user: User): Promise<Trip[]> {
+    const { search } = filterDto;
+
+    const sharedTripRepository = getRepository(SharedTrips); // Access the SharedTrip repository directly
+    const shared_query = sharedTripRepository.createQueryBuilder("shared-trips")
+        .where("shared-trips.userId = :userId", { userId: user.id });
+    const sharedTrips = await shared_query.getMany();
+    const tripIds = sharedTrips.map((x) => x.tripId);
+
+    if (tripIds.length == 0){
+      return [];
+    }
+
+    // Specify the columns we want to select
+    const shortColumns = ["trip.id", "trip.name", "trip.dateRange", "trip.lastUpdateAt", "trip.createdAt", "trip.isHidden"]
+
+    const query = this.createQueryBuilder("trip")
+        .select(shortColumns)
+        .where('trip.id IN (:...ids)', { ids: tripIds }) // Use the IN keyword with :...ids to pass the array of ids
+
+    if (search)
+      query.andWhere("(trip.name LIKE :search)", { search: `%${search}%` });
+
+    try {
+      const trips = await query.getMany();
+      trips.forEach((x) => {
+        x.lastUpdateAt = x.lastUpdateAt ?? x.createdAt;
+        // @ts-ignore
+        x.canRead = sharedTrips.find((s) => s.tripId == x.id).canRead;
+
+        // @ts-ignore
+        x.canWrite = sharedTrips.find((s) => s.tripId == x.id).canWrite;
+        return x;
+      })
+      return trips;
+    } catch (error) {
+      this.logger.error(
+          `Failed to get trips . Filters: ${JSON.stringify(filterDto)}"`,
+          error.stack
+      );
+      throw new InternalServerErrorException();
+    }
+  }
+
   async getTripsShort(filterDto: ListTripsDto, user: User): Promise<Trip[]> {
     const { search } = filterDto;
 
-    const query = this.createQueryBuilder("trip")
-        .select(["trip.id", "trip.name", "trip.dateRange", "trip.lastUpdateAt", "trip.createdAt", "trip.isHidden"]); // Specify the columns we want to select
+    // Specify the columns we want to select
+    const shortColumns = ["trip.id", "trip.name", "trip.dateRange", "trip.lastUpdateAt", "trip.createdAt", "trip.isHidden"]
 
-    if (search)
-      query.where("(trip.name LIKE :search)", { search: `%${search}%` });
-    query.andWhere("(trip.userId = :userId)", {
+    const query = this.createQueryBuilder("trip")
+        .select(shortColumns);
+
+    query.where("(trip.userId = :userId)", {
       userId: user.id,
     });
+
+    if (search)
+      query.andWhere("(trip.name LIKE :search)", { search: `%${search}%` });
 
     try {
       const trips = await query.getMany();

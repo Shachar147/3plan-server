@@ -63,10 +63,11 @@ export class TripController {
       @Query(ValidationPipe) filterDto: ListTripsDto,
       @GetUser() user: User
   ) {
-    const trips = await this.tripService.getTripsShort(filterDto, user);
+    const { trips, sharedTrips } = await this.tripService.getTripsShort(filterDto, user);
     return {
       total: trips.length,
       data: trips,
+      sharedTrips
     };
   }
 

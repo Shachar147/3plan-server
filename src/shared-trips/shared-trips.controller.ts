@@ -15,6 +15,8 @@ import {GetUser} from "../auth/get-user.decorator";
 import {User} from "../user/user.entity";
 import {CreateInviteLinkDto} from "./dto/create-invite-link-dto";
 import {TripService} from "../trip/trip.service";
+import {inviteLinkExpiredTimeMinutes} from "./shared-trips.entity";
+import {UseInviteLinkDto} from "./dto/use-invite-link-dto";
 
 @Injectable()
 @ApiBearerAuth("JWT")
@@ -53,6 +55,29 @@ export class SharedTripsController {
     ) {
         const { tripName, canRead, canWrite } = params;
         const trip = await this.tripsService.getTripByName(tripName, user);
-        return await this.sharedTripsService.createInviteLink(trip.id, canRead, canWrite, user);
+        const inviteLink = await this.sharedTripsService.createInviteLink(trip.id, canRead, canWrite, user);
+        return {
+            inviteLink,
+            expiredAt: inviteLinkExpiredTimeMinutes
+        }
+    }
+
+    @ApiParam({
+        name: 'token',
+        description: 'invite link token',
+        required: true,
+        type: 'boolean',
+    })
+    @ApiOperation({ summary: "Use Invite Link", description: "Use invite link for specific trip" })
+    @Post('/use-invite-link')
+    @UseGuards(AuthGuard())
+    async useInviteLink(
+        @Body(ValidationPipe) params: UseInviteLinkDto,
+        @GetUser() user: User
+    ) {
+        const { token } = params;
+        const { tripId } = await this.sharedTripsService.useInviteLink(token, user);
+        const trip = await this.tripsService.getTrip(tripId, user, true);
+        return trip;
     }
 }

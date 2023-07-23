@@ -7,7 +7,7 @@ import {
 } from 'typeorm';
 import {User} from "../user/user.entity";
 
-export const inviteLinkExpiredTimeMinutes = 1;
+export const inviteLinkExpiredTimeMinutes = 5;
 
 @Unique(['tripId', 'userId', 'canRead', 'canWrite'])
 @Entity()
@@ -22,6 +22,9 @@ export class SharedTrips extends BaseEntity {
     invitedByUser: User;
 
     @Column()
+    invitedByUserId: number;
+
+    @Column()
     canRead: boolean;
 
     @Column()
@@ -30,15 +33,18 @@ export class SharedTrips extends BaseEntity {
     @Column()
     inviteLink: string;
 
-    @Column('timestamp', { default: () => 'CURRENT_TIMESTAMP' })
-    invitedAt: Date;
+    @Column({ type: 'bigint' })
+    invitedAt: number;
 
-    @Column({ type: 'timestamp', default: () => `CURRENT_TIMESTAMP + INTERVAL '${inviteLinkExpiredTimeMinutes} minutes'` })
-    expiredAt: Date;
+    @Column({ type: 'bigint' })
+    expiredAt: number;
 
     @ManyToOne((type) => User, (user) => user.sharedTripsByMe, { eager: false, nullable: true })
-    userId: User;
+    user: User;
 
-    @Column('timestamp', { nullable: true })
-    acceptedAt: Date;
+    @Column({ nullable: true })
+    userId: number;
+
+    @Column({ type: 'bigint', nullable: true })
+    acceptedAt: number;
 }
