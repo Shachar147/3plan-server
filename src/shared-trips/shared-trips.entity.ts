@@ -7,7 +7,7 @@ import {
 } from 'typeorm';
 import {User} from "../user/user.entity";
 
-export const inviteLinkExpiredTimeMinutes = 5;
+export const inviteLinkExpiredTimeMinutes = 60;
 
 @Unique(['tripId', 'userId', 'canRead', 'canWrite', 'isDeleted', 'deletedAt'])
 @Entity()
