@@ -10,14 +10,15 @@ import {CreateHistoryDto} from "./dto/create-history-dto";
 export class HistoryRepository extends Repository<History> {
     private logger = new Logger("HistoryRepository");
 
-    // todo change
-    private MAX_BACKUPS = 1000;
+    private MAX_HISTORY_PER_TRIP = 200;
 
-    public async removeOldHistory() {
-        const allHistory = (await this.find({})).sort((a,b) => a.id - b.id);
+    public async removeOldHistory(tripId: number) {
+        const allHistory = (await this.find({
+            tripId
+        })).sort((a,b) => a.id - b.id);
         const deleteIds = [];
-        if (allHistory.length >= this.MAX_BACKUPS){
-            const deleteCount = (allHistory.length - this.MAX_BACKUPS) + 1;
+        if (allHistory.length >= this.MAX_HISTORY_PER_TRIP){
+            const deleteCount = (allHistory.length - this.MAX_HISTORY_PER_TRIP) + 1;
             for (let i = 0; i < deleteCount; i++) {
                 deleteIds.push(allHistory[i].id);
             }
@@ -43,7 +44,7 @@ export class HistoryRepository extends Repository<History> {
             actionParams
         } = createHistoryDto;
 
-        await this.removeOldHistory();
+        await this.removeOldHistory(tripId);
 
         const backup = new History();
         backup.tripId = tripId;
