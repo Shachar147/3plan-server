@@ -43,7 +43,7 @@ export class HistoryService {
         return {
             total: data.length,
             history: data.length ?
-                data.slice(0, Math.max(1, Math.min(data.length-1, limit))) :
+                data.slice(0, Math.min(data.length, limit)) :
                 []
         }
     }
