@@ -10,7 +10,7 @@ import {CreateHistoryDto} from "./dto/create-history-dto";
 export class HistoryRepository extends Repository<History> {
     private logger = new Logger("HistoryRepository");
 
-    private MAX_HISTORY_PER_TRIP = 200;
+    private MAX_HISTORY_PER_TRIP = 500;
 
     public async removeOldHistory(tripId: number) {
         const allHistory = (await this.find({
