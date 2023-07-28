@@ -13,6 +13,7 @@ import { User } from "../user/user.entity";
 import {DuplicateTripDto} from "./dto/duplicate-trip-dto";
 import {BackupsService} from "../backups/backups.service";
 import { Request } from 'express';
+import {HistoryService} from "../history/history.service";
 
 @Injectable()
 export class TripService {
@@ -21,6 +22,7 @@ export class TripService {
     @InjectRepository(TripRepository)
     private tripRepository: TripRepository,
     private backupsService: BackupsService,
+    private historyService: HistoryService,
   ) {
 
   }
@@ -116,7 +118,7 @@ export class TripService {
     }
 
     // backup
-    await this.tripRepository.keepBackup({id}, trip, request, user, this.backupsService)
+    await this.tripRepository.keepBackup({id}, trip, request, user, this.backupsService);
 
     const result = await this.tripRepository.delete({ id: id });
     if (result.affected === 0) {
