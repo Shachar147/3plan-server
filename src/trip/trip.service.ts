@@ -30,12 +30,19 @@ export class TripService {
   }
 
   async getTripsShort(filterDto: ListTripsDto, user: User) {
-    return await this.tripRepository.getTripsShort(filterDto, user);
+    const promises = await Promise.all([
+      this.tripRepository.getTripsShort(filterDto, user),
+      this.tripRepository.getSharedTripsShort(filterDto, user)
+    ]);
+    return {
+      trips: promises[0],
+      sharedTrips: promises[1]
+    }
   }
 
-  async getTrip(id: number, user: User) {
+  async getTrip(id: number, user: User, bypassUserCheck: boolean = false) {
     const found = await this.tripRepository.findOne(id);
-    if (!found || (found && found.user.id !== user.id)) {
+    if (!found || (found && !bypassUserCheck && found.user.id !== user.id)) {
       throw new NotFoundException(`Trip with id #${id} not found`);
     }
     return found;

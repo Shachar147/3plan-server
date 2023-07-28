@@ -9,10 +9,11 @@ import { PassportModule } from '@nestjs/passport';
 import {BackupsModule} from "../backups/backups.module";
 import {BackupsRepository} from "../backups/backups.repository";
 import {MyWebSocketGateway} from "../websocket.gateway";
+import {SharedTripsRepository} from "../shared-trips/shared-trips.repository";
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([TripRepository]),
+    TypeOrmModule.forFeature([TripRepository, SharedTripsRepository]),
     TypeOrmModule.forFeature([BackupsRepository]),
     HttpModule,
     AuthModule,

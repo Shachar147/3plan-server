@@ -63,10 +63,11 @@ export class TripController {
       @Query(ValidationPipe) filterDto: ListTripsDto,
       @GetUser() user: User
   ) {
-    const trips = await this.tripService.getTripsShort(filterDto, user);
+    const { trips, sharedTrips } = await this.tripService.getTripsShort(filterDto, user);
     return {
       total: trips.length,
       data: trips,
+      sharedTrips
     };
   }
 
@@ -160,7 +161,8 @@ export class TripController {
       @Req() request: Request
   ) {
     const result = await this.tripService.toggleLockTrip(name, true, user, request);
-    this.myWebSocketGateway.send(JSON.stringify(result), user.id, request.headers.cid?.toString() ?? "");
+    // this.myWebSocketGateway.send(JSON.stringify(result), user.id, request.headers.cid?.toString() ?? "");
+    this.myWebSocketGateway.send(JSON.stringify(result), `t${result.id}`, request.headers.cid?.toString() ?? "");
     return result;
   }
 
@@ -182,7 +184,8 @@ export class TripController {
       @Req() request: Request
   ) {
     const result = await this.tripService.toggleLockTrip(name, false, user, request);
-    this.myWebSocketGateway.send(JSON.stringify(result), user.id, request.headers.cid?.toString() ?? "");
+    // this.myWebSocketGateway.send(JSON.stringify(result), user.id, request.headers.cid?.toString() ?? "");
+    this.myWebSocketGateway.send(JSON.stringify(result), `t${result.id}`, request.headers.cid?.toString() ?? "");
     return result;
   }
 
@@ -206,7 +209,8 @@ export class TripController {
     @Req() request: Request
   ) {
     const result = await this.tripService.updateTripByName(name, updateTripDto, user, request);
-    this.myWebSocketGateway.send(JSON.stringify(result), user.id, request.headers.cid?.toString() ?? "");
+    // this.myWebSocketGateway.send(JSON.stringify(result), user.id, request.headers.cid?.toString() ?? "");
+    this.myWebSocketGateway.send(JSON.stringify(result), `t${result.id}`, request.headers.cid?.toString() ?? "");
     return result;
   }
 
@@ -227,7 +231,8 @@ export class TripController {
       @Req() request: Request
   ) {
     const result = await this.tripService.updateTrip(id, updateTripDto, user, request);
-    this.myWebSocketGateway.send(JSON.stringify(result), user.id, request.headers.cid?.toString() ?? "");
+    // this.myWebSocketGateway.send(JSON.stringify(result), user.id, request.headers.cid?.toString() ?? "");
+    this.myWebSocketGateway.send(JSON.stringify(result), `t${id}`, request.headers.cid?.toString() ?? "");
     return result;
   }
 
@@ -286,7 +291,8 @@ export class TripController {
       @Req() request: Request
   ) {
     const result = await this.tripService.toggleHideTrip(name, true, user, request);
-    this.myWebSocketGateway.send(JSON.stringify(result), user.id, request.headers.cid?.toString() ?? "");
+    // this.myWebSocketGateway.send(JSON.stringify(result), user.id, request.headers.cid?.toString() ?? "");
+    this.myWebSocketGateway.send(JSON.stringify(result), `t${result.id}`, request.headers.cid?.toString() ?? "");
     return result;
   }
 
@@ -308,7 +314,8 @@ export class TripController {
       @Req() request: Request
   ) {
     const result = await this.tripService.toggleHideTrip(name, false, user, request);
-    this.myWebSocketGateway.send(JSON.stringify(result), user.id, request.headers.cid?.toString() ?? "");
+    // this.myWebSocketGateway.send(JSON.stringify(result), user.id, request.headers.cid?.toString() ?? "");
+    this.myWebSocketGateway.send(JSON.stringify(result), `t${result.id}`, request.headers.cid?.toString() ?? "");
     return result;
   }
 }
