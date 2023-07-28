@@ -44,7 +44,7 @@ export class MyWebSocketGateway {
 
             this.clients[userId] = this.clients[userId] || new Set<WebSocketWithId>();
             this.clients[userId].add({ socket, socketId });
-            console.log(`${webSocketsLogPrefix} ${usersDict[userId]["username"]} (Client #${userId}) connected`, `(${this.clients[userId].size} open sessions)`);
+            console.log(`${webSocketsLogPrefix} ${usersDict[userId]?.["username"]} (Client #${userId}) connected`, `(${this.clients[userId].size} open sessions)`);
 
             if (tripId && tripId !== "0") {
                 this.clients[`t${tripId}`] = this.clients[`t${tripId}`] || new Set<WebSocketWithId>();
@@ -66,7 +66,7 @@ export class MyWebSocketGateway {
                 if (webSocketWithId) {
                     this.clients[userId].delete(webSocketWithId);
                 }
-                console.log(`${webSocketsLogPrefix} ${usersDict[userId]["username"]} (Client #${userId}) disconnected`, this.clients[userId].size > 2 ? `(There are still ${this.clients[userId].size} sessions)` : this.clients[userId].size > 1 ? `(There is still 1 open session)` : "");
+                console.log(`${webSocketsLogPrefix} ${usersDict[userId]?.["username"]} (Client #${userId}) disconnected`, this.clients[userId].size > 2 ? `(There are still ${this.clients[userId].size} sessions)` : this.clients[userId].size > 1 ? `(There is still 1 open session)` : "");
 
                 if (tripId && tripId !== "0") {
                     const webSocketWithId2 = (Array.from(this.clients[`t${tripId}`]) as WebSocketWithId[]).find((a) => a.socket == socket);

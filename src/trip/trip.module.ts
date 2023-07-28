@@ -10,6 +10,7 @@ import {BackupsModule} from "../backups/backups.module";
 import {BackupsRepository} from "../backups/backups.repository";
 import {MyWebSocketGateway} from "../websocket.gateway";
 import {SharedTripsRepository} from "../shared-trips/shared-trips.repository";
+import {HistoryModule} from "../history/history.module";
 
 @Module({
   imports: [
@@ -18,7 +19,8 @@ import {SharedTripsRepository} from "../shared-trips/shared-trips.repository";
     HttpModule,
     AuthModule,
     PassportModule,
-    BackupsModule
+    BackupsModule,
+    HistoryModule
   ],
   controllers: [TripController],
   providers: [TripService, MyWebSocketGateway],
