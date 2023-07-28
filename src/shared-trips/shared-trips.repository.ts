@@ -41,20 +41,27 @@ export class SharedTripsRepository extends Repository<SharedTrips> {
 
     async isTokenValid(token: string, userId: number) {
         const currentTime = parseInt((new Date().getTime()/1000).toString());
-        const query = this.createQueryBuilder("shared-trips")
+
+        const queryBuilder = this.createQueryBuilder("shared-trips");
+
+        const query = queryBuilder
             .where("shared-trips.inviteLink = :token", { token })
             .andWhere('shared-trips.expiredAt > :currentTime', { currentTime })
             .andWhere('shared-trips.isDeleted = :isDeleted', { isDeleted: false })
             .andWhere("shared-trips.userId is NULL");
-        const found = await query.getOne();
+        let found = await query.getOne();
 
-        const query2 = this.createQueryBuilder("shared-trips")
-            .where("shared-trips.inviteLink = :token", { token })
-            .andWhere('shared-trips.isDeleted = :isDeleted', { isDeleted: false })
-            .andWhere("shared-trips.userId is :userId", { userId: userId });
-        const found2 = await query2.getOne();
+        if (!found) {
+            const query2 = queryBuilder
+                .where("shared-trips.inviteLink = :token", {token})
+                .andWhere('shared-trips.isDeleted = :isDeleted', {isDeleted: false})
+                .andWhere("shared-trips.userId = :userId", {userId: userId});
+            found = await query2.getOne();
 
-        return found ?? found2;
+            return found
+        }
+
+        return found;
     }
 
     async createInviteLink(tripId: number, canRead: boolean, canWrite: boolean, invitedByUserId: User): Promise<SharedTrips> {
