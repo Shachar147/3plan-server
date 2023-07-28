@@ -3,10 +3,8 @@ import {InjectRepository} from "@nestjs/typeorm";
 import {User} from "../user/user.entity";
 import {SharedTripsRepository} from "./shared-trips.repository";
 import {getRepository} from "typeorm";
-import {SharedTrips} from "./shared-trips.entity";
 import {Trip} from "../trip/trip.entity";
 import {Request} from "express";
-import {UpdateTripDto} from "../trip/dto/update-trip-dto";
 import {UpdatePermissionDto} from "./dto/update-permission-dto";
 
 @Injectable()

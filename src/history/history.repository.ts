@@ -1,11 +1,14 @@
-import { EntityRepository, Repository } from "typeorm";
+import {EntityRepository, getRepository, Repository} from "typeorm";
 import {
+    Injectable,
     Logger,
 } from "@nestjs/common";
 import { User } from "../user/user.entity";
 import {History} from "./history.entity";
 import {CreateHistoryDto} from "./dto/create-history-dto";
+import {Trip} from "../trip/trip.entity";
 
+@Injectable()
 @EntityRepository(History)
 export class HistoryRepository extends Repository<History> {
     private logger = new Logger("HistoryRepository");
@@ -36,13 +39,27 @@ export class HistoryRepository extends Repository<History> {
     }
 
     public async createHistory(createHistoryDto: CreateHistoryDto, user: User): Promise<History> {
+        let { tripId } = createHistoryDto;
         const {
-            tripId,
             eventId,
             eventName,
             action,
             actionParams
         } = createHistoryDto;
+
+        // @ts-ignore
+        if (tripId == 0 && actionParams.tripName) {
+
+            const tripRepository = getRepository(Trip);
+            const trip = await tripRepository
+                .createQueryBuilder('trip')
+                .where('trip.name = :name', { name: actionParams["tripName"] })
+                .getOne();
+
+            if (trip){
+                tripId = trip.id;
+            }
+        }
 
         await this.removeOldHistory(tripId);
 
