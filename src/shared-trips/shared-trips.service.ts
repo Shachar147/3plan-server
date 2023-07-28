@@ -41,7 +41,7 @@ export class SharedTripsService {
     }
 
     async useInviteLink(token: string, user: User) {
-        const inviteLinkData = await this.sharedTripsRepository.isTokenValid(token);
+        const inviteLinkData = await this.sharedTripsRepository.isTokenValid(token, user.id);
         if (!inviteLinkData){
             throw new BadRequestException(
                 "invalidInviteLink",
