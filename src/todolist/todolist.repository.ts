@@ -38,13 +38,4 @@ export class TodolistRepository extends Repository<TodolistTask> {
         return task;
     }
 
-    // async getSharedWithMeTripIds(user: User): Promise<number[]> {
-    //     const result = await this.createQueryBuilder("todolist")
-    //         .select("todolist.tripId")
-    //         .where("todolist.userId = :userId", { userId: user.id })
-    //         .andWhere('todolist.isDeleted = :isDeleted', { isDeleted: false })
-    //         .getMany();
-    //
-    //     return result.map((x) => x.tripId);
-    // }
 }

@@ -18,6 +18,15 @@ export class TodolistService {
         private todolistRepository: TodolistRepository,
     ) {}
 
+    async getUserSharedTrips(userId: number): Promise<number[]> {
+        const sharedTripRepository = getRepository(SharedTrips); // Access the SharedTrip repository directly
+        const shared_query = sharedTripRepository.createQueryBuilder("shared-trips")
+            .where("shared-trips.userId = :userId", {userId})
+            .andWhere('shared-trips.isDeleted = :isDeleted', {isDeleted: false});
+        const sharedTrips = await shared_query.getMany();
+        return sharedTrips.map((x) => x.tripId);
+    }
+
     async getTripIfHasPermissions(tripId: number, userId: number): Promise<Trip> {
         const tripRepository = getRepository(Trip); // Access the Trip repository directly
         const query = tripRepository.createQueryBuilder("trip")
@@ -26,14 +35,7 @@ export class TodolistService {
         const trip = await query.getOne();
 
         if (!trip) {
-
-            const sharedTripRepository = getRepository(SharedTrips); // Access the SharedTrip repository directly
-            const shared_query = sharedTripRepository.createQueryBuilder("shared-trips")
-                .where("shared-trips.userId = :userId", {userId})
-                .andWhere('shared-trips.isDeleted = :isDeleted', {isDeleted: false});
-            const sharedTrips = await shared_query.getMany();
-            const tripIds = sharedTrips.map((x) => x.tripId);
-
+            const tripIds = await this.getUserSharedTrips(userId);
             if (tripIds.includes(tripId)){
                 const query = tripRepository.createQueryBuilder("trip")
                     .where('trip.id = :id', { id: tripId });
@@ -87,111 +89,6 @@ export class TodolistService {
         return await this.todolistRepository.createTask(trip, title, status, content, mustBeDoneBefore, eventId, addedByUser);
     }
 
-//     async useInviteLink(token: string, user: User) {
-//         const inviteLinkData = await this.todolistRepository.isTokenValid(token, user.id);
-//         if (!inviteLinkData){
-//             throw new BadRequestException(
-//                 "invalidInviteLink",
-//                 `invite link is invalid. probably expired.`
-//             );
-//         } else {
-//
-//             const currentTime = parseInt((new Date().getTime()/1000).toString());
-//
-//             // remove previous share links of this user for this trip
-//             const prevPermissions =
-//                 await this.todolistRepository.createQueryBuilder("todolist")
-//                     .where("todolist.tripId = :id", { id: inviteLinkData.tripId })
-//                     .andWhere('todolist.userId = :userId', { userId: user.id })
-//                     .andWhere('todolist.isDeleted = :isDeleted', { isDeleted: false })
-//                     .getMany();
-//             for (let i=0; i< prevPermissions.length; i++){
-//                 const prev = prevPermissions[i];
-//                 prev.isDeleted = true;
-//                 prev.deletedAt = currentTime;
-//                 await prev.save();
-//             }
-//
-//             if (inviteLinkData.invitedByUserId == user.id) {
-//                 return inviteLinkData;
-//             }
-//             inviteLinkData.user = user;
-//             inviteLinkData.acceptedAt = currentTime;
-//             return await inviteLinkData.save();
-//         }
-//     }
-//
-//     async getTripCollaborators(tripName: string, user: User) {
-//         const tripRepository = getRepository(Trip); // Access the Trip repository directly
-//         const query = tripRepository.createQueryBuilder("trip")
-//             .where("trip.userId = :userId", { userId: user.id })
-//             .andWhere('trip.name = :name', { name: tripName });
-//         const trip = await query.getOne();
-//
-//         if (!trip){
-//             throw new NotFoundException(`Trip with name ${tripName} not found`);
-//         }
-//
-//         const tripId = trip.id;
-//
-//         const collaborators = await this.todolistRepository.createQueryBuilder("todolist")
-//             .where("todolist.tripId = :tripId", { tripId })
-//             .andWhere("todolist.userId is not NULL")
-//             .andWhere("todolist.isDeleted = :isDeleted", { isDeleted: false }).getMany();
-//
-//         const collaboratorsIds = collaborators.map((c) => c.userId);
-//
-//         if (collaboratorsIds.length == 0){
-//             return [];
-//         }
-//
-//         const users = await getRepository(User).createQueryBuilder("user")
-//             .where('user.id IN (:...ids)', { ids: collaboratorsIds }) // Use the IN keyword with :...ids to pass the array of ids
-//             .getMany();
-//
-//         users.forEach((u) => {
-//             const permissions = collaborators.find((c) => c.userId == u.id);
-//
-//             // @ts-ignore
-//             u.canRead = permissions.canRead;
-//
-//             // @ts-ignore
-//             u.canWrite = permissions.canWrite;
-//
-//             // @ts-ignore
-//             u.permissionsId = permissions.id;
-//         });
-//
-//         return users;
-//     }
-//
-//     async deletePermission(id: number, user: User, request: Request) {
-//         const permission = await this.todolistRepository.findOne(id);
-//         if (!permission) {
-//             throw new NotFoundException(`Permission with id #${id} not found`);
-//         }
-//         if (permission.invitedByUserId != user.id){
-//             throw new NotFoundException(`Only trip creator can delete collaborators`);
-//         }
-//
-//         const currentTime = parseInt((new Date().getTime()/1000).toString());
-//         permission.isDeleted = true;
-//         permission.deletedAt = currentTime;
-//         return await permission.save();
-//     }
-//
-//     async updatePermission(id: number, updatePermissionDto: UpdateTodolistTaskDto, user: User, request: Request) {
-//         const permission = await this.todolistRepository.findOne(id);
-//         if (!permission) {
-//             throw new NotFoundException(`Permission with id #${id} not found`);
-//         }
-//         if (permission.invitedByUserId != user.id){
-//             throw new NotFoundException(`Only trip creator can modify permissions`);
-//         }
-//
-//         permission.canWrite = updatePermissionDto.canWrite;
-//         return await permission.save();
-//     }
     async getTasksByTripId(tripId: number, user: User) {
         const trip = await this.getTripIfHasPermissions(tripId, user.id)
 
@@ -276,5 +173,34 @@ export class TodolistService {
             await found.save();
         }
         return { task: found, updates };
+    }
+
+    async getTasksByEventId(tripId: number, eventId: number, user: User) {
+
+        // validate permissions on trip
+        const trip = await this.getTripIfHasPermissions(tripId, user.id);
+
+        // @ts-ignore
+        const sidebarEvents: Record<string, any[]> = trip.sidebarEvents;
+
+        // validate event is on trip
+        // @ts-ignore
+        const foundEvent = ([...trip.calendarEvents, ...Object.values(sidebarEvents).flat()] as any[]).find((event) => event.id == eventId);
+        if (!foundEvent) {
+            throw new NotFoundException(`Event #${eventId} not found on trip ${trip.name}`);
+        }
+
+        const where = {
+            deletedAt: null,
+            isDeleted: false,
+            tripId,
+            eventId,
+        };
+
+        const tasks = await this.todolistRepository.find({
+            where: where
+        });
+
+        return tasks;
     }
 }

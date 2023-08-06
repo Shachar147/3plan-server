@@ -100,6 +100,33 @@ export class TodolistController {
         }
     }
 
+    @ApiParam({
+        name: 'tripId',
+        description: 'trip id',
+        required: true,
+        type: 'number',
+    })
+    @ApiParam({
+        name: 'eventId',
+        description: 'event id',
+        required: true,
+        type: 'number',
+    })
+    @ApiOperation({ summary: "Get trip tasks", description: "Get all tasks on a given trip by id" })
+    @Get('/:tripId/:eventId')
+    @UseGuards(AuthGuard())
+    async getTasksByEventId(
+        @Param("tripId") tripId: number,
+        @Param("eventId") eventId: number,
+        @GetUser() user: User
+    ) {
+        const data = await this.todoListService.getTasksByEventId(tripId, eventId, user)
+        return {
+            total: data.length,
+            data
+        }
+    }
+
     @ApiOperation({ summary: "Delete todolist task", description: "Delete todolist task by id" })
     @ApiParam({
         name: "id",
