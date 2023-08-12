@@ -1,4 +1,4 @@
-import {BadRequestException, Injectable, Logger, NotFoundException} from '@nestjs/common';
+import {BadRequestException, ConflictException, Injectable, Logger, NotFoundException} from '@nestjs/common';
 import {InjectRepository} from "@nestjs/typeorm";
 import {User} from "../user/user.entity";
 import {TodolistRepository} from "./todolist.repository";
@@ -82,7 +82,7 @@ export class TodolistService {
             if (eventId){
                 throw new NotFoundException(`Task ${title} for trip "${trip.name}" event "${foundEvent.title}" already exists`);
             } else {
-                throw new BadRequestException(`Task ${title} for trip "${trip.name}" already exists`);
+                throw new ConflictException(`Task ${title} for trip "${trip.name}" already exists`);
             }
         }
 
