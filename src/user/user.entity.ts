@@ -12,6 +12,7 @@ import {Backups} from "../backups/backups.entity";
 import {Task} from "../task/task.entity";
 import {BIEvents} from "../bi-events/bi-events.entity";
 import {SharedTrips} from "../shared-trips/shared-trips.entity";
+import {TodolistTask} from "../todolist/todolist.entity";
 
 @Entity()
 @Unique(['username'])
@@ -57,6 +58,9 @@ export class User extends BaseEntity {
 
   @OneToMany((type) => SharedTrips, (sharedTrip) => sharedTrip.user, { eager: false })
   sharedTrips: SharedTrips[];
+
+  @OneToMany((type) => TodolistTask, (todoListTask) => todoListTask.addedByUser, { eager: false })
+  createdTasks: TodolistTask[]
 
   async validatePassword(password: string): Promise<boolean> {
     const hash = await bcrypt.hash(password, this.salt);
