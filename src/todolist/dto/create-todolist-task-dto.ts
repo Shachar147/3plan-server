@@ -7,7 +7,7 @@ import { ApiProperty } from '@nestjs/swagger';
 export enum TodolistTaskStatus {
   TODO = 'TODO',
   IN_PROGRESS = 'IN_PROGRESS',
-  CANCELED = 'CANCELED',
+  CANCELLED = 'CANCELLED',
   DONE = 'DONE'
 }
 
