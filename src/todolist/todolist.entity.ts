@@ -16,7 +16,7 @@ export class TodolistTask extends BaseEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @ManyToOne((type) => Trip, (trip) => trip.tasks, { eager: false })
+    @ManyToOne((type) => Trip, (trip) => trip.todolist_tasks, { eager: false })
     trip: Trip
 
     @Column()
