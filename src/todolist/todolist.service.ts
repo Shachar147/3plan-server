@@ -124,7 +124,7 @@ export class TodolistService {
         return found;
     }
 
-    async deleteTask(id, user: User, request: Request) {
+    async deleteTask(id, user: User) {
         const found = await this.getTaskById(id, user);
 
         found.isDeleted = true;
@@ -138,7 +138,7 @@ export class TodolistService {
         }
     }
 
-    async updateTask(id: number, params: UpdateTodolistTaskDto, user: User, request: Request) {
+    async updateTask(id: number, params: UpdateTodolistTaskDto, user: User) {
         const found = await this.getTaskById(id, user);
         const { title, content, eventId, mustBeDoneBefore, status } = params;
 

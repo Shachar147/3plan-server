@@ -138,10 +138,9 @@ export class TodolistController {
     @UseGuards(AuthGuard())
     async deleteTask(
         @Param("id", ParseIntPipe) id,
-        @GetUser() user: User,
-        @Req() request: Request
+        @GetUser() user: User
     ) {
-        const result = await this.todoListService.deleteTask(id, user, request);
+        const result = await this.todoListService.deleteTask(id, user);
         return result;
     }
 
@@ -158,10 +157,9 @@ export class TodolistController {
     async updateTask(
         @Param("id", ParseIntPipe) id,
         @Body() params: UpdateTodolistTaskDto,
-        @GetUser() user: User,
-        @Req() request: Request
+        @GetUser() user: User
     ) {
-        const result = await this.todoListService.updateTask(id, params, user, request);
+        const result = await this.todoListService.updateTask(id, params, user);
         return {
             ...result,
             status: result.updates ? "updated" : "no-update"
