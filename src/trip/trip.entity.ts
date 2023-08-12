@@ -7,7 +7,6 @@ import {
 } from 'typeorm';
 import {User} from "../user/user.entity";
 import {Task} from "../task/task.entity";
-import {TodolistTask} from "../todolist/todolist.entity";
 
 @Unique(['name', 'userId'])
 @Entity()
@@ -58,7 +57,6 @@ export class Trip extends BaseEntity {
   @Column('timestamp', { default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
 
-  // background tasks (for distance calculation)
   @OneToMany((type) => Task, (task) => task.relatedTrip, { eager: true })
   trip_tasks: Task[];
 
@@ -67,8 +65,4 @@ export class Trip extends BaseEntity {
 
   @Column('boolean', { default: false })
   isHidden: boolean;
-
-  // todolist tasks
-  @OneToMany((type) => TodolistTask, (task) => task.trip, { eager: true })
-  tasks: Task[];
 }
