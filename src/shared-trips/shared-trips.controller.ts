@@ -18,6 +18,7 @@ import {inviteLinkExpiredTimeMinutes} from "./shared-trips.entity";
 import {UseInviteLinkDto} from "./dto/use-invite-link-dto";
 import {Request} from "express";
 import {UpdatePermissionDto} from "./dto/update-permission-dto";
+import {UserService} from "../user/user.service";
 
 @Injectable()
 @ApiBearerAuth("JWT")
@@ -26,6 +27,7 @@ import {UpdatePermissionDto} from "./dto/update-permission-dto";
 export class SharedTripsController {
     constructor(
         private tripsService: TripService,
+        private usersService: UserService,
         private sharedTripsService: SharedTripsService,
     ) {}
 
@@ -113,8 +115,12 @@ export class SharedTripsController {
         @Req() request: Request
     ) {
         const result = await this.sharedTripsService.deletePermission(id, user, request);
+        const affectedUser = await this.usersService.getUserById(result.userId);
         // this.myWebSocketGateway.send(JSON.stringify(result), user.id, request.headers.cid?.toString() ?? "");
-        return result;
+        return {
+            ...result,
+            collaboratorUserName: affectedUser.username
+        }
     }
 
     @ApiOperation({ summary: "Update Permission", description: "Update permission by id" })
@@ -134,7 +140,11 @@ export class SharedTripsController {
         @Req() request: Request
     ) {
         const result = await this.sharedTripsService.updatePermission(id, updatePermissionDto, user, request);
+        const affectedUser = await this.usersService.getUserById(result.userId);
         // this.myWebSocketGateway.send(JSON.stringify(result), user.id, request.headers.cid?.toString() ?? "");
-        return result;
+        return {
+            ...result,
+            collaboratorUserName: affectedUser.username
+        }
     }
 }

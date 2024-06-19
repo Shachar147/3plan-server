@@ -6,11 +6,13 @@ import {SharedTripsRepository} from "./shared-trips.repository";
 import {TripModule} from "../trip/trip.module";
 import {AuthModule} from "../auth/auth.module";
 import {PassportModule} from "@nestjs/passport";
+import {UserModule} from "../user/user.module";
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([SharedTripsRepository]),
     TripModule,
+    UserModule,
     AuthModule,
     PassportModule,
   ],
