@@ -27,6 +27,10 @@ export class UserService {
     return users;
   }
 
+  async getUserById(id: number) {
+    return await this.userRepository.findOne({ id: id});
+  }
+
   async deleteUser(id: number) {
     if (id == 1){
       throw new NotFoundException(`You cannot delete a superadmin`);
