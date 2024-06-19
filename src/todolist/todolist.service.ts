@@ -28,6 +28,7 @@ export class TodolistService {
     }
 
     async getTripIfHasPermissions(tripId: number, userId: number): Promise<Trip> {
+        tripId = Number(tripId);
         const tripRepository = getRepository(Trip); // Access the Trip repository directly
         const query = tripRepository.createQueryBuilder("trip")
             .where("trip.userId = :userId", { userId })
