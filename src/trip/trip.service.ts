@@ -59,7 +59,7 @@ export class TripService {
   }
 
   async getTripByName(name: string, user: User) {
-    return this.tripRepository._getTripByName(name, user);
+    return this.tripRepository.getTripByName(name, user);
   }
 
   async createTrip(createTripDto: CreateTripDto, user: User, request: Request) {

@@ -1,6 +1,2 @@
-dist/
-.idea/*
-node_modules/
-dist/*
-jsons/
-db-backups/
+dist
+node_modules
