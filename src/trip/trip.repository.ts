@@ -167,7 +167,7 @@ export class TripRepository extends Repository<Trip> {
         .where('id = :id', { id: trip.id })
         .execute();
 
-    trip = await this._getTripByName(trip.name, user)
+    trip = await this.getTripByName(trip.name, user)
 
     return trip;
   }
@@ -283,7 +283,7 @@ export class TripRepository extends Repository<Trip> {
     return await shared_query.getMany(); // shared trips
   }
 
-  async _getTripByName(name: string, user: User) {
+  async getTripByName(name: string, user: User) {
 
     const sharedTrips = await this.getSharedTrips(user);
 
@@ -297,8 +297,8 @@ export class TripRepository extends Repository<Trip> {
 
       if (!trip && sharedTrips.length > 0) {
         trip = await this.createQueryBuilder("trip")
-            .where("LOWER(trip.name) = LOWER(:name)", {name})
-            .where('trip.id IN (:...ids)', { ids: sharedTrips.map((x) => x.tripId) }) // Use the IN keyword with :...ids to pass the array of ids
+            .where("LOWER(trip.name) = LOWER(:name)", { name })
+            .andWhere('trip.id IN (:...ids)', { ids: sharedTrips.map((x) => x.tripId) }) // Use the IN keyword with :...ids to pass the array of ids
             .getOne();
 
         // @ts-ignore

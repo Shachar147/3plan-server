@@ -8,6 +8,7 @@ import {Trip} from "../trip/trip.entity";
 import {Request} from "express";
 import {UpdateTripDto} from "../trip/dto/update-trip-dto";
 import {UpdatePermissionDto} from "./dto/update-permission-dto";
+import {TripRepository} from "../trip/trip.repository";
 
 @Injectable()
 export class SharedTripsService {
@@ -75,11 +76,17 @@ export class SharedTripsService {
     }
 
     async getTripCollaborators(tripName: string, user: User) {
-        const tripRepository = getRepository(Trip); // Access the Trip repository directly
-        const query = tripRepository.createQueryBuilder("trip")
-            .where("trip.userId = :userId", { userId: user.id })
-            .andWhere('trip.name = :name', { name: tripName });
-        const trip = await query.getOne();
+        // @ts-ignore
+        const tripRepository: TripRepository = getRepository(Trip); // Access the Trip repository directly
+
+        // -----------------------------------------------
+        // uncomment this line instead of the lines above if you want Collaborators to be able to see and edit other collaborators.
+        // const query = tripRepository.createQueryBuilder("trip")
+        //     .where("trip.userId = :userId", { userId: user.id })
+        //     .andWhere('trip.name = :name', { name: tripName });
+        // const trip = await query.getOne();
+        const trip = tripRepository.getTripByName(tripName, user);
+        // -----------------------------------------------
 
         if (!trip){
             throw new NotFoundException(`Trip with name ${tripName} not found`);
