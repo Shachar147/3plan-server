@@ -81,11 +81,10 @@ export class SharedTripsService {
 
         // -----------------------------------------------
         // uncomment this line instead of the lines above if you want Collaborators to be able to see and edit other collaborators.
-        // const query = tripRepository.createQueryBuilder("trip")
-        //     .where("trip.userId = :userId", { userId: user.id })
-        //     .andWhere('trip.name = :name', { name: tripName });
-        // const trip = await query.getOne();
-        const trip: Trip = await tripRepository.getTripByName(tripName, user);
+        const query = tripRepository.createQueryBuilder("trip")
+            .where("trip.userId = :userId", { userId: user.id })
+            .andWhere('trip.name = :name', { name: tripName });
+        const trip = await query.getOne();
         // -----------------------------------------------
 
         if (!trip){
