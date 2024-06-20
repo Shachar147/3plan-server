@@ -85,7 +85,7 @@ export class SharedTripsService {
         //     .where("trip.userId = :userId", { userId: user.id })
         //     .andWhere('trip.name = :name', { name: tripName });
         // const trip = await query.getOne();
-        const trip = tripRepository.getTripByName(tripName, user);
+        const trip: Trip = await tripRepository.getTripByName(tripName, user);
         // -----------------------------------------------
 
         if (!trip){
