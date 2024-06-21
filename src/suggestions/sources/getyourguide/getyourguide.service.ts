@@ -38,8 +38,15 @@ export class GetYourGuideService implements BaseSourceService{
                 "Dubai Snow",
                 "Ferrari World",
                 "Superyacht",
+                "jet ski"
             ],
-            "תיירות": ["city-walk", "burj", "מסגד", "טיילת", "המרינה", "אייפל", "eifel"],
+            "טבע": [
+                "picnic",
+                "flowers garden",
+                "forest",
+                "mountains"
+            ],
+            "תיירות": ["city-walk", "burj", "מסגד", "טיילת", "המרינה", "אייפל", "eifel", "souk", "שווקים"],
             "תצפיות": ["sky view", "תצפית", "dubai frame"],
             "ברים חיי לילה": ["dance club", "lounge"],
             "פארקים": ["פארק"],
@@ -87,7 +94,7 @@ export class GetYourGuideService implements BaseSourceService{
         return toReturn;
     }
 
-    format(destination: string, json: Record<string, any>){
+    formatOld(destination: string, json: Record<string, any>){
         const moreInfoLink = json["onClickLink"]?.["link"];
         const activityCardMetaData = JSON.parse(json["onClickTrackingEvent"]?.["properties"]?.["metadata"] ?? "{}")?.["activity_card"];
 
@@ -126,6 +133,48 @@ export class GetYourGuideService implements BaseSourceService{
         }
     }
 
+    // todo: modify FORMAT to the new link:
+    // todo: verify syntax, compare to what we currently have on db.
+    format(destination: string, json: Record<string, any>){
+        const moreInfoLink = json["url"];
+        const description = json["abstract"];
+        let rating = json["reviewStatistics"]?.["rating"]
+        rating = rating ? `${Number(rating).toFixed(2)}/5` : undefined;
+        const duration = json["duration"] ? `${json["duration"]["min"]} - ${json["duration"]["max"]} ${json["duration"]["units"]}` : undefined;
+        const price = json?.["price"]?.["startingPrice"];
+        const location = json["coordinates"];
+        // const category = activityCardMetaData?.["categoryLabel"];
+        const category = this.extractCategory([
+            json["title"],
+            description
+        ]);
+        const priority = undefined; // ?
+        return {
+            name: json["title"],
+            destination,
+            description,
+            images: json["images"],
+            videos: json["videos"], // ?
+            source: this.source,
+            more_info: moreInfoLink ? `https://www.getyourguide.com/${moreInfoLink}` : undefined,
+            duration: duration != undefined ? convertTime(duration) : undefined,
+            category, // todo modify?
+            //
+            icon: undefined, // ?
+            openingHours: undefined, // ?
+            priority,
+            location, // ?
+            rate: rating,
+            //
+            addedAt: new Date().getTime(),
+            status: "active",
+            isVerified: true, // ?
+            extra: {
+                price
+            }
+        }
+    }
+
     async getLocationId(destination: string) {
 
         const response = await axios.get(`https://travelers-api.getyourguide.com/search/v2/suggest?suggestEntities=location,activity,synthetic_trip_item,trip_item_group&q=${destination}`, {
@@ -158,7 +207,7 @@ export class GetYourGuideService implements BaseSourceService{
         return response.data["suggestions"]?.[0]?.["locationId"];
     }
 
-    async search({ destination, page = 1 }: SearchDto): Promise<SearchResults> {
+    async searchOld({ destination, page = 1 }: SearchDto): Promise<SearchResults> {
         const locationId = await this.getLocationId(destination);
         if (!locationId) {
             return {
@@ -216,9 +265,61 @@ export class GetYourGuideService implements BaseSourceService{
         const isFinished = response.data["content"].length == 1;
         const nextPage = isFinished ? undefined : page + 1;
         return {
-            results: results.map((r) => this.format(destination, r)),
+            results: results.map((r) => this.formatOld(destination, r)),
             nextPage,
             isFinished
+        };
+    }
+
+    async search({ destination, page = 1 }: SearchDto): Promise<SearchResults> {
+        const locationId = await this.getLocationId(destination);
+        if (!locationId) {
+            return {
+                results: [],
+                isFinished: true
+            }
+        }
+        const response = await axios.get(
+            `https://travelers-api.getyourguide.com/locations/${locationId}/nearest-activities?limit=300&page=${page}`,
+            {
+                // Headers
+                headers: {
+                    "accept": "application/json, text/plain, */*",
+                    "accept-currency": this.currency,
+                    "accept-language": this.language,
+                    "content-type": "application/json",
+                    "geo-ip-country": "IL",
+                    "partner-id": "CD951",
+                    "priority": "u=1, i",
+                    "sec-ch-ua": "\"Not/A)Brand\";v=\"8\", \"Chromium\";v=\"126\", \"Google Chrome\";v=\"126\"",
+                    "sec-ch-ua-mobile": "?0",
+                    "sec-ch-ua-platform": "\"macOS\"",
+                    "sec-fetch-dest": "empty",
+                    "sec-fetch-mode": "cors",
+                    "sec-fetch-site": "same-site",
+                    "visitor-id": this.visitorId,
+                    "visitor-platform": "desktop",
+                    "x-gyg-app-type": "Web",
+                    "x-gyg-geoip-city": "Tel Aviv",
+                    "x-gyg-geoip-country": "IL",
+                    "x-gyg-partner-cmp": "brand",
+                    "x-gyg-partner-hash": "CD951",
+                    "x-gyg-referrer": "https://www.getyourguide.com/",
+                    "x-gyg-time-zone": "Asia/Jerusalem",
+                    "Referer": "https://www.getyourguide.com/",
+                    "Referrer-Policy": "strict-origin-when-cross-origin"
+                }
+            }
+        );
+
+        // Extracting the data from the response
+        const results = response.data["activities"]["items"];
+        const isFinished = page * 300 > response.data["activities"]["total"];
+        const nextPage = isFinished === true ? undefined : page + 1;
+        return {
+            nextPage,
+            isFinished,
+            results: results.map((r) => this.format(destination, r))
         };
     }
 }

@@ -19,10 +19,6 @@ export class GetYourGuideController {
         @Body(ValidationPipe) params: SearchDto,
         @GetUser() user: User
     ) {
-        const { results, isFinished } = await this.sourceService.search(params)
-        return {
-            results,
-            isFinished
-        }
+        return await this.sourceService.searchOld(params)
     }
 }
