@@ -30,6 +30,7 @@ import { User } from "../user/user.entity";
 import {DuplicateTripDto} from "./dto/duplicate-trip-dto";
 import { Request } from 'express';
 import {MyWebSocketGateway} from "../websocket.gateway";
+import {ImportCalendarEventsDto} from "./dto/import-calendar-events-dto";
 
 @Injectable()
 @ApiBearerAuth("JWT")
@@ -316,6 +317,31 @@ export class TripController {
     const result = await this.tripService.toggleHideTrip(name, false, user, request);
     // this.myWebSocketGateway.send(JSON.stringify(result), user.id, request.headers.cid?.toString() ?? "");
     this.myWebSocketGateway.send(JSON.stringify(result), `t${result.id}`, request.headers.cid?.toString() ?? "");
+    return result;
+  }
+
+  @ApiOperation({
+    summary: "Import Calendar events to trip By Name",
+    description: "Import calendar events to trip by name",
+  })
+  @ApiParam({
+    name: "name",
+    description: "trip name",
+    required: true,
+    type: "string",
+  })
+  @UseGuards(AuthGuard())
+  @Post("/import/calendar/name/:name")
+  async importCalendarEvents(
+      @Param("name") name,
+      @Body() importCalendarEventsDto: ImportCalendarEventsDto,
+      @GetUser() user: User,
+      @Req() request: Request
+  ) {
+    const result = await this.tripService.importCalendarEvents(name, importCalendarEventsDto, user, request);
+    // this.myWebSocketGateway.send(JSON.stringify(result), user.id, request.headers.cid?.toString() ?? "");
+
+    // this.myWebSocketGateway.send(JSON.stringify(result), `t${result.id}`, request.headers.cid?.toString() ?? "");
     return result;
   }
 }
