@@ -17,6 +17,7 @@ import {EmailModule} from "./mail-sender/email.module";
 import { BiEventsModule } from './bi-events/bi-events.module';
 import { SharedTripsModule } from './shared-trips/shared-trips.module';
 import { TodolistModule } from './todolist/todolist.module';
+import { GetYourGuideModule } from './suggestions/sources/getyourguide/getyourguide.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { TodolistModule } from './todolist/todolist.module';
     BiEventsModule,
     SharedTripsModule,
     TodolistModule,
+    GetYourGuideModule
   ],
   controllers: [AppController],
   providers: [AppService, TinderService],
