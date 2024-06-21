@@ -14,6 +14,7 @@ import {DuplicateTripDto} from "./dto/duplicate-trip-dto";
 import {BackupsService} from "../backups/backups.service";
 import { Request } from 'express';
 import {HistoryService} from "../history/history.service";
+import {ImportCalendarEventsDto} from "./dto/import-calendar-events-dto";
 
 @Injectable()
 export class TripService {
@@ -87,6 +88,35 @@ export class TripService {
     // ) {
     //   throw new NotFoundException(`You have to pass fields to update`);
     // }
+
+    return this.tripRepository.updateTrip(updateTripDto, trip, user, request, this.backupsService);
+  }
+
+  async importCalendarEvents(name: string, importCalendarEvents: ImportCalendarEventsDto, user: User, request: Request) {
+    const trip = await this.getTripByName(name, user);
+
+    const newCalendarEvents = importCalendarEvents.calendarEvents;
+
+    const allEvents = trip.allEvents;
+
+    // @ts-ignore
+    const allEventsIds = allEvents.map((e) => e.id);
+    newCalendarEvents.forEach((e) => {
+      if (!allEventsIds.includes(e.id)){
+
+        // @ts-ignore
+        allEvents.push(e);
+      }
+    })
+
+    const updateTripDto: Partial<UpdateTripDto> = {
+      // @ts-ignore
+      calendarEvents: importCalendarEvents.calendarEvents,
+      // @ts-ignore
+      allEvents: allEvents,
+      // @ts-ignore
+      sidebarEvents: []
+    }
 
     return this.tripRepository.updateTrip(updateTripDto, trip, user, request, this.backupsService);
   }
