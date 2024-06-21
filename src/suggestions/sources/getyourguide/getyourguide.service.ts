@@ -16,24 +16,113 @@ export class GetYourGuideService implements BaseSourceService{
     constructor() {
     }
 
+    extractCategory(arr) {
+        const categoryToKeywordMapping = {
+            "אטרקציות": [
+                "Studio Tour",
+                "hiking",
+                "hikes",
+                "dive",
+                " Terme ",
+                "skypool",
+                "Dubai: Desert",
+                "Waterpark",
+                "Yacht Tour",
+                "Dubai: Safari",
+                "Show Tickets",
+                "Zip Line",
+                "Helicopter Flight",
+                "The Green Planet",
+                "Adventure",
+                "Desert Safari",
+                "Dubai Snow",
+                "Ferrari World",
+                "Superyacht",
+            ],
+            "תיירות": ["city-walk", "burj", "מסגד", "טיילת", "המרינה", "אייפל", "eifel"],
+            "תצפיות": ["sky view", "תצפית", "dubai frame"],
+            "ברים חיי לילה": ["dance club", "lounge"],
+            "פארקים": ["פארק"],
+            "עיירות": ["עיירה", "עיירות"],
+            "חופים": ["beach "],
+            "ביץ׳ ברים": ["beach bar"],
+            "מוזיאונים": ["Museum"],
+            "בתי מלון": [
+                "six senses",
+                "sixsenses",
+                "hotel",
+                "resort",
+                "בית מלון",
+                "המלון",
+            ],
+            "אוכל": ["restaurant", "cafe", "מסעדה", "chocolate", "croissants"],
+        };
+        let toReturn = "";
+
+        let matchedCategories = [];
+        Object.keys(categoryToKeywordMapping).forEach((category) => {
+            arr.forEach((str) => {
+                categoryToKeywordMapping[category].forEach((keyword) => {
+                    if (str.toLowerCase().indexOf(keyword.toLowerCase()) !== -1) {
+                        // toReturn = category;
+                        matchedCategories.push(category);
+                        // return toReturn;
+                    }
+                });
+                // if (toReturn !== "") {
+                //     // return toReturn;
+                // }
+            });
+            if (matchedCategories.length > 0){
+                if (matchedCategories.includes("בתי מלון") && matchedCategories.length > 1) {
+                    matchedCategories = matchedCategories.filter((i) => i != "בתי מלון");
+                }
+                toReturn = matchedCategories[0];
+                return matchedCategories[0]
+            }
+            // if (toReturn !== "") {
+            //     return toReturn;
+            // }
+        });
+        return toReturn;
+    }
+
     format(destination: string, json: Record<string, any>){
         const moreInfoLink = json["onClickLink"]?.["link"];
+        const activityCardMetaData = JSON.parse(json["onClickTrackingEvent"]?.["properties"]?.["metadata"] ?? "{}")?.["activity_card"];
+
         const activityCard = json["onImpressionTrackingEvent"]?.["properties"]?.["activity_card"];
         const description = activityCard?.["activity_abstract"];
         const rating = activityCard?.["review_statistics"]
         const duration = activityCard?.["attributes"]?.find((a) => a["type"] == "duration")?.["label"];
+        const price = activityCard?.["price"]?.["starting_price"];
+        const location = activityCardMetaData?.["coordinates"];
+        // const category = activityCardMetaData?.["categoryLabel"];
+        const category = this.extractCategory([
+            json["title"],
+            description
+        ]);
+        const priority = JSON.stringify(json).includes("top pick") || JSON.stringify(json).includes("bestseller") ? "high" : undefined;
         return {
             name: json["title"],
             destination,
             description,
             images: json["images"],
+            videos: json["videos"], // ?
             source: this.source,
             more_info: moreInfoLink ? `https://www.getyourguide.com/${moreInfoLink}` : undefined,
-            category: "", // todo complete
             duration: duration != undefined ? convertTime(duration) : undefined,
+            category, // todo modify?
             //
-            addedat: new Date().getTime(),
-            status: "active"
+            icon: undefined, // ?
+            openingHours: undefined, // ?
+            priority,
+            location, // ?
+            rate: rating,
+            //
+            addedAt: new Date().getTime(),
+            status: "active",
+            isVerified: true, // ?
         }
     }
 
