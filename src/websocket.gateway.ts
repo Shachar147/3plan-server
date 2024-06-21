@@ -49,7 +49,7 @@ export class MyWebSocketGateway {
             if (tripId && tripId !== "0") {
                 this.clients[`t${tripId}`] = this.clients[`t${tripId}`] || new Set<WebSocketWithId>();
                 this.clients[`t${tripId}`].add({socket, socketId});
-                console.log(`${webSocketsLogPrefix} ${tripsDict[tripId]["name"]} (Trip #${tripId}) connected`, `(${this.clients['t' + tripId].size} open sessions)`);
+                console.log(`${webSocketsLogPrefix} ${tripsDict[tripId]?.["name"]} (Trip #${tripId}) connected`, `(${this.clients['t' + tripId].size} open sessions)`);
             }
 
             socket.on('message', (message) => {
@@ -74,7 +74,7 @@ export class MyWebSocketGateway {
                         this.clients[`t${tripId}`].delete(webSocketWithId2);
                     }
 
-                    console.log(`${webSocketsLogPrefix} ${tripsDict[tripId]["name"]} (Trip #${tripId}) disconnected`, this.clients[`t${tripId}`].size > 2 ? `(There are still ${this.clients['t' + tripId].size} sessions)` : this.clients['t' + tripId].size > 1 ? `(There is still 1 open session)` : "");
+                    console.log(`${webSocketsLogPrefix} ${tripsDict[tripId]?.["name"]} (Trip #${tripId}) disconnected`, this.clients[`t${tripId}`].size > 2 ? `(There are still ${this.clients['t' + tripId].size} sessions)` : this.clients['t' + tripId].size > 1 ? `(There is still 1 open session)` : "");
                 }
             });
         });
