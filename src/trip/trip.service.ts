@@ -95,30 +95,30 @@ export class TripService {
   async importCalendarEvents(name: string, importCalendarEvents: ImportCalendarEventsDto, user: User, request: Request) {
     const trip = await this.getTripByName(name, user);
 
-    const newCalendarEvents = importCalendarEvents.calendarEvents;
+    // const newCalendarEvents = importCalendarEvents.calendarEvents;
+    //
+    // const allEvents = trip.allEvents;
+    //
+    // // @ts-ignore
+    // const allEventsIds = allEvents.map((e) => e.id);
+    // newCalendarEvents.forEach((e) => {
+    //   if (!allEventsIds.includes(e.id)){
+    //
+    //     // @ts-ignore
+    //     allEvents.push(e);
+    //   }
+    // })
+    //
+    // // const updateTripDto: Partial<UpdateTripDto> = {
+    // //   // @ts-ignore
+    // //   calendarEvents: importCalendarEvents.calendarEvents,
+    // //   // @ts-ignore
+    // //   allEvents: allEvents,
+    // //   // @ts-ignore
+    // //   sidebarEvents: []
+    // // }
 
-    const allEvents = trip.allEvents;
-
-    // @ts-ignore
-    const allEventsIds = allEvents.map((e) => e.id);
-    newCalendarEvents.forEach((e) => {
-      if (!allEventsIds.includes(e.id)){
-
-        // @ts-ignore
-        allEvents.push(e);
-      }
-    })
-
-    const updateTripDto: Partial<UpdateTripDto> = {
-      // @ts-ignore
-      calendarEvents: importCalendarEvents.calendarEvents,
-      // @ts-ignore
-      allEvents: allEvents,
-      // @ts-ignore
-      sidebarEvents: []
-    }
-
-    return this.tripRepository.updateTrip(updateTripDto, trip, user, request, this.backupsService);
+    return this.tripRepository.updateTrip(importCalendarEvents as Partial<UpdateTripDto>, trip, user, request, this.backupsService);
   }
 
   async updateTripByName(
@@ -573,7 +573,7 @@ export class TripService {
     // await queryRunner.manager.save(trips);
   }
 
-    async toggleLockTrip(name: string, isLocked: boolean, user: User, request: Request) {
+  async toggleLockTrip(name: string, isLocked: boolean, user: User, request: Request) {
       const trip = await this.getTripByName(name, user);
       return this.tripRepository.updateTrip({ isLocked }, trip, user, request, this.backupsService);
     }
