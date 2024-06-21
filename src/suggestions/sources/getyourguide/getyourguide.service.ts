@@ -130,6 +130,9 @@ export class GetYourGuideService implements BaseSourceService{
             addedAt: new Date().getTime(),
             status: "active",
             isVerified: true, // ?
+            extra: {
+                price
+            }
         }
     }
 
