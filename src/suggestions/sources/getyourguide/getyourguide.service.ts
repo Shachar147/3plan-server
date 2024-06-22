@@ -227,7 +227,8 @@ export class GetYourGuideService implements BaseSourceService{
         if (!locationId) {
             return {
                 results: [],
-                isFinished: true
+                isFinished: true,
+                source: this.source
             }
         }
         const response = await axios.post(
@@ -288,7 +289,8 @@ export class GetYourGuideService implements BaseSourceService{
         return {
             results,
             nextPage,
-            isFinished
+            isFinished,
+            source: this.source
         };
     }
 
@@ -298,7 +300,8 @@ export class GetYourGuideService implements BaseSourceService{
         if (!locationId) {
             return {
                 results: [],
-                isFinished: true
+                isFinished: true,
+                source: this.source
             }
         }
         const response = await axios.get(
@@ -347,7 +350,8 @@ export class GetYourGuideService implements BaseSourceService{
         return {
             nextPage,
             isFinished,
-            results
+            results,
+            source: this.source
         };
     }
 }

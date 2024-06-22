@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { PointOfInterestRepository } from './poi.repository';
 import { PointOfInterest } from './poi.entity';
 import { User } from '../user/user.entity';
+import {SearchResults} from "../suggestions/sources/utils/interfaces";
 
 @Injectable()
 export class PointOfInterestService {
@@ -86,5 +87,27 @@ export class PointOfInterestService {
         });
 
         return countBySource;
+    }
+
+    async getPointsOfInterestByDestination(destination: string, page: number, limit: number = 50): Promise<SearchResults> {
+        // Fetch the points of interest based on the given destination, page, and limit
+        const pointsOfInterest = await this.pointOfInterestRepository.find({
+            where: { destination },
+            skip: (page - 1) * limit,
+            take: limit,
+        });
+
+        // Check if there are more results for the next page
+        const totalPointsOfInterest = await this.pointOfInterestRepository.count({ where: { destination } });
+        const isFinished = (page * limit) >= totalPointsOfInterest;
+        const nextPage = isFinished ? null : page + 1;
+
+        // Return the formatted response
+        return {
+            results: pointsOfInterest,
+            isFinished,
+            nextPage,
+            source: "Local"
+        };
     }
 }
