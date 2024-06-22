@@ -12,6 +12,7 @@ export class PointOfInterestController {
     constructor(private pointOfInterestService: PointOfInterestService) {}
 
     @Post()
+    @UseGuards(AuthGuard())
     async createPointOfInterest(
         @Body() data: Partial<PointOfInterest>,
         @GetUser() user: User,
@@ -20,16 +21,19 @@ export class PointOfInterestController {
     }
 
     @Get()
+    @UseGuards(AuthGuard())
     async getAllPointsOfInterest(): Promise<PointOfInterest[]> {
         return this.pointOfInterestService.getAllPointsOfInterest();
     }
 
     @Get('/:id')
+    @UseGuards(AuthGuard())
     async getPointOfInterestById(@Param('id') id: number): Promise<PointOfInterest> {
         return this.pointOfInterestService.getPointOfInterestById(id);
     }
 
     @Patch('/:id')
+    @UseGuards(AuthGuard())
     async updatePointOfInterest(
         @Param('id') id: number,
         @Body() data: Partial<PointOfInterest>,
@@ -39,7 +43,14 @@ export class PointOfInterestController {
     }
 
     @Delete('/:id')
+    @UseGuards(AuthGuard())
     async deletePointOfInterest(@Param('id') id: number, @GetUser() user: User): Promise<void> {
         return this.pointOfInterestService.deletePointOfInterest(id, user);
+    }
+
+    @Get('/count/by-source/:destination')
+    @UseGuards(AuthGuard())
+    async getCountBySourceForDestination(@Param('destination') destination: string, @GetUser() user: User): Promise<Record<string, number>> {
+        return this.pointOfInterestService.getCountBySourceForDestination(destination);
     }
 }

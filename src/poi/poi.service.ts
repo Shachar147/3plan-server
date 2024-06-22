@@ -69,4 +69,22 @@ export class PointOfInterestService {
             }
         }
     }
+
+    // Custom method to get the count of rows for each source for a given destination
+    async getCountBySourceForDestination(destination: string): Promise<Record<string, number>> {
+        const query = this.pointOfInterestRepository.createQueryBuilder('poi')
+            .select('poi.source')
+            .addSelect('COUNT(poi.id)', 'count')
+            .where('poi.destination = :destination', { destination })
+            .groupBy('poi.source');
+
+        const result = await query.getRawMany();
+
+        const countBySource: Record<string, number> = {};
+        result.forEach(row => {
+            countBySource[row["poi_source"]] = parseInt(row.count, 10);
+        });
+
+        return countBySource;
+    }
 }
