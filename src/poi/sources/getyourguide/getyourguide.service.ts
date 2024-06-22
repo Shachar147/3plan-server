@@ -1,10 +1,10 @@
 import {Injectable, Logger} from '@nestjs/common';
 import {BaseSourceService} from "../base-source-service";
-import {SearchResults} from "../utils/interfaces";
+import {SearchResults} from "../../utils/interfaces";
 import axios from "axios";
-import {SearchDto} from "../dto/search-dto";
-import {convertTime} from "../utils/utils";
-import {PointOfInterestService} from "../../../poi/poi.service";
+import {SearchDto} from "../../dto/search-dto";
+import {convertTime} from "../../utils/utils";
+import {PointOfInterestService} from "../../poi.service";
 import {User} from "../../../user/user.entity";
 
 @Injectable()

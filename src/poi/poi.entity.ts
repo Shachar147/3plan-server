@@ -37,30 +37,30 @@ export class PointOfInterest extends BaseEntity {
     @Column()
     category: string;
 
-    @Column('jsonb')
+    @Column('jsonb', { nullable: true })
     location: {
         latitude: number;
         longitude: number;
     };
 
-    @Column('jsonb')
+    @Column('jsonb', { nullable: true })
     rate: {
         quantity: number;
         rating: number;
     };
 
     // todo remove?
-    @Column()
+    @Column({ nullable: true })
     status: string;
 
     // todo remove?
     @Column()
     isVerified: boolean;
 
-    @Column()
+    @Column({ nullable: true })
     price: number;
 
-    @Column()
+    @Column({ nullable: true })
     currency: string;
 
     @Column('timestamp', { default: () => 'CURRENT_TIMESTAMP' })

@@ -5,7 +5,7 @@ import { PointOfInterest } from './poi.entity';
 import { AuthGuard } from '@nestjs/passport';
 import { GetUser } from '../auth/get-user.decorator';
 import { User } from '../user/user.entity';
-import {SearchResults} from "../suggestions/sources/utils/interfaces";
+import {SearchResults} from "./utils/interfaces";
 
 @Controller('poi')
 @UseGuards(AuthGuard())

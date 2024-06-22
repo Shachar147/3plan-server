@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { PointOfInterestRepository } from './poi.repository';
 import { PointOfInterest } from './poi.entity';
 import { User } from '../user/user.entity';
-import {SearchResults} from "../suggestions/sources/utils/interfaces";
+import {SearchResults} from "./utils/interfaces";
 
 @Injectable()
 export class PointOfInterestService {

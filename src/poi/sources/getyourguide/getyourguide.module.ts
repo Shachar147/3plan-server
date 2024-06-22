@@ -4,7 +4,7 @@ import { AuthModule } from '../../../auth/auth.module';
 import { PassportModule } from '@nestjs/passport';
 import { GetYourGuideController } from './getyourguide.controller';
 import { GetYourGuideService } from './getyourguide.service';
-import {PoiModule} from "../../../poi/poi.module";
+import {PoiModule} from "../../poi.module";
 
 @Module({
     imports: [
