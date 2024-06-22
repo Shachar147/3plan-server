@@ -130,8 +130,11 @@ export class GetYourGuideService implements BaseSourceService{
             addedAt: new Date().getTime(),
             status: "active",
             isVerified: true, // ?
+            price,
+            currency: 'ILS',
             extra: {
-                price
+                price,
+                currency: 'ILS'
             }
         }
     }
@@ -159,7 +162,7 @@ export class GetYourGuideService implements BaseSourceService{
             images: json["images"],
             videos: json["videos"], // ?
             source: this.source,
-            more_info: moreInfoLink ? `https://www.getyourguide.com/${moreInfoLink}` : undefined,
+            more_info: moreInfoLink ? `https://www.getyourguide.com/${moreInfoLink}`.replace("//","/") : undefined,
             duration: duration != undefined ? convertTime(duration) : undefined,
             category, // todo modify?
             //
@@ -172,8 +175,11 @@ export class GetYourGuideService implements BaseSourceService{
             addedAt: new Date().getTime(),
             status: "active",
             isVerified: true, // ?
+            price,
+            currency: 'ILS',
             extra: {
-                price
+                price,
+                currency: 'ILS',
             }
         }
     }
