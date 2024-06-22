@@ -1,11 +1,12 @@
 import {Controller, Get, Query, UseGuards, ValidationPipe} from '@nestjs/common';
-import {ApiOperation} from "@nestjs/swagger";
+import {ApiBearerAuth, ApiOperation} from "@nestjs/swagger";
 import {AuthGuard} from "@nestjs/passport";
 import {GetUser} from "../../../auth/get-user.decorator";
 import {User} from "../../../user/user.entity";
 import {SearchDto} from "../dto/search-dto";
 import {GetYourGuideService} from "./getyourguide.service";
 
+@ApiBearerAuth("JWT")
 @Controller('suggestions/getyourguide')
 export class GetYourGuideController {
     constructor(
@@ -20,6 +21,6 @@ export class GetYourGuideController {
         @GetUser() user: User
     ) {
         params.page = params.page ? Number(params.page) : 1;
-        return await this.sourceService.searchOld(params)
+        return await this.sourceService.searchOld(params, user)
     }
 }

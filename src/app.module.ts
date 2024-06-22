@@ -18,6 +18,7 @@ import { BiEventsModule } from './bi-events/bi-events.module';
 import { SharedTripsModule } from './shared-trips/shared-trips.module';
 import { TodolistModule } from './todolist/todolist.module';
 import { GetYourGuideModule } from './suggestions/sources/getyourguide/getyourguide.module';
+import { PoiModule } from './poi/poi.module';
 
 @Module({
   imports: [
@@ -40,7 +41,8 @@ import { GetYourGuideModule } from './suggestions/sources/getyourguide/getyourgu
     BiEventsModule,
     SharedTripsModule,
     TodolistModule,
-    GetYourGuideModule
+    GetYourGuideModule,
+    PoiModule
   ],
   controllers: [AppController],
   providers: [AppService, TinderService],
