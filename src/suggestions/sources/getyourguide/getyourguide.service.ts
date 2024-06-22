@@ -117,7 +117,7 @@ export class GetYourGuideService implements BaseSourceService{
             images: json["images"],
             videos: json["videos"], // ?
             source: this.source,
-            more_info: moreInfoLink ? `https://www.getyourguide.com/${moreInfoLink}` : undefined,
+            more_info: moreInfoLink ? `https://www.getyourguide.com${moreInfoLink}` : undefined,
             duration: duration != undefined ? convertTime(duration) : undefined,
             category, // todo modify?
             //
@@ -162,7 +162,7 @@ export class GetYourGuideService implements BaseSourceService{
             images: json["images"],
             videos: json["videos"], // ?
             source: this.source,
-            more_info: moreInfoLink ? `https://www.getyourguide.com/${moreInfoLink}`.replace("//","/") : undefined,
+            more_info: moreInfoLink ? `https://www.getyourguide.com${moreInfoLink}` : undefined,
             duration: duration != undefined ? convertTime(duration) : undefined,
             category, // todo modify?
             //
