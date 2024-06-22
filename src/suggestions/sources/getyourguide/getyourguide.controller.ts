@@ -1,4 +1,4 @@
-import {Body, Controller, Get, UseGuards, ValidationPipe} from '@nestjs/common';
+import {Controller, Get, Query, UseGuards, ValidationPipe} from '@nestjs/common';
 import {ApiOperation} from "@nestjs/swagger";
 import {AuthGuard} from "@nestjs/passport";
 import {GetUser} from "../../../auth/get-user.decorator";
@@ -16,9 +16,10 @@ export class GetYourGuideController {
     @Get('/')
     @UseGuards(AuthGuard())
     async getGetYourGuideSuggestions(
-        @Body(ValidationPipe) params: SearchDto,
+        @Query(ValidationPipe) params: SearchDto,
         @GetUser() user: User
     ) {
+        params.page = params.page ? Number(params.page) : 1;
         return await this.sourceService.searchOld(params)
     }
 }

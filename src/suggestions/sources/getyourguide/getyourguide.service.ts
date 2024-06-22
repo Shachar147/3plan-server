@@ -217,6 +217,7 @@ export class GetYourGuideService implements BaseSourceService{
     }
 
     async searchOld({ destination, page = 1 }: SearchDto): Promise<SearchResults> {
+        page = Number(page);
         const locationId = await this.getLocationId(destination);
         if (!locationId) {
             return {
@@ -281,6 +282,7 @@ export class GetYourGuideService implements BaseSourceService{
     }
 
     async search({ destination, page = 1 }: SearchDto): Promise<SearchResults> {
+        page = Number(page);
         const locationId = await this.getLocationId(destination);
         if (!locationId) {
             return {
