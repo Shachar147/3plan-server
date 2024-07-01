@@ -66,6 +66,7 @@ export class TripRepository extends Repository<Trip> {
       sidebarEvents,
       allEvents,
       calendarLocale,
+      destinations
     } = createTripDto;
     const trip = new Trip();
     trip.name = name;
@@ -75,6 +76,18 @@ export class TripRepository extends Repository<Trip> {
     trip.sidebarEvents = sidebarEvents;
     trip.allEvents = allEvents;
     trip.calendarLocale = calendarLocale;
+
+    if (destinations != undefined) {
+      try {
+        console.log("thereeee");
+
+        // @ts-ignore
+        trip.destinations = destinations.split(",");
+      } catch {
+        trip.destinations = destinations;
+      }
+    }
+    // trip.destinations = Array.isArray(destinations) ? destinations ? [destinations];
     trip.user = user;
 
     try {
@@ -140,7 +153,8 @@ export class TripRepository extends Repository<Trip> {
       allEvents,
       calendarLocale,
       isLocked,
-      isHidden
+      isHidden,
+      destinations
     } = updateTripDto;
 
     // backup
@@ -158,6 +172,16 @@ export class TripRepository extends Repository<Trip> {
     // if (user) updates.user = user; <- not working well on shared trips
     if (isLocked != undefined) updates.isLocked = isLocked;
     if (isHidden != undefined) updates.isHidden = isHidden;
+    if (destinations != undefined) {
+      try {
+        console.log("hereeee");
+
+        // @ts-ignore
+        updates.destinations = destinations.split(",");
+      } catch {
+        updates.destinations = destinations;
+      }
+    }
     updates.lastUpdateAt = new Date();
 
     const queryBuilder = this.createQueryBuilder('trip');
@@ -345,6 +369,7 @@ export class TripRepository extends Repository<Trip> {
         calendarLocale: oldTrip.calendarLocale,
         categories: oldTrip.categories,
         dateRange: oldTrip.dateRange,
+        destinations: oldTrip.destinations,
       },
       user,
       request,

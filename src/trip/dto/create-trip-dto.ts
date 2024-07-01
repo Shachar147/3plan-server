@@ -1,5 +1,6 @@
 import {
-  IsNotEmpty,
+  IsArray,
+  IsNotEmpty, IsOptional,
   IsString,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
@@ -49,4 +50,9 @@ export class CreateTripDto {
   })
   @IsString()
   calendarLocale: string;
+
+  @ApiProperty({ required: false, type: [String] })
+  @IsOptional()
+  @IsArray()
+  destinations?: string[];
 }

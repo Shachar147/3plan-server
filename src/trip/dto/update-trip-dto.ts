@@ -1,4 +1,5 @@
 import {
+  IsArray,
   IsBoolean,
   IsNotEmpty, IsOptional,
   IsString,
@@ -67,4 +68,9 @@ export class UpdateTripDto {
   @IsOptional()
   @IsBoolean()
   isHidden: boolean;
+
+  @ApiProperty({ required: false, type: [String] })
+  @IsOptional()
+  @IsArray()
+  destinations?: string[];
 }
