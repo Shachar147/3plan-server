@@ -4,11 +4,15 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import * as bodyParser from 'body-parser';
 import { Server } from 'ws';
 import {MyWebSocketGateway} from "./websocket.gateway";
+import {ValidationPipe} from "@nestjs/common";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: true });
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
   app.enableCors();
+
+  // to auto-convert page="1" to page=1
+  app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
   const swaggerConfig = new DocumentBuilder()
     .setTitle('Triplan API Documentation')

@@ -17,7 +17,9 @@ import {EmailModule} from "./mail-sender/email.module";
 import { BiEventsModule } from './bi-events/bi-events.module';
 import { SharedTripsModule } from './shared-trips/shared-trips.module';
 import { TodolistModule } from './todolist/todolist.module';
-import { GetYourGuideModule } from './suggestions/sources/getyourguide/getyourguide.module';
+import { GetYourGuideModule } from './poi/sources/getyourguide/getyourguide.module';
+import { PoiModule } from './poi/poi.module';
+import {DubaicoilModule} from "./poi/sources/dubaicoil/dubaicoil.module";
 
 @Module({
   imports: [
@@ -40,7 +42,9 @@ import { GetYourGuideModule } from './suggestions/sources/getyourguide/getyourgu
     BiEventsModule,
     SharedTripsModule,
     TodolistModule,
-    GetYourGuideModule
+    GetYourGuideModule,
+    PoiModule,
+    DubaicoilModule
   ],
   controllers: [AppController],
   providers: [AppService, TinderService],

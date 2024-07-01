@@ -13,7 +13,5 @@ export class SearchDto {
     destination: string;
 
     @IsOptional()
-    @ApiProperty({ required: false, default: 1 })
-    @IsNumber()
     page?: number;
 }

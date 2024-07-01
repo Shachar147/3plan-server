@@ -1,9 +1,11 @@
 import {Injectable, Logger} from '@nestjs/common';
 import {BaseSourceService} from "../base-source-service";
-import {SearchResults} from "../utils/interfaces";
+import {SearchResults} from "../../utils/interfaces";
 import axios from "axios";
-import {SearchDto} from "../dto/search-dto";
-import {convertTime} from "../utils/utils";
+import {SearchDto} from "../../dto/search-dto";
+import {convertTime} from "../../utils/utils";
+import {PointOfInterestService} from "../../poi.service";
+import {User} from "../../../user/user.entity";
 
 @Injectable()
 export class GetYourGuideService implements BaseSourceService{
@@ -13,7 +15,10 @@ export class GetYourGuideService implements BaseSourceService{
     private language = "he"; // en-US
     private visitorId = "R4QUTT0XNY3NLKXQILFA90DXMBH4B9L6";
     private logger = new Logger("GetYourGuideService");
-    constructor() {
+
+    constructor(
+        private poiService: PointOfInterestService
+    ) {
     }
 
     extractCategory(arr) {
@@ -117,7 +122,7 @@ export class GetYourGuideService implements BaseSourceService{
             images: json["images"],
             videos: json["videos"], // ?
             source: this.source,
-            more_info: moreInfoLink ? `https://www.getyourguide.com/${moreInfoLink}` : undefined,
+            more_info: moreInfoLink ? `https://www.getyourguide.com${moreInfoLink}` : undefined,
             duration: duration != undefined ? convertTime(duration) : undefined,
             category, // todo modify?
             //
@@ -162,7 +167,7 @@ export class GetYourGuideService implements BaseSourceService{
             images: json["images"],
             videos: json["videos"], // ?
             source: this.source,
-            more_info: moreInfoLink ? `https://www.getyourguide.com/${moreInfoLink}`.replace("//","/") : undefined,
+            more_info: moreInfoLink ? `https://www.getyourguide.com${moreInfoLink}` : undefined,
             duration: duration != undefined ? convertTime(duration) : undefined,
             category, // todo modify?
             //
@@ -216,12 +221,14 @@ export class GetYourGuideService implements BaseSourceService{
         return response.data["suggestions"]?.[0]?.["locationId"];
     }
 
-    async searchOld({ destination, page = 1 }: SearchDto): Promise<SearchResults> {
+    async searchOld({ destination, page = 1 }: SearchDto, user: User): Promise<SearchResults> {
+        page = Number(page);
         const locationId = await this.getLocationId(destination);
         if (!locationId) {
             return {
                 results: [],
-                isFinished: true
+                isFinished: true,
+                source: this.source
             }
         }
         const response = await axios.post(
@@ -270,22 +277,31 @@ export class GetYourGuideService implements BaseSourceService{
         );
 
         // Extracting the data from the response
-        const results = response.data["content"][0]["content"];
+        let results = response.data["content"][0]["content"];
         const isFinished = response.data["content"].length == 1;
         const nextPage = isFinished ? undefined : page + 1;
+
+        results = results.map((r) => this.formatOld(destination, r))
+
+        // keep on db
+        await this.poiService.upsertAll(results, user);
+
         return {
-            results: results.map((r) => this.formatOld(destination, r)),
+            results,
             nextPage,
-            isFinished
+            isFinished,
+            source: this.source
         };
     }
 
-    async search({ destination, page = 1 }: SearchDto): Promise<SearchResults> {
+    async search({ destination, page = 1 }: SearchDto, user: User): Promise<SearchResults> {
+        page = Number(page);
         const locationId = await this.getLocationId(destination);
         if (!locationId) {
             return {
                 results: [],
-                isFinished: true
+                isFinished: true,
+                source: this.source
             }
         }
         const response = await axios.get(
@@ -322,13 +338,20 @@ export class GetYourGuideService implements BaseSourceService{
         );
 
         // Extracting the data from the response
-        const results = response.data["activities"]["items"];
+        let results = response.data["activities"]["items"];
         const isFinished = page * 300 > response.data["activities"]["total"];
         const nextPage = isFinished === true ? undefined : page + 1;
+
+        results = results.map((r) => this.format(destination, r));
+
+        // keep on db
+        await this.poiService.upsertAll(results, user);
+
         return {
             nextPage,
             isFinished,
-            results: results.map((r) => this.format(destination, r))
+            results,
+            source: this.source
         };
     }
 }
