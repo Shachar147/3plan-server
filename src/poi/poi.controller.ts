@@ -1,5 +1,5 @@
 // point-of-interest.controller.ts
-import {Controller, Get, Post, Body, Param, Patch, Delete, UseGuards, Query} from '@nestjs/common';
+import {Controller, Get, Post, Body, Param, Patch, Delete, UseGuards, Query, Put} from '@nestjs/common';
 import { PointOfInterestService } from './poi.service';
 import { PointOfInterest } from './poi.entity';
 import { AuthGuard } from '@nestjs/passport';
@@ -19,6 +19,15 @@ export class PointOfInterestController {
         @GetUser() user: User,
     ): Promise<PointOfInterest> {
         return this.pointOfInterestService.createPointOfInterest(data, user);
+    }
+
+    @Put('/upsert')
+    @UseGuards(AuthGuard())
+    async upsertPointOfInteresets(
+        @Body() items: Partial<PointOfInterest>[],
+        @GetUser() user: User,
+    ): Promise<PointOfInterest[]> {
+        return this.pointOfInterestService.upsertAll(items, user);
     }
 
     // @Get()
@@ -41,7 +50,7 @@ export class PointOfInterestController {
         return this.pointOfInterestService.getPointOfInterestById(id);
     }
 
-    @Patch('/:id')
+    @Put('/:id')
     @UseGuards(AuthGuard())
     async updatePointOfInterest(
         @Param('id') id: number,

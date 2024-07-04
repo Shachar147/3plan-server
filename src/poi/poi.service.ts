@@ -46,7 +46,8 @@ export class PointOfInterestService {
      * @param user - The user performing the operation.
      * @returns A promise that resolves when the upsert operation is complete.
      */
-    async upsertAll(items: Partial<PointOfInterest>[], user: User): Promise<void> {
+    async upsertAll(items: Partial<PointOfInterest>[], user: User): Promise<PointOfInterest[]> {
+        const results = []
         for (const item of items) {
             // Find existing POI based on the unique combination of name, source, and more_info
             const existingPoi = await this.pointOfInterestRepository.findOne({
@@ -61,14 +62,17 @@ export class PointOfInterestService {
                 // Update the existing POI
                 this.logger.log(`Updating POI: ${item.name} (Source: ${item.source}, URL: ${item.more_info})`);
                 Object.assign(existingPoi, item, { updatedBy: user });
-                await this.pointOfInterestRepository.save(existingPoi);
+                const poi = await this.pointOfInterestRepository.save(existingPoi);
+                results.push(poi);
             } else {
                 // Create a new POI
                 this.logger.log(`Creating new POI: ${item.name} (Source: ${item.source}, URL: ${item.more_info})`);
                 const newPoi = this.pointOfInterestRepository.create({ ...item, addedBy: user });
-                await this.pointOfInterestRepository.save(newPoi);
+                const poi = await this.pointOfInterestRepository.save(newPoi);
+                results.push(poi);
             }
         }
+        return results;
     }
 
     // Custom method to get the count of rows for each source for a given destination
