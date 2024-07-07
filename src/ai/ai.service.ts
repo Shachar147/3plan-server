@@ -46,6 +46,47 @@ export enum TriplanEventPreferredTime {
     unset = 0,
 }
 
+const categoryTranslations = {
+    'he': {
+        "CATEGORY.GENERAL": "כללי",
+        "CATEGORY.HOTELS": "בתי מלון",
+        "CATEGORY.FLIGHTS": "טיסות",
+        "CATEGORY.FOOD": "אוכל",
+        "CATEGORY.DESSERTS": "קינוחים",
+        "CATEGORY.BARS_AND_NIGHTLIFE": "ברים וחיי לילה",
+        "CATEGORY.SHOPPING": "קניות",
+        "CATEGORY.ATTRACTIONS": "אטרקציות",
+        "CATEGORY.GIMMICKS": "גימיקים",
+        "CATEGORY.NATURE": "טבע",
+        "CATEGORY.TOURISM": "תיירות",
+        "CATEGORY.VIEWS": "תצפיות",
+        "CATEGORY.PARKS": "פארקים",
+        "CATEGORY.CITIES": "עיירות",
+        "CATEGORY.BEACHES": "חופים",
+        "CATEGORY.BEACH_BARS": "ביץ׳ ברים",
+        "CATEGORY.MUSEUMS": "מוזיאונים"
+    },
+    en: {
+        "CATEGORY.GENERAL": "General",
+        "CATEGORY.HOTELS": "Hotels",
+        "CATEGORY.FLIGHTS": "Flights",
+        "CATEGORY.FOOD": "Food",
+        "CATEGORY.DESSERTS": "Desserts",
+        "CATEGORY.BARS_AND_NIGHTLIFE": "Bars and Nightlife",
+        "CATEGORY.SHOPPING": "Shopping",
+        "CATEGORY.ATTRACTIONS":"Attractions",
+        "CATEGORY.GIMMICKS": "Gimmicks",
+        "CATEGORY.NATURE": "Nature",
+        "CATEGORY.TOURISM": "Tourism",
+        "CATEGORY.VIEWS": "Views",
+        "CATEGORY.PARKS": "Parks",
+        "CATEGORY.CITIES": "Cities",
+        "CATEGORY.BEACHES": "Beaches",
+        "CATEGORY.BEACH_BARS": "Beach bars",
+        "CATEGORY.MUSEUMS": "Museums"
+    }
+}
+
 const getDefaultCategories = (): Category[] => {
     return [
         {
@@ -141,6 +182,81 @@ function getNonDefaultCategories(numOfCategories: number, title: string): Catego
         id: numOfCategories + 1,
         icon: getIcon(title),
         title
+    }
+}
+
+const destinationTranslations = {
+    'he': {
+        "Budapest": "בודפשט",
+        "Switzerland": "שוויץ",
+        "London": "לונדון",
+        "Dubai": "דובאי",
+        "Israel": "ישראל",
+        "Italy": "איטליה",
+        "Maldives": "האיים המלדיבים",
+        "Seychelles": "איי סיישל",
+        "Paris": "פריז",
+        "Mexico": "מקסיקו",
+        "Mexico City": "מקסיקו סיטי",
+        "Greece": "יוון",
+        "Bali": "באלי",
+        "Costa Rica": "קוסטה ריקה",
+        "Lima": "לימה",
+        "Brazil": "ברזיל",
+        "Panama": "פנמה",
+        "Portugal": "פורטוגל",
+        "Turkey": "טורקיה",
+        "Hawaii": "הוואי",
+        "Philippines": "פיליפינים",
+        "Indonesia": "אינדונזיה",
+        "Rio de Janeiro": "ריו דה ז׳נרו",
+        "Milan": "מילאנו",
+        "Barcelona": "ברצלונה",
+        "Istanbul": "איסטנבול",
+        "Lisbon": "ליסבון",
+        "Japan": "יפן",
+        "China": "סין",
+        "Tel Aviv": "תל אביב",
+        "Morocco": "מרוקו",
+        "Spain": "ספרד",
+        "Bahamas": "איי בהאמה",
+        "Mykonos": "מיקונוס",
+        "Fiji": "פיג׳י",
+        "Colombia": "קולומביה",
+        "Tanzania": "טנזניה",
+        "Rome": "רומא",
+        "Netherlands": "הולנד",
+        "Amsterdam": "אמסטרדם",
+        "South Africa": "דרום אפריקה",
+        "Croatia": "קרואטיה",
+        "Mauritius": "מאוריציוס",
+        "Peru": "פרו",
+        "Singapore": "סינגפור",
+        "Abu Dhabi": "אבו דאבי",
+        "Austria": "אוסטריה",
+        "Vienna": "וינה",
+        "Chile": "צ׳ילה",
+        "France": "צרפת",
+        "Germany": "גרמניה",
+        "Berlin": "ברלין",
+        "Zurich": "ציריך",
+        "Tehran": "טהרן",
+        "Haifa": "חיפה",
+        "Norway": "נורווגיה",
+        "Jordan": "ירדן",
+        "Munich": "מינכן",
+        "Malta": "מלטה",
+        "Bucharest": "בוקרשט",
+        "Lagos": "לאגוס",
+        "Finland": "פינלנד",
+        "Romania": "רומניה",
+        "Prague": "פראג",
+        "Athens": "אתונה",
+        "Bangkok": "בנקוק",
+        "Florida": "פלורידה",
+        "Koh Tao": "קו טאו",
+        "Koh Samui": "קוסמוי",
+        "Phuket": "פוקט",
     }
 }
 
@@ -385,6 +501,7 @@ export class AIService {
                 "paddle surf",
                 "boat trip",
                 "Buggy Excursion",
+                "captivating attraction",
                 // "attraction"
             ],
             "CATEGORY.SHOPPING": ["Shopping", "mall"," store", "outlet"],
@@ -394,8 +511,8 @@ export class AIService {
                 "forest",
                 "mountains"
             ],
-            "CATEGORY.TOURISM": ["city-walk", "burj", "מסגד", "טיילת", "המרינה", "אייפל", "eifel", "souk", "שווקים", "Historical Tours", "museum"],
-            "CATEGORY.VIEWS": ["sky view", "תצפית", "dubai frame"],
+            "CATEGORY.TOURISM": ["city-walk", "מסגד", "טיילת", "המרינה", "אייפל", "eifel", "souk", "שווקים", "Historical Tours", "museum", "cultural exploration", "Historical Neighbourhood"],
+            "CATEGORY.VIEWS": ["sky view", "תצפית", "dubai frame", "breathtaking views"],
             "CATEGORY.BARS_AND_NIGHTLIFE": ["dance club", "lounge", "club", "disco"],
             "CATEGORY.PARKS": ["פארק"],
             "CATEGORY.CITIES": ["עיירה", "עיירות"],
@@ -410,7 +527,7 @@ export class AIService {
                 "בית מלון",
                 "המלון",
             ],
-            "CATEGORY.FOOD": ["restaurant", "cafe", "מסעדה", "chocolate", "croissants", "food", "drink"],
+            "CATEGORY.FOOD": ["restaurant", "cafe", "מסעדה", "chocolate", "croissants", "food", "drink", "Restaurant"],
             "CATEGORY.GIMMICKS": ["glow in the dark", "glow in dark", "secret bar", "fairy tales", "magical experience"]
         };
         let toReturn = "CATEGORY.GENERAL";
@@ -461,7 +578,7 @@ export class AIService {
         const placeType = innerDetails?.["placeType"];
         const category = this.extractCategory([
             title,
-            description ?? "",
+            description?.replace("coffee shops", "").replace("Dubai Mall", "").replace("close to the Radisson Blue hotel", "").replace("food outlets", "food") ?? "",
             placeType
         ]);
 
@@ -486,21 +603,27 @@ export class AIService {
 
         const hoursOfOperation = innerDetails?.["hoursOfOperation"]?.["dailyTimeIntervals"] ?? [];
         const openingHours = {}
+
+        const formatTime = (time) => {
+            // Pad hours and minutes to always be two digits
+            const hours = String(time.hours).padStart(2, '0');
+            const minutes = String(time.minutes).padStart(2, '0');
+            return `${hours}:${minutes}`;
+        };
+
         hoursOfOperation.forEach((interval) => {
             const day = interval.day;
-            const { openingTime, closingTime } = interval.timeIntervals[0];
 
-            const formatTime = (time) => {
-                // Pad hours and minutes to always be two digits
-                const hours = String(time.hours).padStart(2, '0');
-                const minutes = String(time.minutes).padStart(2, '0');
-                return `${hours}:${minutes}`;
-            };
+            openingHours[day] = [];
 
-            openingHours[day] = {
-                start: formatTime(openingTime),
-                end: formatTime(closingTime)
-            };
+            interval.timeIntervals.forEach((_interval) => {
+                const { openingTime, closingTime } = _interval;
+                openingHours[day].push({
+                    start: formatTime(openingTime),
+                    end: formatTime(closingTime)
+                });
+            })
+
         });
 
         let moreInfo = innerDetails?.["route"]?.["url"];
@@ -514,7 +637,7 @@ export class AIService {
 
         const priority = (
             (!!rewards || (rating.rating == 5 && Number(rating.quantity) > 1000))
-        ) ? TriplanPriority.high : undefined;
+        ) ? TriplanPriority.high : TriplanPriority.unset;
 
         function getPreferredTime(category): TriplanEventPreferredTime | undefined {
             if (category === "CATEGORY.BARS_AND_NIGHTLIFE") {
@@ -531,13 +654,14 @@ export class AIService {
             title,
             duration,
             category,
+            categoryId: category,
             description,
             priority,
             preferredTime: getPreferredTime(category),
             className: getClasses(priority && `priority-${priority}`),
             location,
             allDay: Number(duration.split(":")[0]) >= 8,
-            openingHours,
+            openingHours: Object.keys(openingHours).length > 0 ? openingHours : undefined,
             images: innerDetails?.["photos"]?.map((photo) => {
                 const arr = photo?.["photoSizes"] ?? [];
                 if (arr.length) {
@@ -553,6 +677,8 @@ export class AIService {
                 tags,
                 rewards,
                 currency: params.currency,
+                category: category,
+                categoryId: category,
             }
         }
     }
@@ -9542,14 +9668,31 @@ export class AIService {
             return trip;
         }
 
+
+        const calendarLocale = params.calendarLocale ?? "he";
+
         const travelingWith = getClasses(
-            params.travelingWith === 'SPOUSE' && 'spouse', params.includeChildren && 'children', params.includePets && 'pets'
+            params.travelingWith === 'SPOUSE' && 'partner', params.includeChildren && 'children', params.includePets && 'pets'
         );
+
+        function getTripName(){
+            if (calendarLocale === "he"){
+                const where = destinationTranslations['he']?.[params.destination] ?? params.destination;
+                const days = `${numberOfDays} ימים`;
+                const travelingWith = getClasses(
+                    params.travelingWith === 'SPOUSE' && 'בני זוג', params.includeChildren && 'ילדים', params.includePets && 'חיות'
+                );
+                return getClasses(`${where} ל ${days} עם ${travelingWith}`);
+            } else {
+                const days = `${numberOfDays} days`;
+                return getClasses(`${params.destination} x ${days} with ${travelingWith}`);
+            }
+        }
 
         const allEvents = trip["items"].map((i) => this.format(i, params))
 
         // add non standard categories if needed
-        const categories = getDefaultCategories();
+        let categories = getDefaultCategories();
         allEvents.forEach((e) => {
             let category = categories.find((c) => e.category == c.title);
             if (!category) {
@@ -9582,12 +9725,27 @@ export class AIService {
                 return new Date(year, month - 1, day);
             }
 
-            // Constants for daily time range
+            // Helper function to get a random number within a range
+            function getRandomInt(min: number, max: number): number {
+                return Math.floor(Math.random() * (max - min + 1)) + min;
+            }
+
+            // Helper function to round a date's minutes to the nearest 15-minute increment
+            function roundToNearest15Minutes(date: Date): Date {
+                const minutes = date.getMinutes();
+                const remainder = minutes % 15;
+                const adjustment = remainder >= 7.5 ? 15 - remainder : -remainder;
+                date.setMinutes(minutes + adjustment);
+                return date;
+            }
+
+            // Constants for daily time range (10 AM to 11 PM)
             const DAY_START_HOUR = 10;
             const DAY_END_HOUR = 23;
 
-            // Calculate the total minutes for the daily schedule
-            const DAILY_TOTAL_MINUTES = (DAY_END_HOUR - DAY_START_HOUR) * 60;
+            // Range for variability in gaps between events
+            const MIN_GAP_MINUTES = 30;
+            const MAX_GAP_MINUTES = 180; // 3 hours in minutes
 
             // Parse trip start date
             const tripStartDate = parseDate(params.dateRange.start);
@@ -9605,23 +9763,31 @@ export class AIService {
             trip?.["structure"]?.["buckets"]?.forEach((dayItinerary, dayIndex) => {
                 const dayStart = new Date(tripStartDate);
                 dayStart.setDate(tripStartDate.getDate() + dayIndex);
-                dayStart.setHours(DAY_START_HOUR, 0, 0, 0); // Set to 8 AM
+                dayStart.setHours(DAY_START_HOUR, 0, 0, 0); // Set to 10 AM
+
+                const dayEnd = new Date(dayStart);
+                dayEnd.setHours(DAY_END_HOUR, 0, 0, 0); // Set to 11 PM
 
                 const items = dayItinerary?.["items"]?.map((itemId: string) => allEventsById[itemId]);
 
                 // Calculate total duration of all events
-                const totalEventMinutes = items.reduce((sum, item) => sum + parseDuration(item.duration), 0);
+                const totalEventMinutes = items.reduce((sum, item) => sum + parseDuration(item["duration"]), 0);
 
-                // Calculate total available time for gaps
-                const availableGapTime = DAILY_TOTAL_MINUTES - totalEventMinutes;
-                const gapBetweenEvents = availableGapTime / (items.length); // Equal gaps between
+                // Calculate the remaining time for gaps
+                const availableGapTime = (dayEnd.getTime() - dayStart.getTime()) / 60000 - totalEventMinutes;
 
-                let currentTime = addMinutesToDate(dayStart, gapBetweenEvents); // Start after the initial gap
+                // Initial time is the start of the day
+                let currentTime = dayStart;
 
-                items.forEach((item) => {
+                // Distribute events and gaps throughout the day
+                items.forEach((item, index) => {
                     if (item) {
-                        const durationInMinutes = parseDuration(item.duration);
+                        const durationInMinutes = parseDuration(item["duration"]);
 
+                        // Round current time to the nearest 15-minute increment
+                        currentTime = roundToNearest15Minutes(currentTime);
+
+                        // Set start and end times for the item
                         const start = currentTime;
                         const end = addMinutesToDate(currentTime, durationInMinutes);
 
@@ -9631,34 +9797,47 @@ export class AIService {
                             end: formatISO(end)
                         });
 
-                        currentTime = addMinutesToDate(end, gapBetweenEvents); // Add gap after event for next start time
+                        // Determine a random gap for the next event, ensuring we don't exceed the day's end time
+                        let randomGap = getRandomInt(MIN_GAP_MINUTES, MAX_GAP_MINUTES);
+                        const remainingTimeForGaps = availableGapTime / (items.length - index - 1);
+                        if (randomGap > remainingTimeForGaps) {
+                            randomGap = remainingTimeForGaps; // Cap gap to avoid exceeding available time
+                        }
+
+                        // Ensure gap is a multiple of 15 minutes
+                        randomGap = Math.ceil(randomGap / 15) * 15;
+
+                        // Update currentTime to the end of this event plus the random gap
+                        currentTime = addMinutesToDate(end, randomGap);
 
                         // Remove this event from unusedEvents
-                        delete unusedEventsById[item.id];
+                        delete unusedEventsById[item["id"]];
                     }
                 });
             });
 
             // Collect unused events
-            const sidebarEvents = Object.values(unusedEventsById);
+            const sidebarEvents = Object.values(unusedEventsById).filter(Boolean);
+
 
             return { calendarEvents, sidebarEvents };
         }
 
-        // todo complete:
-        // trip.calendarEvents = calendarEvents;
-
         const { calendarEvents, sidebarEvents } = buildCalendarEvents(trip, allEvents, params)
 
+        categories.forEach((c) => {
+            c.title = categoryTranslations[calendarLocale][c.title] ?? c.title;
+        });
+
         return {
-            name: getClasses(`${params.destination} x ${numberOfDays}d`, travelingWith ? `with ${travelingWith}` : undefined),
+            name: getTripName(),
             numOfDays: numberOfDays,
             categories,
             allEvents,
-            sidebarEvents,
+            sidebarEvents: {},
             dateRange: params.dateRange,
             calendarEvents,
-            calendarLocale: params.calendarLocale ?? "he",
+            calendarLocale,
             destinations: [
                 params.destination
             ],
