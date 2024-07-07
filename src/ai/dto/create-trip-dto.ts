@@ -1,5 +1,5 @@
 import {
-    IsBoolean,
+    IsBoolean, IsEnum,
     IsNotEmpty,
     IsString,
 } from 'class-validator';
@@ -8,6 +8,11 @@ import {IsOptional} from "class-validator";
 
 export enum TravelingWith {
     SPOUSE = 'SPOUSE'
+}
+
+export interface DateRangeFormatted {
+    start: string;
+    end: string;
 }
 
 export class CreateTripDto {
@@ -21,8 +26,15 @@ export class CreateTripDto {
 
     @ApiProperty({ required: true })
     @IsNotEmpty({
+        message: 'missing: dateRange',
+    })
+    dateRange: DateRangeFormatted
+
+    @ApiProperty({ required: true })
+    @IsNotEmpty({
         message: 'missing: travelingWith',
     })
+    @IsEnum(TravelingWith)
     travelingWith: TravelingWith;
 
     @ApiProperty({ required: true })
@@ -50,4 +62,9 @@ export class CreateTripDto {
     @IsString()
     @ApiProperty({ required: false })
     currency?: 'USD' | 'ILS'
+
+    @IsOptional()
+    @IsString()
+    @ApiProperty({ required: false, default: 'he' })
+    calendarLocale?: 'en' | 'he'
 }

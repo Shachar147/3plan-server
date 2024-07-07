@@ -1,10 +1,11 @@
-import {Body, Controller, Injectable, Post, Query, UseGuards, ValidationPipe} from '@nestjs/common';
+import {Body, Controller, Injectable, Post, Query, Req, UseGuards, ValidationPipe} from '@nestjs/common';
 import {ApiBearerAuth, ApiOperation} from "@nestjs/swagger";
 import {AuthGuard} from "@nestjs/passport";
 import {GetUser} from "../auth/get-user.decorator";
 import {User} from "../user/user.entity";
 import {CreateTripDto} from "./dto/create-trip-dto";
 import {AIService} from "./ai.service";
+import {Request} from "express";
 
 @Injectable()
 @ApiBearerAuth("JWT")
@@ -19,8 +20,9 @@ export class AIController {
     @UseGuards(AuthGuard())
     async getTripAdvisorSuggestions(
         @Body(ValidationPipe) params: CreateTripDto,
-        @GetUser() user: User
+        @GetUser() user: User,
+        @Req() request: Request
     ) {
-        return await this.aiService.createTrip(params, user)
+        return await this.aiService.createTrip(params, user, request)
     }
 }

@@ -4,6 +4,9 @@ import {CreateTripDto} from "./dto/create-trip-dto";
 import {User} from "../user/user.entity";
 import {convertTime} from "../poi/utils/utils";
 import {sleep} from "../shared/utils";
+import {TripService} from "../trip/trip.service";
+import {UserService} from "../user/user.service";
+import {Request} from "express";
 
 // todo complete:
 // parameterize - currency, language
@@ -22,6 +25,25 @@ interface Category{
     icon: string;
     title: string;
     description?: string;
+}
+
+export enum TriplanPriority {
+    must = 1, // pink
+    high = 10, // purple?
+    maybe = 2, // orange (used to be purple in google maps)
+    least = 3, // black
+    unset = 0, // gray
+}
+
+export enum TriplanEventPreferredTime {
+    morning = 1,
+    noon = 2,
+    afternoon = 3,
+    sunset = 4,
+    evening = 5,
+    nevermind = 6,
+    night = 7,
+    unset = 0,
 }
 
 const getDefaultCategories = (): Category[] => {
@@ -108,8 +130,8 @@ function getNonDefaultCategories(numOfCategories: number, title: string): Catego
                 return '🏖️';
             case 'CATEGORY.BEACH_BARS':
                 return '🍻';
-            case 'CATEGORY.MUSEUMS':
-                return '🏛️';
+            // case 'CATEGORY.MUSEUMS':
+            //     return '🏛️';
             default:
                 return '';
         }
@@ -131,10 +153,12 @@ export class AIService {
 
     private debugMode = true; // todo: change to false
 
-    // constructor(
-    //     private poiService: PointOfInterestService
-    // ) {
-    // }
+    constructor(
+        private userService: UserService,
+        private tripService: TripService,
+        // private poiService: PointOfInterestService
+    ) {
+    }
 
     async getLocationId(destination: string) {
 
@@ -370,14 +394,14 @@ export class AIService {
                 "forest",
                 "mountains"
             ],
-            "CATEGORY.TOURISM": ["city-walk", "burj", "מסגד", "טיילת", "המרינה", "אייפל", "eifel", "souk", "שווקים", "Historical Tours"],
+            "CATEGORY.TOURISM": ["city-walk", "burj", "מסגד", "טיילת", "המרינה", "אייפל", "eifel", "souk", "שווקים", "Historical Tours", "museum"],
             "CATEGORY.VIEWS": ["sky view", "תצפית", "dubai frame"],
             "CATEGORY.BARS_AND_NIGHTLIFE": ["dance club", "lounge", "club", "disco"],
             "CATEGORY.PARKS": ["פארק"],
             "CATEGORY.CITIES": ["עיירה", "עיירות"],
             "CATEGORY.BEACHES": ["beach "],
             "CATEGORY.BEACH_BARS": ["beach bar"],
-            "CATEGORY.MUSEUMS": ["Museum"],
+            // "CATEGORY.MUSEUMS": ["Museum"],
             "CATEGORY.HOTELS": [
                 "six senses",
                 "sixsenses",
@@ -419,7 +443,7 @@ export class AIService {
         return toReturn;
     }
 
-    format(item: Record<string, any>){
+    format(item: Record<string, any>, params){
         const details = item["object"];
         const description = details?.["narrativeDescription"]?.["plainText"];
 
@@ -460,7 +484,6 @@ export class AIService {
 
         const duration = durationString ? convertTime(durationString) : DEFAULT_EVENT_DURATION;
 
-        // todo complete:
         const hoursOfOperation = innerDetails?.["hoursOfOperation"]?.["dailyTimeIntervals"] ?? [];
         const openingHours = {}
         hoursOfOperation.forEach((interval) => {
@@ -491,7 +514,17 @@ export class AIService {
 
         const priority = (
             (!!rewards || (rating.rating == 5 && Number(rating.quantity) > 1000))
-        ) ? "high" : undefined;
+        ) ? TriplanPriority.high : undefined;
+
+        function getPreferredTime(category): TriplanEventPreferredTime | undefined {
+            if (category === "CATEGORY.BARS_AND_NIGHTLIFE") {
+                return TriplanEventPreferredTime.night;
+            } else if (category === "CATEGORY.DESSERTS") {
+                return TriplanEventPreferredTime.morning;
+            } else if (category === "CATEGORY.BEACH_BARS" || category === "CATEGORY.BEACHES") {
+                return TriplanEventPreferredTime.noon;
+            }
+        }
 
         return {
             id: item["id"],
@@ -500,20 +533,26 @@ export class AIService {
             category,
             description,
             priority,
-            // preferredTime?: TriplanEventPreferredTime, // todo complete?
-            // className?: string,
+            preferredTime: getPreferredTime(category),
+            className: getClasses(priority && `priority-${priority}`),
             location,
-            allDay: false, // todo complete: 9+ hours?
+            allDay: Number(duration.split(":")[0]) >= 8,
             openingHours,
-            images: "", // todo complete
+            images: innerDetails?.["photos"]?.map((photo) => {
+                const arr = photo?.["photoSizes"] ?? [];
+                if (arr.length) {
+                    return arr[arr.length-1]?.["url"];
+                }
+                return null;
+            }).filter(Boolean).join("\n"),
             moreInfo,
-            price: 0, // todo complete
-            // currency?: TriplanCurrency,
-            // currency: params.currency, // todo complete?
+            price: innerDetails?.["recommendedProduct"]?.["pricingInfo"]?.["fromPrice"],
+            currency: params.currency,
             extra: {
                 rating,
                 tags,
-                rewards
+                rewards,
+                currency: params.currency,
             }
         }
     }
@@ -9507,38 +9546,126 @@ export class AIService {
             params.travelingWith === 'SPOUSE' && 'spouse', params.includeChildren && 'children', params.includePets && 'pets'
         );
 
-        const allEvents = trip["items"].map((i) => this.format(i))
+        const allEvents = trip["items"].map((i) => this.format(i, params))
 
         // add non standard categories if needed
         const categories = getDefaultCategories();
         allEvents.forEach((e) => {
-            if (!categories.find((c) => e.category == c.title)) {
-                categories.push(getNonDefaultCategories(categories.length, e.category));
+            let category = categories.find((c) => e.category == c.title);
+            if (!category) {
+                category = getNonDefaultCategories(categories.length, e.category);
+                categories.push(category);
             }
+            e.category = category.id;
         })
 
+        function buildCalendarEvents(trip: Record<string, any>, allEvents: Event[], params: CreateTripDto) {
+            // Helper function to parse a time string (HH:MM) into minutes
+            function parseDuration(duration: string): number {
+                const [hours, minutes] = duration.split(':').map(Number);
+                return hours * 60 + minutes;
+            }
+
+            // Helper function to add minutes to a date and return a new date
+            function addMinutesToDate(date: Date, minutes: number): Date {
+                return new Date(date.getTime() + minutes * 60000);
+            }
+
+            // Helper function to format a date to ISO string
+            function formatISO(date: Date): string {
+                return date.toISOString();
+            }
+
+            // Helper function to convert a string date to a Date object (ignoring timezone)
+            function parseDate(dateStr: string): Date {
+                const [year, month, day] = dateStr.split('-').map(Number);
+                return new Date(year, month - 1, day);
+            }
+
+            // Constants for daily time range
+            const DAY_START_HOUR = 10;
+            const DAY_END_HOUR = 23;
+
+            // Calculate the total minutes for the daily schedule
+            const DAILY_TOTAL_MINUTES = (DAY_END_HOUR - DAY_START_HOUR) * 60;
+
+            // Parse trip start date
+            const tripStartDate = parseDate(params.dateRange.start);
+
+            // Mapping allEvents by ID for quick lookup
+            const allEventsById = allEvents.reduce((acc, event) => {
+                acc[event["id"]] = event;
+                return acc;
+            }, {} as Record<string, Event>);
+
+            const unusedEventsById = { ...allEventsById };
+            const calendarEvents = [];
+
+            // Iterate through each day's itinerary in the trip structure
+            trip?.["structure"]?.["buckets"]?.forEach((dayItinerary, dayIndex) => {
+                const dayStart = new Date(tripStartDate);
+                dayStart.setDate(tripStartDate.getDate() + dayIndex);
+                dayStart.setHours(DAY_START_HOUR, 0, 0, 0); // Set to 8 AM
+
+                const items = dayItinerary?.["items"]?.map((itemId: string) => allEventsById[itemId]);
+
+                // Calculate total duration of all events
+                const totalEventMinutes = items.reduce((sum, item) => sum + parseDuration(item.duration), 0);
+
+                // Calculate total available time for gaps
+                const availableGapTime = DAILY_TOTAL_MINUTES - totalEventMinutes;
+                const gapBetweenEvents = availableGapTime / (items.length); // Equal gaps between
+
+                let currentTime = addMinutesToDate(dayStart, gapBetweenEvents); // Start after the initial gap
+
+                items.forEach((item) => {
+                    if (item) {
+                        const durationInMinutes = parseDuration(item.duration);
+
+                        const start = currentTime;
+                        const end = addMinutesToDate(currentTime, durationInMinutes);
+
+                        calendarEvents.push({
+                            ...item,
+                            start: formatISO(start),
+                            end: formatISO(end)
+                        });
+
+                        currentTime = addMinutesToDate(end, gapBetweenEvents); // Add gap after event for next start time
+
+                        // Remove this event from unusedEvents
+                        delete unusedEventsById[item.id];
+                    }
+                });
+            });
+
+            // Collect unused events
+            const sidebarEvents = Object.values(unusedEventsById);
+
+            return { calendarEvents, sidebarEvents };
+        }
+
         // todo complete:
-        // trip.dateRange = dateRange;
         // trip.calendarEvents = calendarEvents;
-        // trip.sidebarEvents = sidebarEvents;
-        // trip.allEvents = allEvents;
-        // trip.calendarLocale = calendarLocale;
+
+        const { calendarEvents, sidebarEvents } = buildCalendarEvents(trip, allEvents, params)
 
         return {
             name: getClasses(`${params.destination} x ${numberOfDays}d`, travelingWith ? `with ${travelingWith}` : undefined),
             numOfDays: numberOfDays,
             categories,
             allEvents,
-            sidebarEvents: [],
-            calendarEvents: [], // todo complete
-            calendarLocale: params.currency == "USD" ? "en" : "he",
+            sidebarEvents,
+            dateRange: params.dateRange,
+            calendarEvents,
+            calendarLocale: params.calendarLocale ?? "he",
             destinations: [
                 params.destination
-            ]
+            ],
         }
     }
 
-    async createTrip(params: CreateTripDto, user: User) {
+    async createTrip(params: CreateTripDto, user: User, request: Request) {
         const locationId = await this.getLocationId(params.destination);
         if (!locationId) {
             throw new NotFoundException(`location named '${params.destination}' not found`);
@@ -9556,10 +9683,21 @@ export class AIService {
 
         const itinerary = await this._createItinerary(tripAdvisorTripId, params);
 
+        // create a trip
+        // 5q/1>O8dlf4W
+        const templatesUser = await this.userService.getUserByName("templates");
+        const createdTrips = await Promise.all([
+            this.tripService.createTrip(itinerary, templatesUser, request),
+            // this.tripService.createTrip(itinerary, user, request)
+        ]);
+
         // todo complete:
         // keep on db
         // await this.poiService.upsertAll(results, user);
 
-        return itinerary;
+        return {
+            itinerary,
+            createdTrips
+        };
     }
 }
