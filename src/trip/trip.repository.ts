@@ -77,10 +77,9 @@ export class TripRepository extends Repository<Trip> {
     trip.allEvents = allEvents;
     trip.calendarLocale = calendarLocale;
 
-    if (destinations != undefined) {
+    // @ts-ignore
+    if (destinations != undefined && destinations != '[]' && destinations?.length != 0) {
       try {
-        console.log("thereeee");
-
         // @ts-ignore
         trip.destinations = destinations.split(",");
       } catch {
@@ -172,16 +171,16 @@ export class TripRepository extends Repository<Trip> {
     // if (user) updates.user = user; <- not working well on shared trips
     if (isLocked != undefined) updates.isLocked = isLocked;
     if (isHidden != undefined) updates.isHidden = isHidden;
-    if (destinations != undefined) {
+    // @ts-ignore
+    if (destinations != undefined && destinations != '[]' && destinations?.length != 0) {
       try {
-        console.log("hereeee");
-
         // @ts-ignore
         updates.destinations = destinations.split(",");
       } catch {
         updates.destinations = destinations;
       }
     }
+    console.log("trip destinations updated to :" + destinations);
     updates.lastUpdateAt = new Date();
 
     const queryBuilder = this.createQueryBuilder('trip');

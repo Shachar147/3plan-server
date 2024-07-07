@@ -20,6 +20,7 @@ import { TodolistModule } from './todolist/todolist.module';
 import { GetYourGuideModule } from './poi/sources/getyourguide/getyourguide.module';
 import { PoiModule } from './poi/poi.module';
 import {DubaicoilModule} from "./poi/sources/dubaicoil/dubaicoil.module";
+import {TripadvisorModule} from "./poi/sources/tripadvisor/tripadvisor.module";
 
 @Module({
   imports: [
@@ -44,7 +45,8 @@ import {DubaicoilModule} from "./poi/sources/dubaicoil/dubaicoil.module";
     TodolistModule,
     GetYourGuideModule,
     PoiModule,
-    DubaicoilModule
+    DubaicoilModule,
+    TripadvisorModule
   ],
   controllers: [AppController],
   providers: [AppService, TinderService],
