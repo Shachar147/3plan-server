@@ -57,7 +57,7 @@ export class PointOfInterest extends BaseEntity {
     @Column()
     isVerified: boolean;
 
-    @Column({ nullable: true })
+    @Column({ type: 'float', nullable: true })
     price: number;
 
     @Column({ nullable: true })
