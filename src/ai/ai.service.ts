@@ -129,6 +129,8 @@ export class AIService {
     private language = "he"; // en-US
     private logger = new Logger("AIService");
 
+    private debugMode = true; // todo: change to false
+
     // constructor(
     //     private poiService: PointOfInterestService
     // ) {
@@ -9450,58 +9452,56 @@ export class AIService {
     async _createItinerary(tripId: number, params: CreateTripDto) {
         const { currency = 'ILS', numberOfDays = DEFAULT_NUM_OF_DAYS } = params;
 
-        // const data = JSON.stringify([
-        //     {
-        //         "variables": {
-        //             "tripIds": [
-        //                 tripId
-        //             ],
-        //             "currency": currency ?? "ILS"
-        //         },
-        //         "extensions": {
-        //             "preRegisteredQueryId": "7736e0b2af583968"
-        //         }
-        //     }
-        // ]);
-        //
-        // const config = {
-        //     headers: {
-        //         'accept': '*/*',
-        //         'accept-language': 'en-US,en;q=0.9,he;q=0.8',
-        //         'content-type': 'application/json',
-        //         'cookie': '_lc2_fpi=b140173de591--01gt429gejrkxt413pqa652v0a; _ga=GA1.1.638195325.1689358016; TASameSite=1; TAUnique=%1%enc%3A0bPt1DAbYLIqESpYS80bugE8%2B5kuzt268t5VIrI2MPcjSQ4AgGj8MYa8cLRVZTbhNox8JbUSTxk%3D; TASSK=enc%3AAL9%2FMo7e0LFaHvbB4kNE6KtR7Ii3NAFypprnC7ot6mhaZn9rdNcrDztNHuC3QAdjtblZSysSh4o5%2BmxIqMBt8jjSWRiYaIyD78WQKEe2OT%2BW99oEwcmfzaQiOOwv57BBsA%3D%3D; VRMCID=%1%V1*id.10568*llp.%2FSmartDeals-g295424-Dubai_Emirate_of_Dubai-Hotel-Deals%5C.html*e.1718974228161; TATrkConsent=eyJvdXQiOiJTT0NJQUxfTUVESUEiLCJpbiI6IkFEVixBTkEsRlVOQ1RJT05BTCJ9; _gcl_au=1.1.1974327381.1718369431; pbjs_sharedId=653f5e58-fe42-49cb-a99a-9a5da5a0cc87; pbjs_sharedId_cst=zix7LPQsHA%3D%3D; _lc2_fpi_meta=%7B%22w%22%3A1718369435081%7D; _lr_env_src_ats=false; pbjs_unifiedID=%7B%22TDID%22%3A%225c2f933c-fe19-45d0-9e85-0f04151db2c3%22%2C%22TDID_LOOKUP%22%3A%22TRUE%22%2C%22TDID_CREATED_AT%22%3A%222024-05-14T12%3A50%3A42%22%7D; pbjs_unifiedID_cst=zix7LPQsHA%3D%3D; TART=%1%enc%3AacB1OBrvcdiX91CQe8UUWjZtUu8yeRrwKH8dpdaX369zUgJZMudUDpl88bVjzUV6MiviWETFWp4%3D; _li_dcdm_c=.tripadvisor.com; ServerPool=C; TATravelInfo=V2*A.2*MG.-1*HP.2*FL.3*RS.1; TADCID=ZFVhNjQZz3T_4VKtABQCmq6heh9ZSU2yA8SXn9Wv5H66vIwuI_WELKmDFgkE7BTB6AcQY-1VTQ1nPSPfYOdP0IABpeyOuKbjvFc; PMC=V2*MS.72*MD.20240614*LD.20240707; _lr_sampling_rate=100; pbjs_li_nonid=%7B%7D; pbjs_li_nonid_cst=zix7LPQsHA%3D%3D; TASID=480C31B8757865F5A4EA6F3386F554AE; _abck=CFCC95316C817ECEC69FF1FC649B009D~-1~YAAQNyhDF6I1YWyQAQAAsUX9jAwEgjiMViNAU++ud6WIsK0QhqFpa3s73CaBUfa2pb9y8cCwl7egx3qWV/RIMnuxS1BK2l5LreXrLj+Ic/noXsFEPFJn/8NMTQm8EHnAaeWDeZeXSooTb6OdWZqdgo6vEFjJcmHWLAl7cEiPWuTJ7j4fsVw2tRDr3DO+SPSYjUrjmWm5QICRBf799DH/FyTKU6BwdULjLcmzsUKgafePYO8rOOxAxFAik/8+IOKuL8mmueGf9mJt5tcvAGF9i+mz8PSZ8/xWeWUedK3OI5QL9j46UjKoIUfLuzoRw9MAzgp2L2XhLHyj//NG+emTUu6MIi9DVlrhmoxeTXyTuH4LCCVKBU7LSwH1D2NtDRfhbdIjBg==~-1~-1~-1; PAC=AMkQ1HRdOZUoNqZ5yECKEQg31a4v5B5N-xFKdBqv10rC41WEGaAf1rq6TRLVP8ATvDzJP0NAJ0LBbdUudDlAC0d0hZHZ5vdixC8DyUfXIqzKXH_C3QLpo1Vp13mlflRkJQtkuym6WAqPPZTrldjW76hrS8OKGvw7iWbBXtZMUbwMCCec8yggMo7F5LBDoyMzb_EyzDLbd0Ie05COaE6jh_uueQq7CheWc6xZpDKs3smxLb-K152F_ay33N_eQyPXBc5W2slFuqeY9pTpp1Gv5yo%3D; __gads=ID=66a69a46b8e21b64:T=1718369436:RT=1720352329:S=ALNI_MZjmygAUKC3s81bj9XdFj5F8wfjCA; __gpi=UID=00000e3a96c5fbe2:T=1718369436:RT=1720352329:S=ALNI_MYw9d2pn0a3N4lRHQ7_Z-whAwkLXg; __eoi=ID=89724796ff128a3b:T=1718369436:RT=1720352329:S=AA-AfjY8p-1xJWCJNvn3cTJxAJ4T; _lr_retry_request=true; ab.storage.deviceId.6e55efa5-e689-47c3-a55b-e6d7515a6c5d=%7B%22g%22%3A%225e259853-1479-e243-c1ef-2917192fcb99%22%2C%22c%22%3A1718369430721%2C%22l%22%3A1720352524279%7D; ab.storage.sessionId.6e55efa5-e689-47c3-a55b-e6d7515a6c5d=%7B%22g%22%3A%22b14957d9-273c-ce5f-cdf0-f6b74e76c749%22%2C%22e%22%3A1720352539286%2C%22c%22%3A1720352524278%2C%22l%22%3A1720352524286%7D; G_AUTH2_MIGRATION=informational; TAAUTHEAT=5bAR7bH7bdgFByxZABQCNrrFLZA9QSOijcELs1dvVz6S7MHyvadU9A5Q4kfiNiWxg90WaoxdxBQduCPnOUd8qjRbEiVniAwFehqqsjfwMJd6euxLlGruWT8ChsI7KOKDy7FPFU7trLIiRAovHiU1c3-7bc5JqilHgI7FRmmNGbVkcg0ZhN-tYW4gX3Pnb-Goa3ysxBNemZUwodKOu_zW6YqJRNJDhuYi3yxV; __vt=12pZ5BTH3ETkt7NcABQCwRB1grfcRZKTnW7buAoPsS6ZjIYZS5_-9_WO9QlQ0seJ94hc3m-ChrpIFaahQ2dUvbwNEB4cmgIVjSo2h_RjB_IYTem1FDU_54FFW_q7Yq4a3t44LBB7dDxDDdfFMIaUBXUUCKXxQ0Z4_IjqKavFKFeFM3GjZNmjLN8kHZQ_grfXY50wrMsC4zTct_7rpQgUY1wEE0B2iLTbIiIrcgEagns9hJrlw2USaxOte4MS_WqWh_sEwy7_N4L-9JwQVvzCY41Gncmz7hKRz_U6VYoP4XeUEgpJ2VcDjKDjEg7B9AidlDZ93uo--pC29yYE3Phii9SpO4aqdnHRmXCw1WC57ffLmKnLTTxJZY0l5aC9V66HxHGRzwX-m98bCqlM_4jeVwajoKAl8A; AMZN-Token=v2FweIBrWnJxVWtibEdaSVdHMDlQTlNJNy9VQzlmSG55SEx3NkhZM2toY1hSeWpwVEpoZG9GWmo3KzdHazBxcHFGb3p2Mlc5OU9DYzdETFhpNU5aVDhyak9pM1l4RXh2cXlkVmZ5TFhPRGlGK1hvZHIyZEFZR0dEOWM2QUdtMGlVN0wyOWJrdgFiaXZ4HDc3Kzk3Nys5T0djVkwyRjQ3Nys5Wm5idnY3MD3/; TAUD=LA-1720120391622-1*RDD-2-2024_07_04*ARC-2727761*LG-232251956-2.1.F.*LD-232251957-.....; OptanonConsent=isGpcEnabled=0&datestamp=Sun+Jul+07+2024+14%3A44%3A04+GMT%2B0300+(Israel+Daylight+Time)&version=202310.2.0&isIABGlobal=false&hosts=&consentId=CACC3E8153BD94E1CD3B50C018FBD8BA&interactionCount=2&landingPath=NotLandingPage&groups=C0001%3A1%2CC0002%3A1%2CC0003%3A1%2CC0004%3A1&AwaitingReconsent=false&browserGpcFlag=0; _gcl_aw=GCL.1720352644.null; TASession=%1%V2ID.480C31B8757865F5A4EA6F3386F554AE*SQ.46*PR.40612%7C*LS.AITripBuilder*HS.recommended*ES.popularity*DS.5*SAS.popularity*FPS.oldFirst*TS.CACC3E8153BD94E1CD3B50C018FBD8BA*FA.1*DF.0*TRA.true*LD.19175168*EAU.C; _ga_QX0Q50ZC9P=GS1.1.1720352327.7.1.1720352644.60.0.0; datadome=L8ThYowiKxMqiernvf4vlCKZxLalqLhTUUQd44l7YJe~gR_ymuO2AxVWWc7meeKvby2DC7OGX778J2j8K5Dc6ptBI~33aqw5mq2HXXNmwqk_60cLOyc73qq31TEQLqLI; SRT=TART_SYNC; TAUnique=%1%enc%3AD%2Fch1%2BQ2hpeH0%2F%2BuCFHlKaolf3ScFFQaXQs0JsPcVadR7t%2FphnBsBy96c2%2FgF6t%2BNox8JbUSTxk%3D; _abck=CFCC95316C817ECEC69FF1FC649B009D~-1~YAAQ19XOF3ycZnqQAQAATzZBfww7GNhhb/2krsqQkvcw+0dcsBNbga4UGT4U9Lu6i88DM7unD7HndaedVUvHHiQDi8nPnrSpzGXP1Y3AhI1h/ZmSCGl+Mzkov2Nyj8tLduV85WzD2MpRRIAXMBZ/Bua6vcZ2nmOADPWHMncvswhzCBTg9gkCbhy2G+S++nOfcol0zdeq6CDzKww1YNqLayos5eR7R5HCe5QvyZDFDPClNMSL6xxvz7TBIkowzQngDWwzjNvswc6knjR+zP0tCfp7VGMYx8pW8W0wLoIadYF2qP2FJTZnGFfoWgayA2vaS/Zr/sTMBcPIDzyBa8ckaXXoZGqPDEKaPbwBEsYXUbR/0x7L9PF/qisQqUUXMpRXk1zppA==~-1~-1~-1; __vt=53woWvUrjg6fHgXSABQCwRB1grfcRZKTnW7buAoPsS6ZlAbB6wDyrWye_x70O0xgWNX-qzbJL3dOYnvL7H0UZ6a_Zh3i0VhwcUTZZ-qFqXBuG7QBTYl6ZbCnAWB8YVdVP6m72jBjnr0UZMkNeA6fqAikzw',
-        //         'origin': 'https://www.tripadvisor.com',
-        //         'priority': 'u=1, i',
-        //         'referer': 'https://www.tripadvisor.com/AITripBuilder',
-        //         'sec-ch-device-memory': '8',
-        //         'sec-ch-ua': '"Not/A)Brand";v="8", "Chromium";v="126", "Google Chrome";v="126"',
-        //         'sec-ch-ua-arch': '"x86"',
-        //         'sec-ch-ua-full-version-list': '"Not/A)Brand";v="8.0.0.0", "Chromium";v="126.0.6478.127", "Google Chrome";v="126.0.6478.127"',
-        //         'sec-ch-ua-mobile': '?0',
-        //         'sec-ch-ua-model': '""',
-        //         'sec-ch-ua-platform': '"macOS"',
-        //         'sec-fetch-dest': 'empty',
-        //         'sec-fetch-mode': 'same-origin',
-        //         'sec-fetch-site': 'same-origin',
-        //         'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36'
-        //     }
-        // };
-        //
-        // await sleep(60000);
-        //
-        // const response = await axios.post('https://www.tripadvisor.com/data/graphql/ids', data, config);
-        // const trip = response.data?.[0]?.["data"]?.["Trips_getTrips"]?.[0];
+        let trip;
+        if (this.debugMode){
+            trip = this.getTripFromCache();
+        } else {
+            const data = JSON.stringify([
+                {
+                    "variables": {
+                        "tripIds": [
+                            tripId
+                        ],
+                        "currency": currency ?? "ILS"
+                    },
+                    "extensions": {
+                        "preRegisteredQueryId": "7736e0b2af583968"
+                    }
+                }
+            ]);
 
-        const trip = this.getTripFromCache();
+            const config = {
+                headers: {
+                    'accept': '*/*',
+                    'accept-language': 'en-US,en;q=0.9,he;q=0.8',
+                    'content-type': 'application/json',
+                    'cookie': '_lc2_fpi=b140173de591--01gt429gejrkxt413pqa652v0a; _ga=GA1.1.638195325.1689358016; TASameSite=1; TAUnique=%1%enc%3A0bPt1DAbYLIqESpYS80bugE8%2B5kuzt268t5VIrI2MPcjSQ4AgGj8MYa8cLRVZTbhNox8JbUSTxk%3D; TASSK=enc%3AAL9%2FMo7e0LFaHvbB4kNE6KtR7Ii3NAFypprnC7ot6mhaZn9rdNcrDztNHuC3QAdjtblZSysSh4o5%2BmxIqMBt8jjSWRiYaIyD78WQKEe2OT%2BW99oEwcmfzaQiOOwv57BBsA%3D%3D; VRMCID=%1%V1*id.10568*llp.%2FSmartDeals-g295424-Dubai_Emirate_of_Dubai-Hotel-Deals%5C.html*e.1718974228161; TATrkConsent=eyJvdXQiOiJTT0NJQUxfTUVESUEiLCJpbiI6IkFEVixBTkEsRlVOQ1RJT05BTCJ9; _gcl_au=1.1.1974327381.1718369431; pbjs_sharedId=653f5e58-fe42-49cb-a99a-9a5da5a0cc87; pbjs_sharedId_cst=zix7LPQsHA%3D%3D; _lc2_fpi_meta=%7B%22w%22%3A1718369435081%7D; _lr_env_src_ats=false; pbjs_unifiedID=%7B%22TDID%22%3A%225c2f933c-fe19-45d0-9e85-0f04151db2c3%22%2C%22TDID_LOOKUP%22%3A%22TRUE%22%2C%22TDID_CREATED_AT%22%3A%222024-05-14T12%3A50%3A42%22%7D; pbjs_unifiedID_cst=zix7LPQsHA%3D%3D; TART=%1%enc%3AacB1OBrvcdiX91CQe8UUWjZtUu8yeRrwKH8dpdaX369zUgJZMudUDpl88bVjzUV6MiviWETFWp4%3D; _li_dcdm_c=.tripadvisor.com; ServerPool=C; TATravelInfo=V2*A.2*MG.-1*HP.2*FL.3*RS.1; TADCID=ZFVhNjQZz3T_4VKtABQCmq6heh9ZSU2yA8SXn9Wv5H66vIwuI_WELKmDFgkE7BTB6AcQY-1VTQ1nPSPfYOdP0IABpeyOuKbjvFc; PMC=V2*MS.72*MD.20240614*LD.20240707; _lr_sampling_rate=100; pbjs_li_nonid=%7B%7D; pbjs_li_nonid_cst=zix7LPQsHA%3D%3D; TASID=480C31B8757865F5A4EA6F3386F554AE; _abck=CFCC95316C817ECEC69FF1FC649B009D~-1~YAAQNyhDF6I1YWyQAQAAsUX9jAwEgjiMViNAU++ud6WIsK0QhqFpa3s73CaBUfa2pb9y8cCwl7egx3qWV/RIMnuxS1BK2l5LreXrLj+Ic/noXsFEPFJn/8NMTQm8EHnAaeWDeZeXSooTb6OdWZqdgo6vEFjJcmHWLAl7cEiPWuTJ7j4fsVw2tRDr3DO+SPSYjUrjmWm5QICRBf799DH/FyTKU6BwdULjLcmzsUKgafePYO8rOOxAxFAik/8+IOKuL8mmueGf9mJt5tcvAGF9i+mz8PSZ8/xWeWUedK3OI5QL9j46UjKoIUfLuzoRw9MAzgp2L2XhLHyj//NG+emTUu6MIi9DVlrhmoxeTXyTuH4LCCVKBU7LSwH1D2NtDRfhbdIjBg==~-1~-1~-1; PAC=AMkQ1HRdOZUoNqZ5yECKEQg31a4v5B5N-xFKdBqv10rC41WEGaAf1rq6TRLVP8ATvDzJP0NAJ0LBbdUudDlAC0d0hZHZ5vdixC8DyUfXIqzKXH_C3QLpo1Vp13mlflRkJQtkuym6WAqPPZTrldjW76hrS8OKGvw7iWbBXtZMUbwMCCec8yggMo7F5LBDoyMzb_EyzDLbd0Ie05COaE6jh_uueQq7CheWc6xZpDKs3smxLb-K152F_ay33N_eQyPXBc5W2slFuqeY9pTpp1Gv5yo%3D; __gads=ID=66a69a46b8e21b64:T=1718369436:RT=1720352329:S=ALNI_MZjmygAUKC3s81bj9XdFj5F8wfjCA; __gpi=UID=00000e3a96c5fbe2:T=1718369436:RT=1720352329:S=ALNI_MYw9d2pn0a3N4lRHQ7_Z-whAwkLXg; __eoi=ID=89724796ff128a3b:T=1718369436:RT=1720352329:S=AA-AfjY8p-1xJWCJNvn3cTJxAJ4T; _lr_retry_request=true; ab.storage.deviceId.6e55efa5-e689-47c3-a55b-e6d7515a6c5d=%7B%22g%22%3A%225e259853-1479-e243-c1ef-2917192fcb99%22%2C%22c%22%3A1718369430721%2C%22l%22%3A1720352524279%7D; ab.storage.sessionId.6e55efa5-e689-47c3-a55b-e6d7515a6c5d=%7B%22g%22%3A%22b14957d9-273c-ce5f-cdf0-f6b74e76c749%22%2C%22e%22%3A1720352539286%2C%22c%22%3A1720352524278%2C%22l%22%3A1720352524286%7D; G_AUTH2_MIGRATION=informational; TAAUTHEAT=5bAR7bH7bdgFByxZABQCNrrFLZA9QSOijcELs1dvVz6S7MHyvadU9A5Q4kfiNiWxg90WaoxdxBQduCPnOUd8qjRbEiVniAwFehqqsjfwMJd6euxLlGruWT8ChsI7KOKDy7FPFU7trLIiRAovHiU1c3-7bc5JqilHgI7FRmmNGbVkcg0ZhN-tYW4gX3Pnb-Goa3ysxBNemZUwodKOu_zW6YqJRNJDhuYi3yxV; __vt=12pZ5BTH3ETkt7NcABQCwRB1grfcRZKTnW7buAoPsS6ZjIYZS5_-9_WO9QlQ0seJ94hc3m-ChrpIFaahQ2dUvbwNEB4cmgIVjSo2h_RjB_IYTem1FDU_54FFW_q7Yq4a3t44LBB7dDxDDdfFMIaUBXUUCKXxQ0Z4_IjqKavFKFeFM3GjZNmjLN8kHZQ_grfXY50wrMsC4zTct_7rpQgUY1wEE0B2iLTbIiIrcgEagns9hJrlw2USaxOte4MS_WqWh_sEwy7_N4L-9JwQVvzCY41Gncmz7hKRz_U6VYoP4XeUEgpJ2VcDjKDjEg7B9AidlDZ93uo--pC29yYE3Phii9SpO4aqdnHRmXCw1WC57ffLmKnLTTxJZY0l5aC9V66HxHGRzwX-m98bCqlM_4jeVwajoKAl8A; AMZN-Token=v2FweIBrWnJxVWtibEdaSVdHMDlQTlNJNy9VQzlmSG55SEx3NkhZM2toY1hSeWpwVEpoZG9GWmo3KzdHazBxcHFGb3p2Mlc5OU9DYzdETFhpNU5aVDhyak9pM1l4RXh2cXlkVmZ5TFhPRGlGK1hvZHIyZEFZR0dEOWM2QUdtMGlVN0wyOWJrdgFiaXZ4HDc3Kzk3Nys5T0djVkwyRjQ3Nys5Wm5idnY3MD3/; TAUD=LA-1720120391622-1*RDD-2-2024_07_04*ARC-2727761*LG-232251956-2.1.F.*LD-232251957-.....; OptanonConsent=isGpcEnabled=0&datestamp=Sun+Jul+07+2024+14%3A44%3A04+GMT%2B0300+(Israel+Daylight+Time)&version=202310.2.0&isIABGlobal=false&hosts=&consentId=CACC3E8153BD94E1CD3B50C018FBD8BA&interactionCount=2&landingPath=NotLandingPage&groups=C0001%3A1%2CC0002%3A1%2CC0003%3A1%2CC0004%3A1&AwaitingReconsent=false&browserGpcFlag=0; _gcl_aw=GCL.1720352644.null; TASession=%1%V2ID.480C31B8757865F5A4EA6F3386F554AE*SQ.46*PR.40612%7C*LS.AITripBuilder*HS.recommended*ES.popularity*DS.5*SAS.popularity*FPS.oldFirst*TS.CACC3E8153BD94E1CD3B50C018FBD8BA*FA.1*DF.0*TRA.true*LD.19175168*EAU.C; _ga_QX0Q50ZC9P=GS1.1.1720352327.7.1.1720352644.60.0.0; datadome=L8ThYowiKxMqiernvf4vlCKZxLalqLhTUUQd44l7YJe~gR_ymuO2AxVWWc7meeKvby2DC7OGX778J2j8K5Dc6ptBI~33aqw5mq2HXXNmwqk_60cLOyc73qq31TEQLqLI; SRT=TART_SYNC; TAUnique=%1%enc%3AD%2Fch1%2BQ2hpeH0%2F%2BuCFHlKaolf3ScFFQaXQs0JsPcVadR7t%2FphnBsBy96c2%2FgF6t%2BNox8JbUSTxk%3D; _abck=CFCC95316C817ECEC69FF1FC649B009D~-1~YAAQ19XOF3ycZnqQAQAATzZBfww7GNhhb/2krsqQkvcw+0dcsBNbga4UGT4U9Lu6i88DM7unD7HndaedVUvHHiQDi8nPnrSpzGXP1Y3AhI1h/ZmSCGl+Mzkov2Nyj8tLduV85WzD2MpRRIAXMBZ/Bua6vcZ2nmOADPWHMncvswhzCBTg9gkCbhy2G+S++nOfcol0zdeq6CDzKww1YNqLayos5eR7R5HCe5QvyZDFDPClNMSL6xxvz7TBIkowzQngDWwzjNvswc6knjR+zP0tCfp7VGMYx8pW8W0wLoIadYF2qP2FJTZnGFfoWgayA2vaS/Zr/sTMBcPIDzyBa8ckaXXoZGqPDEKaPbwBEsYXUbR/0x7L9PF/qisQqUUXMpRXk1zppA==~-1~-1~-1; __vt=53woWvUrjg6fHgXSABQCwRB1grfcRZKTnW7buAoPsS6ZlAbB6wDyrWye_x70O0xgWNX-qzbJL3dOYnvL7H0UZ6a_Zh3i0VhwcUTZZ-qFqXBuG7QBTYl6ZbCnAWB8YVdVP6m72jBjnr0UZMkNeA6fqAikzw',
+                    'origin': 'https://www.tripadvisor.com',
+                    'priority': 'u=1, i',
+                    'referer': 'https://www.tripadvisor.com/AITripBuilder',
+                    'sec-ch-device-memory': '8',
+                    'sec-ch-ua': '"Not/A)Brand";v="8", "Chromium";v="126", "Google Chrome";v="126"',
+                    'sec-ch-ua-arch': '"x86"',
+                    'sec-ch-ua-full-version-list': '"Not/A)Brand";v="8.0.0.0", "Chromium";v="126.0.6478.127", "Google Chrome";v="126.0.6478.127"',
+                    'sec-ch-ua-mobile': '?0',
+                    'sec-ch-ua-model': '""',
+                    'sec-ch-ua-platform': '"macOS"',
+                    'sec-fetch-dest': 'empty',
+                    'sec-fetch-mode': 'same-origin',
+                    'sec-fetch-site': 'same-origin',
+                    'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36'
+                }
+            };
+
+            await sleep(60000);
+
+            const response = await axios.post('https://www.tripadvisor.com/data/graphql/ids', data, config);
+            trip = response.data?.[0]?.["data"]?.["Trips_getTrips"]?.[0];
+        }
+
         if (!trip){
             return trip;
         }
-
-        // trip.dateRange = dateRange;
-        // trip.calendarEvents = calendarEvents;
-        // trip.sidebarEvents = sidebarEvents;
-        // trip.allEvents = allEvents;
-        // trip.calendarLocale = calendarLocale;
 
         const travelingWith = getClasses(
             params.travelingWith === 'SPOUSE' && 'spouse', params.includeChildren && 'children', params.includePets && 'pets'
@@ -9516,6 +9516,13 @@ export class AIService {
                 categories.push(getNonDefaultCategories(categories.length, e.category));
             }
         })
+
+        // todo complete:
+        // trip.dateRange = dateRange;
+        // trip.calendarEvents = calendarEvents;
+        // trip.sidebarEvents = sidebarEvents;
+        // trip.allEvents = allEvents;
+        // trip.calendarLocale = calendarLocale;
 
         return {
             name: getClasses(`${params.destination} x ${numberOfDays}d`, travelingWith ? `with ${travelingWith}` : undefined),
@@ -9537,13 +9544,19 @@ export class AIService {
             throw new NotFoundException(`location named '${params.destination}' not found`);
         }
 
-        // const tripAdvisorTripId = await this._createTrip(params, locationId);
-        // if (!locationId) {
-        //     throw new BadRequestException(`failed creating a TripAdvisor trip for destination: '${params.destination}'`);
-        // }
-        const tripAdvisorTripId = this.getTripFromCache()["id"];
+        let tripAdvisorTripId;
+        if (this.debugMode){
+            tripAdvisorTripId = this.getTripFromCache()["id"];
+        } else {
+            tripAdvisorTripId = await this._createTrip(params, locationId);
+        }
+        if (!locationId) {
+            throw new BadRequestException(`failed creating a TripAdvisor trip for destination: '${params.destination}'`);
+        }
+
         const itinerary = await this._createItinerary(tripAdvisorTripId, params);
 
+        // todo complete:
         // keep on db
         // await this.poiService.upsertAll(results, user);
 
