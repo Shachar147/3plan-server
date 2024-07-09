@@ -7,7 +7,8 @@ import { ApiProperty } from '@nestjs/swagger';
 import {IsOptional} from "class-validator";
 
 export enum TravelingWith {
-    SPOUSE = 'SPOUSE'
+    SPOUSE = 'SPOUSE',
+    FAMILY = 'FAMILY'
 }
 
 export interface DateRangeFormatted {

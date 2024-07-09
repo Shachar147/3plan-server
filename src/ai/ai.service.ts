@@ -267,7 +267,7 @@ export class AIService {
     private language = "he"; // en-US
     private logger = new Logger("AIService");
 
-    private debugMode = true; // todo: change to false
+    private debugMode = false; // todo: change to false
 
     constructor(
         private userService: UserService,
@@ -372,14 +372,18 @@ export class AIService {
                         "interestTagIds": params.interests ?? [
                             "Must-see Attractions",
                             "Great Food",
-                            "Hidden Gems"
+                            "Hidden Gems",
+                            "Beach Clubs",
+                            "Nightlife & Clubs"
                         ],
                         "interestTags": params.interests ?? [
                             "Must-see Attractions",
                             "Great Food",
-                            "Hidden Gems"
+                            "Hidden Gems",
+                            "Beach Clubs",
+                            "Nightlife & Clubs"
                         ],
-                        "additionalInterests": "",
+                        "additionalInterests": "Desserts, Luxury, Shopping, Hotel",
                         "travelingWith": params.travelingWith ?? "SPOUSE",
                         // @ts-ignore
                         "includeChildren": params.includeChildren ? params.includeChildren == "false" : false,
@@ -513,7 +517,7 @@ export class AIService {
             ],
             "CATEGORY.TOURISM": ["city-walk", "מסגד", "טיילת", "המרינה", "אייפל", "eifel", "souk", "שווקים", "Historical Tours", "museum", "cultural exploration", "Historical Neighbourhood"],
             "CATEGORY.VIEWS": ["sky view", "תצפית", "dubai frame", "breathtaking views"],
-            "CATEGORY.BARS_AND_NIGHTLIFE": ["dance club", "lounge", "club", "disco"],
+            "CATEGORY.BARS_AND_NIGHTLIFE": ["dance club", "lounge", "club", " disco "],
             "CATEGORY.PARKS": ["פארק"],
             "CATEGORY.CITIES": ["עיירה", "עיירות"],
             "CATEGORY.BEACHES": ["beach "],
@@ -9672,7 +9676,7 @@ export class AIService {
         const calendarLocale = params.calendarLocale ?? "he";
 
         const travelingWith = getClasses(
-            params.travelingWith === 'SPOUSE' && 'partner', params.includeChildren && 'children', params.includePets && 'pets'
+            params.travelingWith === 'SPOUSE' && 'partner', params.travelingWith === 'FAMILY' && 'family', params.travelingWith === 'FRIENDS' && 'friends', params.includeChildren && 'children', params.includePets && 'pets'
         );
 
         function getTripName(){
@@ -9680,7 +9684,7 @@ export class AIService {
                 const where = destinationTranslations['he']?.[params.destination] ?? params.destination;
                 const days = `${numberOfDays} ימים`;
                 const travelingWith = getClasses(
-                    params.travelingWith === 'SPOUSE' && 'בני זוג', params.includeChildren && 'ילדים', params.includePets && 'חיות'
+                    params.travelingWith === 'SPOUSE' && 'בני זוג', params.travelingWith === 'FAMILY' && 'משפחה', params.travelingWith === 'FRIENDS' && 'חברים', params.includeChildren && 'ילדים', params.includePets && 'חיות'
                 );
                 return getClasses(`${where} ל ${days} עם ${travelingWith}`);
             } else {
