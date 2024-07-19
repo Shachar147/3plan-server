@@ -5,7 +5,7 @@ import { PointOfInterest } from './poi.entity';
 import { AuthGuard } from '@nestjs/passport';
 import { GetUser } from '../auth/get-user.decorator';
 import { User } from '../user/user.entity';
-import {SearchResults} from "./utils/interfaces";
+import {SearchResults, SearchSuggestion} from "./utils/interfaces";
 
 @Controller('poi')
 @UseGuards(AuthGuard())
@@ -59,6 +59,11 @@ export class PointOfInterestController {
     @Get('/feed')
     async getFeedItems(): Promise<SearchResults> {
         return this.pointOfInterestService.getFeedItems();
+    }
+
+    @Get('/search-suggestions')
+    async getSearchSuggestions(@Query('s') searchKeyword: string): Promise<SearchSuggestion[]> {
+        return this.pointOfInterestService.getSearchSuggestions(searchKeyword);
     }
 
     @Get('/:id')

@@ -4,3 +4,8 @@ export interface SearchResults {
     isFinished: boolean;
     source: string;
 }
+
+export interface SearchSuggestion {
+    name: string;
+    descriptor: string;
+}

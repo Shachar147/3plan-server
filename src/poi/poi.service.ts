@@ -3,7 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { PointOfInterestRepository } from './poi.repository';
 import { PointOfInterest } from './poi.entity';
 import { User } from '../user/user.entity';
-import {SearchResults} from "./utils/interfaces";
+import {SearchResults, SearchSuggestion} from "./utils/interfaces";
+import {Brackets} from "typeorm";
 
 @Injectable()
 export class PointOfInterestService {
@@ -132,5 +133,32 @@ export class PointOfInterestService {
             nextPage: null,
             source: 'Local',
         };
+    }
+
+    async getSearchSuggestions(searchKeyword: string): Promise<SearchSuggestion[]> {
+        const pointsOfInterest = await this.pointOfInterestRepository
+            .createQueryBuilder('poi')
+            .where('poi.isSystemRecommendation = true')
+            .orWhere('poi.rate IS NOT NULL AND (CAST(poi.rate AS jsonb) ->> \'rating\')::float > 4')
+            .andWhere(
+                new Brackets((qb) => {
+                    qb.where('poi.name ILIKE :searchKeyword', { searchKeyword: `%${searchKeyword}%` })
+                    .orWhere('poi.destination ILIKE :searchKeyword', { searchKeyword: `%${searchKeyword}%` })
+                    .orWhere('poi.description ILIKE :searchKeyword', { searchKeyword: `%${searchKeyword}%` });
+                })
+            )
+            .orderBy('poi.isSystemRecommendation', 'DESC')
+            .addOrderBy('CAST(poi.rate->>\'rating\' AS FLOAT)', 'DESC')
+            .take(30)
+            .getMany();
+
+        const suggestions: SearchSuggestion[] = [];
+        pointsOfInterest.forEach((p) => {
+            suggestions.push({
+                "name": p.name,
+                "descriptor": `${p.category} in ${p.destination}`,
+            })
+        })
+        return suggestions;
     }
 }
