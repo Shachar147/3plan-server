@@ -30,6 +30,18 @@ export class PointOfInterestController {
         return this.pointOfInterestService.upsertAll(items, user);
     }
 
+    @Put('/upsert/system-recommendation')
+    @UseGuards(AuthGuard())
+    async upsertPointOfInteresetsSystemRecommendations(
+        @Body() items: Partial<PointOfInterest>[],
+        @GetUser() user: User,
+    ): Promise<PointOfInterest[]> {
+        items.forEach((item) => {
+            item.isSystemRecommendation = true;
+        })
+        return this.pointOfInterestService.upsertAll(items, user);
+    }
+
     // @Get()
     // @UseGuards(AuthGuard())
     // async getAllPointsOfInterest(): Promise<PointOfInterest[]> {
