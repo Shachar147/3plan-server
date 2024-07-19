@@ -44,6 +44,11 @@ export class PointOfInterestController {
         return this.pointOfInterestService.getPointsOfInterestByDestination(destination, page);
     }
 
+    @Get('/feed')
+    async getFeedItems(): Promise<SearchResults> {
+        return this.pointOfInterestService.getFeedItems();
+    }
+
     @Get('/:id')
     @UseGuards(AuthGuard())
     async getPointOfInterestById(@Param('id') id: number): Promise<PointOfInterest> {

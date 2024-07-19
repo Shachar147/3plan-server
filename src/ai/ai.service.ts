@@ -9676,6 +9676,7 @@ export class AIService {
         const calendarLocale = params.calendarLocale ?? "he";
 
         const travelingWith = getClasses(
+            // @ts-ignore
             params.travelingWith === 'SPOUSE' && 'partner', params.travelingWith === 'FAMILY' && 'family', params.travelingWith === 'FRIENDS' && 'friends', params.includeChildren && 'children', params.includePets && 'pets'
         );
 
@@ -9684,6 +9685,7 @@ export class AIService {
                 const where = destinationTranslations['he']?.[params.destination] ?? params.destination;
                 const days = `${numberOfDays} ימים`;
                 const travelingWith = getClasses(
+                    // @ts-ignore
                     params.travelingWith === 'SPOUSE' && 'בני זוג', params.travelingWith === 'FAMILY' && 'משפחה', params.travelingWith === 'FRIENDS' && 'חברים', params.includeChildren && 'ילדים', params.includePets && 'חיות'
                 );
                 return getClasses(`${where} ל ${days} עם ${travelingWith}`);

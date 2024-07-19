@@ -114,4 +114,22 @@ export class PointOfInterestService {
             source: "Local"
         };
     }
+
+    async getFeedItems(): Promise<SearchResults> {
+        const pointsOfInterest = await this.pointOfInterestRepository
+            .createQueryBuilder('poi')
+            .where('poi.isSystemRecommendation = true')
+            .orWhere('poi.rate IS NOT NULL AND poi.rate->>''rating'' = :rating', { rating: '5' })
+            .orderBy('RANDOM()')
+            .take(10)
+            .getMany()
+
+        // Return the formatted response
+        return {
+            results: pointsOfInterest,
+            isFinished: true,
+            nextPage: null,
+            source: 'Local',
+        };
+    }
 }
