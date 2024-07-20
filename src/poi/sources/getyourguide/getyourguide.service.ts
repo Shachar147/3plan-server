@@ -23,7 +23,7 @@ export class GetYourGuideService implements BaseSourceService{
 
     extractCategory(arr) {
         const categoryToKeywordMapping = {
-            "אטרקציות": [
+            "CATEGORY.ATTRACTIONS": [
                 "Studio Tour",
                 "hiking",
                 "hikes",
@@ -45,21 +45,21 @@ export class GetYourGuideService implements BaseSourceService{
                 "Superyacht",
                 "jet ski"
             ],
-            "טבע": [
+            "CATEGORY.NATURE": [
                 "picnic",
                 "flowers garden",
                 "forest",
                 "mountains"
             ],
-            "תיירות": ["city-walk", "burj", "מסגד", "טיילת", "המרינה", "אייפל", "eifel", "souk", "שווקים"],
-            "תצפיות": ["sky view", "תצפית", "dubai frame"],
-            "ברים חיי לילה": ["dance club", "lounge"],
-            "פארקים": ["פארק"],
-            "עיירות": ["עיירה", "עיירות"],
-            "חופים": ["beach "],
-            "ביץ׳ ברים": ["beach bar"],
-            "מוזיאונים": ["Museum"],
-            "בתי מלון": [
+            "CATEGORY.TOURISM": ["city-walk", "burj", "מסגד", "טיילת", "המרינה", "אייפל", "eifel", "souk", "שווקים"],
+            "CATEGORY.VIEWS": ["sky view", "תצפית", "dubai frame"],
+            "CATEGORY.BARS_AND_NIGHTLIFE": ["dance club", "lounge"],
+            "CATEGORY.PARKS": ["פארק"],
+            "CATEGORY.CITIES": ["עיירה", "עיירות"],
+            "CATEGORY.BEACHES": ["beach "],
+            "CATEGORY.BEACH_BARS": ["beach bar"],
+            "CATEGORY.MUSEUMS": ["Museum"],
+            "CATEGORY.HOTELS": [
                 "six senses",
                 "sixsenses",
                 "hotel",
@@ -67,7 +67,7 @@ export class GetYourGuideService implements BaseSourceService{
                 "בית מלון",
                 "המלון",
             ],
-            "אוכל": ["restaurant", "cafe", "מסעדה", "chocolate", "croissants"],
+            "CATEGORY.FOOD": ["restaurant", "cafe", "מסעדה", "chocolate", "croissants"],
         };
         let toReturn = "";
 

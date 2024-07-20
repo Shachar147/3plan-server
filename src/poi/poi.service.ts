@@ -120,10 +120,10 @@ export class PointOfInterestService {
         const pointsOfInterest = await this.pointOfInterestRepository
             .createQueryBuilder('poi')
             .where('poi.isSystemRecommendation = true')
-            .orWhere('poi.rate IS NOT NULL AND CAST(poi.rate AS jsonb) ->> \'rating\' = :rating', { rating: '5' })
+            .orWhere('poi.rate IS NOT NULL AND CAST(poi.rate AS jsonb) ->> \'rating\' = :rating AND CAST(poi.rate AS jsonb) ->> \'quantity\' >= :quantity', { rating: '5', quantity: 50 })
             .orderBy('poi.isSystemRecommendation', 'DESC')
             .addOrderBy('RANDOM()')
-            .take(10)
+            .take(12)
             .getMany();
 
         // Return the formatted response
