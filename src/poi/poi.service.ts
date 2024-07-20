@@ -51,7 +51,7 @@ export class PointOfInterestService {
         const results = []
         for (const item of items) {
             // Find existing POI based on the unique combination of name, source, and more_info
-            const existingPoi = await this.pointOfInterestRepository.findOne({
+            let existingPoi = await this.pointOfInterestRepository.findOne({
                 where: {
                     name: item.name,
                     source: item.source,
@@ -62,7 +62,11 @@ export class PointOfInterestService {
             if (existingPoi) {
                 // Update the existing POI
                 this.logger.log(`Updating POI: ${item.name} (Source: ${item.source}, URL: ${item.more_info})`);
-                Object.assign(existingPoi, item, { updatedBy: user });
+                // Object.assign(existingPoi, item, { updatedBy: user });
+                existingPoi = {
+                    ...existingPoi,
+                    ...item
+                }
                 const poi = await this.pointOfInterestRepository.save(existingPoi);
                 results.push(poi);
             } else {
