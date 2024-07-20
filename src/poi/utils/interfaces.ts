@@ -7,5 +7,7 @@ export interface SearchResults {
 
 export interface SearchSuggestion {
     name: string;
-    descriptor: string;
+    category: string;
+    destination: string;
+    image?: string;
 }

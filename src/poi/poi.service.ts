@@ -156,7 +156,9 @@ export class PointOfInterestService {
         pointsOfInterest.forEach((p) => {
             suggestions.push({
                 "name": p.name,
-                "descriptor": `${p.category} in ${p.destination}`,
+                "category": p.category,
+                "destination": p.destination,
+                "image": p.images?.[0]
             })
         })
         return suggestions;
