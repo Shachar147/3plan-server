@@ -62,11 +62,7 @@ export class PointOfInterestService {
             if (existingPoi) {
                 // Update the existing POI
                 this.logger.log(`Updating POI: ${item.name} (Source: ${item.source}, URL: ${item.more_info})`);
-                // Object.assign(existingPoi, item, { updatedBy: user });
-                existingPoi = {
-                    ...existingPoi,
-                    ...item
-                }
+                Object.assign(existingPoi, item, { updatedBy: user });
                 const poi = await this.pointOfInterestRepository.save(existingPoi);
                 results.push(poi);
             } else {
@@ -142,13 +138,16 @@ export class PointOfInterestService {
     async getSearchSuggestions(searchKeyword: string): Promise<SearchSuggestion[]> {
         const pointsOfInterest = await this.pointOfInterestRepository
             .createQueryBuilder('poi')
-            .where('poi.isSystemRecommendation = true')
-            .orWhere('poi.rate IS NOT NULL AND (CAST(poi.rate AS jsonb) ->> \'rating\')::float > 4')
             .andWhere(
                 new Brackets((qb) => {
                     qb.where('poi.name ILIKE :searchKeyword', { searchKeyword: `%${searchKeyword}%` })
                     .orWhere('poi.destination ILIKE :searchKeyword', { searchKeyword: `%${searchKeyword}%` })
                     .orWhere('poi.description ILIKE :searchKeyword', { searchKeyword: `%${searchKeyword}%` });
+                })
+            ).andWhere(
+                new Brackets((qb) => {
+                    qb.where('poi.isSystemRecommendation IS true')
+                        .orWhere('poi.rate IS NOT NULL AND (CAST(poi.rate AS jsonb) ->> \'rating\')::float > 4')
                 })
             )
             .orderBy('poi.isSystemRecommendation', 'DESC')
