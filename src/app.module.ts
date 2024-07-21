@@ -22,6 +22,8 @@ import { PoiModule } from './poi/poi.module';
 import {DubaicoilModule} from "./poi/sources/dubaicoil/dubaicoil.module";
 import {TripadvisorModule} from "./poi/sources/tripadvisor/tripadvisor.module";
 import { AiModule } from './ai/ai.module';
+import { SavedCollectionsModule } from './saved-collections/saved-collections.module';
+import { SavedCollectionsItemModule } from './saved-collections/saved-collections-item/saved-collections-item.module';
 
 @Module({
   imports: [
@@ -48,7 +50,9 @@ import { AiModule } from './ai/ai.module';
     PoiModule,
     DubaicoilModule,
     TripadvisorModule,
-    AiModule
+    AiModule,
+    SavedCollectionsModule,
+    SavedCollectionsItemModule,
   ],
   controllers: [AppController],
   providers: [AppService, TinderService],
