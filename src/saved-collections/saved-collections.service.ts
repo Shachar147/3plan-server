@@ -115,9 +115,13 @@ export class SavedCollectionsService {
 
       // @ts-ignore
       collections[i].items = items;
+
+      if (items.length == 0){
+        collections[i] = null;
+      }
     }
 
-    return collections;
+    return collections.filter(Boolean);
   }
 
   async getCollection(id: number, user: User) {

@@ -12,7 +12,7 @@ export class PointOfInterestService {
 
     constructor(
         @InjectRepository(PointOfInterestRepository)
-        private pointOfInterestRepository: PointOfInterestRepository,
+        public pointOfInterestRepository: PointOfInterestRepository,
     ) {}
 
     async createPointOfInterest(data: Partial<PointOfInterest>, user: User): Promise<PointOfInterest> {

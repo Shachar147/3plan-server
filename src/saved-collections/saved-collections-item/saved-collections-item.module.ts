@@ -5,6 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from '../../auth/auth.module';
 import { PassportModule } from '@nestjs/passport';
 import { SavedCollectionsItemRepository } from './saved-collections-item.repository';
+import {PoiModule} from "../../poi/poi.module";
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { SavedCollectionsItemRepository } from './saved-collections-item.reposit
     HttpModule,
     AuthModule,
     PassportModule,
+    PoiModule
   ],
   controllers: [SavedCollectionsItemController],
   providers: [SavedCollectionsItemService],
