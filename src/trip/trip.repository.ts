@@ -238,7 +238,7 @@ export class TripRepository extends Repository<Trip> {
     }
 
     // Specify the columns we want to select
-    const shortColumns = ["trip.id", "trip.name", "trip.dateRange", "trip.destinations", "trip.lastUpdateAt", "trip.createdAt", "trip.isHidden"];
+    const shortColumns = ["trip.id", "trip.name", "trip.dateRange", "trip.destinations", "trip.lastUpdateAt", "trip.createdAt", "trip.isHidden", "trip.allEvents", "trip.sidebarEvents", "trip.calendarEvents"];
 
     const query = this.createQueryBuilder("trip")
         .select(shortColumns)
@@ -272,7 +272,7 @@ export class TripRepository extends Repository<Trip> {
     const { search } = filterDto;
 
     // Specify the columns we want to select
-    const shortColumns = ["trip.id", "trip.name", "trip.dateRange", "trip.destinations", "trip.lastUpdateAt", "trip.createdAt", "trip.isHidden"]
+    const shortColumns = ["trip.id", "trip.name", "trip.dateRange", "trip.destinations", "trip.lastUpdateAt", "trip.createdAt", "trip.isHidden", "trip.allEvents", "trip.sidebarEvents", "trip.calendarEvents"]
 
     const query = this.createQueryBuilder("trip")
         .select(shortColumns);
