@@ -159,7 +159,7 @@ export class PointOfInterestService {
         pointsOfInterest.forEach((p) => {
             suggestions.push({
                 "name": p.name,
-                "category": p.category,
+                "category": p.category || 'CATEGORY.GENERAL',
                 "destination": p.destination,
                 "image": p.images?.[0]
             })
