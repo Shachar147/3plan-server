@@ -3,7 +3,7 @@ import {StatisticsService} from "./statistics.service";
 // import { AdminGuard } from 'src/auth/admin.guard';
 import {AuthGuard} from "@nestjs/passport";
 
-@Controller('statistics')
+@Controller('admin-statistics')
 export class StatisticsController {
     constructor(private statisticsService: StatisticsService) {}
 
