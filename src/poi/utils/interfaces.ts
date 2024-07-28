@@ -6,6 +6,7 @@ export interface SearchResults {
 }
 
 export interface SearchSuggestion {
+    id: number;
     name: string;
     category: string;
     destination: string;
