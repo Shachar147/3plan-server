@@ -19,4 +19,32 @@ export class StatisticsService {
         const connection = getConnection();
         return await connection.query(query);
     }
+
+    async getTotalPointOfInterests(): Promise<number> {
+        const query = `SELECT COUNT(*) as totalpois FROM point_of_interest`;
+        const connection = getConnection();
+        const totalPoisResult = await connection.query(query);
+        return totalPoisResult[0]["totalpois"];
+    }
+
+    async getTotalSavedItems(): Promise<number> {
+        const query = `SELECT COUNT(*) as totalsaved FROM saved_collections_item`;
+        const connection = getConnection();
+        const totalPoisResult = await connection.query(query);
+        return totalPoisResult[0]["totalsaved"];
+    }
+
+    async getTotalDestinations(): Promise<number> {
+        const query = `SELECT COUNT(distinct destination) as total FROM point_of_interest`;
+        const connection = getConnection();
+        const totalPoisResult = await connection.query(query);
+        return totalPoisResult[0]["total"];
+    }
+
+    async getTotalSavedCollections() {
+        const query = `SELECT COUNT(*) as total FROM saved_collections`;
+        const connection = getConnection();
+        const totalPoisResult = await connection.query(query);
+        return totalPoisResult[0]["total"];
+    }
 }

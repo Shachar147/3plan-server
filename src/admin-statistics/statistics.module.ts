@@ -4,9 +4,7 @@ import { StatisticsService } from './statistics.service';
 import {AuthModule} from "../auth/auth.module";
 
 @Module({
-  imports: [
-      AuthModule
-  ],
+  imports: [AuthModule],
   controllers: [StatisticsController],
   providers: [StatisticsService]
 })
