@@ -450,7 +450,7 @@ function modifyTemplateFile(
 function linkToUsers(routeName, ucFirstName) {
   let isOk = 1;
 
-  const file_path = 'src/auth/user.entity.ts';
+  const file_path = 'src/user/user.entity.ts';
 
   const new_arr = [];
 

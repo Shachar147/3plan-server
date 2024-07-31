@@ -72,6 +72,9 @@ export class Trip extends BaseEntity {
   @OneToMany((type) => TodolistTask, (task) => task.trip, { eager: true })
   todolist_tasks: Task[];
 
-  @Column('simple-array', { default: []})
-  destinations: string[];
+  @Column({
+    type: 'jsonb',
+    default: []
+  })
+  destinations: 'jsonb';
 }

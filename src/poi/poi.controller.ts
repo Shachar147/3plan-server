@@ -5,7 +5,7 @@ import { PointOfInterest } from './poi.entity';
 import { AuthGuard } from '@nestjs/passport';
 import { GetUser } from '../auth/get-user.decorator';
 import { User } from '../user/user.entity';
-import {SearchResults} from "./utils/interfaces";
+import {SearchResults, SearchSuggestion} from "./utils/interfaces";
 
 @Controller('poi')
 @UseGuards(AuthGuard())
@@ -30,6 +30,18 @@ export class PointOfInterestController {
         return this.pointOfInterestService.upsertAll(items, user);
     }
 
+    @Put('/upsert/system-recommendation')
+    @UseGuards(AuthGuard())
+    async upsertPointOfInteresetsSystemRecommendations(
+        @Body() items: Partial<PointOfInterest>[],
+        @GetUser() user: User,
+    ): Promise<PointOfInterest[]> {
+        items.forEach((item) => {
+            item.isSystemRecommendation = true;
+        })
+        return this.pointOfInterestService.upsertAll(items, user);
+    }
+
     // @Get()
     // @UseGuards(AuthGuard())
     // async getAllPointsOfInterest(): Promise<PointOfInterest[]> {
@@ -42,6 +54,16 @@ export class PointOfInterestController {
         @Query('page') page: number = 1,
     ): Promise<SearchResults> {
         return this.pointOfInterestService.getPointsOfInterestByDestination(destination, page);
+    }
+
+    @Get('/feed')
+    async getFeedItems(): Promise<SearchResults> {
+        return this.pointOfInterestService.getFeedItems();
+    }
+
+    @Get('/search-suggestions')
+    async getSearchSuggestions(@Query('s') searchKeyword: string): Promise<SearchSuggestion[]> {
+        return this.pointOfInterestService.getSearchSuggestions(searchKeyword);
     }
 
     @Get('/:id')

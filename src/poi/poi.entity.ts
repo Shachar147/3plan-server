@@ -77,4 +77,7 @@ export class PointOfInterest extends BaseEntity {
 
     @ManyToOne(() => User, { eager: false })
     updatedBy: User;
+
+    @Column('boolean', { default: false })
+    isSystemRecommendation: boolean;
 }

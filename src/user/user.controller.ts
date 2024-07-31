@@ -1,26 +1,16 @@
 import {
   Body,
   Controller, Delete, Get, Param, ParseIntPipe,
-  Post,
-  Req,
   UseGuards,
-  UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { AuthCredentialsDto } from '../auth/dto/auth-credentials.dto';
-import { AuthService } from '../auth/auth.service';
-import { GetUser } from '../auth/get-user.decorator';
 import { User } from './user.entity';
 import {
-  ApiBadRequestResponse,
   ApiBearerAuth,
   ApiBody,
-  ApiNotFoundResponse,
-  ApiOkResponse,
   ApiOperation, ApiParam,
   ApiTags,
-  ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 
 import { ListUserDto } from '../auth/dto/list-user-dto';

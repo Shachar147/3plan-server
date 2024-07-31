@@ -69,8 +69,10 @@ export class UpdateTripDto {
   @IsBoolean()
   isHidden: boolean;
 
-  @ApiProperty({ required: false, type: [String] })
+  @ApiProperty({ required: false })
   @IsOptional()
-  @IsArray()
-  destinations?: string[];
+  @IsNotEmpty({
+    message: 'missing: destinations',
+  })
+  destinations: "jsonb";
 }

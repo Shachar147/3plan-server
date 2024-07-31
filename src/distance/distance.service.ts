@@ -402,7 +402,7 @@ export class DistanceService {
       // @ts-ignore
       ...Object.values(sidebarEvents).flat(),
       ...calendarEvents,
-    ];
+    ].filter(Boolean);
 
     const coordinates = this._extractEventsUniqueLocations(allEvents);
     const results = await this.distanceRepository.findDistancesByFromAndTo(

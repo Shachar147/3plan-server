@@ -4,3 +4,11 @@ export interface SearchResults {
     isFinished: boolean;
     source: string;
 }
+
+export interface SearchSuggestion {
+    id: number;
+    name: string;
+    category: string;
+    destination: string;
+    image?: string;
+}

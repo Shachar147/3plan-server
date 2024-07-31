@@ -66,7 +66,7 @@ export class TripRepository extends Repository<Trip> {
       sidebarEvents,
       allEvents,
       calendarLocale,
-      destinations
+      destinations = []
     } = createTripDto;
     const trip = new Trip();
     trip.name = name;
@@ -78,13 +78,12 @@ export class TripRepository extends Repository<Trip> {
     trip.calendarLocale = calendarLocale;
 
     // @ts-ignore
-    if (destinations != undefined && destinations != '[]' && destinations?.length != 0) {
-      try {
-        // @ts-ignore
-        trip.destinations = destinations.split(",");
-      } catch {
-        trip.destinations = destinations;
-      }
+    try {
+      // @ts-ignore
+      trip.destinations = destinations.split(",");
+    } catch {
+      // @ts-ignore
+      trip.destinations = destinations;
     }
     // trip.destinations = Array.isArray(destinations) ? destinations ? [destinations];
     trip.user = user;
@@ -153,7 +152,7 @@ export class TripRepository extends Repository<Trip> {
       calendarLocale,
       isLocked,
       isHidden,
-      destinations
+      destinations = undefined
     } = updateTripDto;
 
     // backup
@@ -172,7 +171,7 @@ export class TripRepository extends Repository<Trip> {
     if (isLocked != undefined) updates.isLocked = isLocked;
     if (isHidden != undefined) updates.isHidden = isHidden;
     // @ts-ignore
-    if (destinations != undefined && destinations != '[]' && destinations?.length != 0) {
+    if (destinations != undefined) {
       try {
         // @ts-ignore
         updates.destinations = destinations.split(",");
@@ -239,7 +238,7 @@ export class TripRepository extends Repository<Trip> {
     }
 
     // Specify the columns we want to select
-    const shortColumns = ["trip.id", "trip.name", "trip.dateRange", "trip.lastUpdateAt", "trip.createdAt", "trip.isHidden"];
+    const shortColumns = ["trip.id", "trip.name", "trip.dateRange", "trip.destinations", "trip.lastUpdateAt", "trip.createdAt", "trip.isHidden", "trip.allEvents", "trip.sidebarEvents", "trip.calendarEvents"];
 
     const query = this.createQueryBuilder("trip")
         .select(shortColumns)
@@ -273,7 +272,7 @@ export class TripRepository extends Repository<Trip> {
     const { search } = filterDto;
 
     // Specify the columns we want to select
-    const shortColumns = ["trip.id", "trip.name", "trip.dateRange", "trip.lastUpdateAt", "trip.createdAt", "trip.isHidden"]
+    const shortColumns = ["trip.id", "trip.name", "trip.dateRange", "trip.destinations", "trip.lastUpdateAt", "trip.createdAt", "trip.isHidden", "trip.allEvents", "trip.sidebarEvents", "trip.calendarEvents"]
 
     const query = this.createQueryBuilder("trip")
         .select(shortColumns);

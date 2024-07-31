@@ -3,7 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { PointOfInterestRepository } from './poi.repository';
 import { PointOfInterest } from './poi.entity';
 import { User } from '../user/user.entity';
-import {SearchResults} from "./utils/interfaces";
+import {SearchResults, SearchSuggestion} from "./utils/interfaces";
+import {Brackets} from "typeorm";
 
 @Injectable()
 export class PointOfInterestService {
@@ -11,7 +12,7 @@ export class PointOfInterestService {
 
     constructor(
         @InjectRepository(PointOfInterestRepository)
-        private pointOfInterestRepository: PointOfInterestRepository,
+        public pointOfInterestRepository: PointOfInterestRepository,
     ) {}
 
     async createPointOfInterest(data: Partial<PointOfInterest>, user: User): Promise<PointOfInterest> {
@@ -50,7 +51,7 @@ export class PointOfInterestService {
         const results = []
         for (const item of items) {
             // Find existing POI based on the unique combination of name, source, and more_info
-            const existingPoi = await this.pointOfInterestRepository.findOne({
+            let existingPoi = await this.pointOfInterestRepository.findOne({
                 where: {
                     name: item.name,
                     source: item.source,
@@ -101,6 +102,10 @@ export class PointOfInterestService {
             take: limit,
         });
 
+        // if (page == 1 && pointsOfInterest.length == 0){
+        //     return await this.getPointsOfInterestByName(destination, page, limit)
+        // }
+
         // Check if there are more results for the next page
         const totalPointsOfInterest = await this.pointOfInterestRepository.count({ where: { destination } });
         const isFinished = (page * limit) >= totalPointsOfInterest;
@@ -113,5 +118,79 @@ export class PointOfInterestService {
             nextPage,
             source: "Local"
         };
+    }
+
+    // async getPointsOfInterestByName(name: string, page: number, limit: number = 50): Promise<SearchResults> {
+    //     // Fetch the points of interest based on the given destination, page, and limit
+    //     const pointsOfInterest = await this.pointOfInterestRepository.find({
+    //         where: { name },
+    //         skip: (page - 1) * limit,
+    //         take: limit,
+    //     });
+    //
+    //     // Check if there are more results for the next page
+    //     const totalPointsOfInterest = await this.pointOfInterestRepository.count({ where: { name } });
+    //     const isFinished = (page * limit) >= totalPointsOfInterest;
+    //     const nextPage = isFinished ? null : page + 1;
+    //
+    //     // Return the formatted response
+    //     return {
+    //         results: pointsOfInterest,
+    //         isFinished,
+    //         nextPage,
+    //         source: "Local"
+    //     };
+    // }
+
+    async getFeedItems(): Promise<SearchResults> {
+        const pointsOfInterest = await this.pointOfInterestRepository
+            .createQueryBuilder('poi')
+            .where('poi.isSystemRecommendation = true')
+            .orWhere('poi.rate IS NOT NULL AND CAST(poi.rate AS jsonb) ->> \'rating\' = :rating AND CAST(poi.rate AS jsonb) ->> \'quantity\' >= :quantity', { rating: '5', quantity: 50 })
+            .orderBy('poi.isSystemRecommendation', 'DESC')
+            .addOrderBy('RANDOM()')
+            .take(12)
+            .getMany();
+
+        // Return the formatted response
+        return {
+            results: pointsOfInterest,
+            isFinished: true,
+            nextPage: null,
+            source: 'Local',
+        };
+    }
+
+    async getSearchSuggestions(searchKeyword: string): Promise<SearchSuggestion[]> {
+        const pointsOfInterest = await this.pointOfInterestRepository
+            .createQueryBuilder('poi')
+            .andWhere(
+                new Brackets((qb) => {
+                    qb.where('poi.name ILIKE :searchKeyword', { searchKeyword: `%${searchKeyword}%` })
+                    .orWhere('poi.destination ILIKE :searchKeyword', { searchKeyword: `%${searchKeyword}%` })
+                    .orWhere('poi.description ILIKE :searchKeyword', { searchKeyword: `%${searchKeyword}%` });
+                })
+            ).andWhere(
+                new Brackets((qb) => {
+                    qb.where('poi.isSystemRecommendation IS true')
+                        .orWhere('poi.rate IS NOT NULL AND (CAST(poi.rate AS jsonb) ->> \'rating\')::float > 4')
+                })
+            )
+            .orderBy('poi.isSystemRecommendation', 'DESC')
+            .addOrderBy('CAST(poi.rate->>\'rating\' AS FLOAT)', 'DESC')
+            .take(30)
+            .getMany();
+
+        const suggestions: SearchSuggestion[] = [];
+        pointsOfInterest.forEach((p) => {
+            suggestions.push({
+                "id": p.id,
+                "name": p.name,
+                "category": p.category || 'CATEGORY.GENERAL',
+                "destination": p.destination,
+                "image": p.images?.[0]
+            })
+        })
+        return suggestions;
     }
 }

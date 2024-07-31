@@ -12,7 +12,7 @@ import { TinderModule } from './integrations/tinder/tinder.module';
 import { DistanceModule } from './distance/distance.module';
 import { BackupsModule } from './backups/backups.module';
 import { TaskModule } from './task/task.module';
-import { StatisticsModule } from './statistics/statistics.module';
+import { StatisticsModule } from './admin-statistics/statistics.module';
 import {EmailModule} from "./mail-sender/email.module";
 import { BiEventsModule } from './bi-events/bi-events.module';
 import { SharedTripsModule } from './shared-trips/shared-trips.module';
@@ -21,6 +21,9 @@ import { GetYourGuideModule } from './poi/sources/getyourguide/getyourguide.modu
 import { PoiModule } from './poi/poi.module';
 import {DubaicoilModule} from "./poi/sources/dubaicoil/dubaicoil.module";
 import {TripadvisorModule} from "./poi/sources/tripadvisor/tripadvisor.module";
+import { AiModule } from './ai/ai.module';
+import { SavedCollectionsModule } from './saved-collections/saved-collections.module';
+import { SavedCollectionsItemModule } from './saved-collections/saved-collections-item/saved-collections-item.module';
 
 @Module({
   imports: [
@@ -46,7 +49,10 @@ import {TripadvisorModule} from "./poi/sources/tripadvisor/tripadvisor.module";
     GetYourGuideModule,
     PoiModule,
     DubaicoilModule,
-    TripadvisorModule
+    TripadvisorModule,
+    AiModule,
+    SavedCollectionsModule,
+    SavedCollectionsItemModule,
   ],
   controllers: [AppController],
   providers: [AppService, TinderService],

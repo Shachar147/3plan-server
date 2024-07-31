@@ -85,13 +85,13 @@ export class DubaicoilService implements BaseSourceService{
 
     extractCategory(arr: string[]): string {
         const categoryToKeywordMapping = {
-            אטרקציות: ["/attraction/"],
-            תיירות: ["city-walk", "burj", "מסגד", "טיילת", "המרינה"],
-            תצפיות: ["sky view", "תצפית", "dubai frame"],
-            "ברים חיי לילה": ["בר הקרח", "lounge", "מופע לה פרל"],
-            פארקים: ["פארק"],
-            חופים: ["חוף "],
-            "ביץ׳ ברים": ["beach bar"],
+            "CATEGORY.ATTRACTIONS": ["/attraction/"],
+            "CATEGORY.TOURISM": ["city-walk", "burj", "מסגד", "טיילת", "המרינה"],
+            "CATEGORY.VIEWS": ["sky view", "תצפית", "dubai frame"],
+            "CATEGORY.BARS_AND_NIGHTLIFE": ["בר הקרח", "lounge", "מופע לה פרל"],
+            "CATEGORY.PARKS": ["פארק"],
+            "CATEGORY.BEACHES": ["חוף "],
+            "CATEGORY.BEACH_BARS": ["beach bar"],
         };
 
         let toReturn = "";

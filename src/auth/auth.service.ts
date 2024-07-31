@@ -5,7 +5,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { JwtPayload } from './jwt-payload.interface';
 import { debug_mode } from '../config/server.config';
-import {getTimestampInSeconds} from "../shared/utils";
 
 @Injectable()
 export class AuthService {

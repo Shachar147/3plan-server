@@ -51,8 +51,10 @@ export class CreateTripDto {
   @IsString()
   calendarLocale: string;
 
-  @ApiProperty({ required: false, type: [String] })
+  @ApiProperty({ required: false })
   @IsOptional()
-  @IsArray()
-  destinations?: string[];
+  @IsNotEmpty({
+    message: 'missing: destinations',
+  })
+  destinations: "jsonb";
 }
