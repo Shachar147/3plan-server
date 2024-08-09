@@ -4,7 +4,7 @@ import { PointOfInterestRepository } from './poi.repository';
 import { PointOfInterest } from './poi.entity';
 import { User } from '../user/user.entity';
 import {SearchResults, SearchSuggestion} from "./utils/interfaces";
-import {Brackets} from "typeorm";
+import {Brackets, Like} from "typeorm";
 
 @Injectable()
 export class PointOfInterestService {
@@ -108,6 +108,39 @@ export class PointOfInterestService {
 
         // Check if there are more results for the next page
         const totalPointsOfInterest = await this.pointOfInterestRepository.count({ where: { destination } });
+        const isFinished = (page * limit) >= totalPointsOfInterest;
+        const nextPage = isFinished ? null : page + 1;
+
+        // Return the formatted response
+        return {
+            results: pointsOfInterest,
+            isFinished,
+            nextPage,
+            source: "Local"
+        };
+    }
+
+    async getSearchResults(searchKeyword: string, page: number, limit: number = 50): Promise<SearchResults> {
+        // Fetch the points of interest based on the given searchKeyword, page, and limit
+        const pointsOfInterest = await this.pointOfInterestRepository.find({
+            where: [
+                { name: Like(`%${searchKeyword}%`) },
+                { description: Like(`%${searchKeyword}%`) },
+                { destination: Like(`%${searchKeyword}%`) }
+            ],
+            skip: (page - 1) * limit,
+            take: limit,
+        });
+
+        // Check if there are more results for the next page
+        const totalPointsOfInterest = await this.pointOfInterestRepository.count({
+            where: [
+                { name: Like(`%${searchKeyword}%`) },
+                { description: Like(`%${searchKeyword}%`) },
+                { destination: Like(`%${searchKeyword}%`) }
+            ]
+        });
+
         const isFinished = (page * limit) >= totalPointsOfInterest;
         const nextPage = isFinished ? null : page + 1;
 
