@@ -6,6 +6,7 @@ import { UpsertDistanceDto } from "./dto/upsert-distance.dto";
 import { CalculateDistancesResult, DistanceDiff, TravelMode } from "./common";
 import { Coordinate } from "../shared/interfaces";
 import { coordinateToString } from "../shared/utils";
+import axios from "axios";
 
 @EntityRepository(Distance)
 export class DistanceRepository extends Repository<Distance> {
@@ -91,6 +92,37 @@ export class DistanceRepository extends Repository<Distance> {
     return updates;
   }
 
+  serializeDistance(valueInMeters: number) {
+    if (valueInMeters < 1000) {
+      return `${valueInMeters} m`;
+    } else {
+      return `${(valueInMeters/1000).toFixed(2)} km`;
+    }
+  }
+
+  serializeDuration(seconds: number) {
+    const timeUnits = [
+      { unit: 'day', seconds: 86400 },
+      { unit: 'hour', seconds: 3600 },
+      { unit: 'min', seconds: 60 }
+    ];
+
+    let result = [];
+    for (let { unit, seconds: unitSeconds } of timeUnits) {
+      let value = Math.floor(seconds / unitSeconds);
+      if (value > 0) {
+        result.push(value + ' ' + unit + (value > 1 ? 's' : ''));
+        seconds %= unitSeconds;
+      }
+    }
+
+    if (seconds > 0 && result.length === 0) {
+      result.push(seconds + ' sec' + (seconds > 1 ? 's' : ''));
+    }
+
+    return result.join(' ');
+  }
+
   async calculateDistances(
     origins: string[],
     destinations: string[],
@@ -123,50 +155,102 @@ export class DistanceRepository extends Repository<Distance> {
         //   results
         // })
 
-        distance.matrix(origins, destinations, function (err, distances) {
-          numOfGoogleCalls++;
+        const baseUrl = `http://router.project-osrm.org/table/v1/${distance.options.mode}/`;
+        const arr = Array.from(new Set([...origins, ...destinations]));
+        const url = `${baseUrl}${arr.map((x) => x.split(',').reverse().join(",")).join(";")}?annotations=distance,duration`;
+        axios.get(url, {}).then((response) => {
 
-          if (err) {
-            reject(err);
-          }
-          if (!distances) {
-            reject("no distances");
-          }
+          if (response.statusText == "OK" && response.data.code == "Ok") {
+            for (let i =0; i < arr.length; i++){
+              for (let j = 0; j < arr.length; j++){
+                if (i == j){
+                  continue;
+                }
 
-          if (distances.status == "OK") {
-            for (let i = 0; i < origins.length; i++) {
-              for (let j = 0; j < destinations.length; j++) {
-                const origin = distances.origin_addresses[i];
-                const destination = distances.destination_addresses[j];
-                if (distances.rows[0].elements[j].status == "OK") {
+                const destination = arr[i];
+                const origin = arr[j];
+
+                if (response.data.distances[i][j]) {
                   results.push({
                     origin,
-                    distance: distances.rows[i].elements[j].distance,
+                    distance: {
+                      text: this.serializeDistance(response.data.distances[i][j]),
+                      value: response.data.distances[i][j],
+                    },
                     destination,
-                    duration: distances.rows[i].elements[j].duration,
+                    duration: {
+                      text: this.serializeDuration(response.data.durations[i][j]),
+                      value: response.data.durations[i][j]
+                    },
                     travelMode,
-                    from: origins[i],
-                    to: destinations[j],
+                    from: origin,
+                    to: destination,
                   });
                 } else {
                   errors.push({
                     errorText:
-                      destination + " is not reachable by land from " + origin,
-                    errorData: distances.rows[0].elements[j],
+                        origin + " is not reachable by land from " + destination,
+                    errorData: "unreachable",
                     origin,
                     distance: undefined,
                     destination,
                     duration: undefined,
                     travelMode,
-                    from: origins[i],
-                    to: destinations[j],
+                    from: origin,
+                    to: destination,
                   });
                 }
               }
             }
-            resolve({ errors, results, numOfGoogleCalls });
           }
-        });
+
+          resolve({ errors, results, numOfGoogleCalls });
+        })
+
+        // distance.matrix(origins, destinations, function (err, distances) {
+        //   numOfGoogleCalls++;
+        //
+        //   if (err) {
+        //     reject(err);
+        //   }
+        //   if (!distances) {
+        //     reject("no distances");
+        //   }
+        //
+        //   if (distances.status == "OK") {
+        //     for (let i = 0; i < origins.length; i++) {
+        //       for (let j = 0; j < destinations.length; j++) {
+        //         const origin = distances.origin_addresses[i];
+        //         const destination = distances.destination_addresses[j];
+        //         if (distances.rows[0].elements[j].status == "OK") {
+        //           results.push({
+        //             origin,
+        //             distance: distances.rows[i].elements[j].distance,
+        //             destination,
+        //             duration: distances.rows[i].elements[j].duration,
+        //             travelMode,
+        //             from: origins[i],
+        //             to: destinations[j],
+        //           });
+        //         } else {
+        //           errors.push({
+        //             errorText:
+        //               destination + " is not reachable by land from " + origin,
+        //             errorData: distances.rows[0].elements[j],
+        //             origin,
+        //             distance: undefined,
+        //             destination,
+        //             duration: undefined,
+        //             travelMode,
+        //             from: origins[i],
+        //             to: destinations[j],
+        //           });
+        //         }
+        //       }
+        //     }
+        //     resolve({ errors, results, numOfGoogleCalls });
+        //   }
+        // });
       });
     } catch (e) {
       throw new BadRequestException(
