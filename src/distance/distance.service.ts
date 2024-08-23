@@ -25,6 +25,7 @@ import {
 } from "../task/common";
 import { Distance } from "./distance.entity";
 import { Task } from "../task/task.entity";
+import axios from "axios";
 
 const defaultCalculateDistancesResult = {
   results: [],
@@ -49,7 +50,7 @@ export class DistanceService {
   private readonly DB_DATA_EXPIRY_IN_DAYS = 30;
   private readonly SECONDS_IN_DAY = 86400;
 
-  private travelModes: TravelMode[] = ["DRIVING", "WALKING"]
+  private travelModes: TravelMode[] = ["DRIVING"]; // ["DRIVING", "WALKING"]
 
   constructor(
     @InjectRepository(DistanceRepository)
@@ -309,7 +310,7 @@ export class DistanceService {
           origins,
           destinations,
           distance,
-            numOfGoogleCalls
+          numOfGoogleCalls
         );
         numOfGoogleCalls = result.numOfGoogleCalls;
         await sleep(1000);
