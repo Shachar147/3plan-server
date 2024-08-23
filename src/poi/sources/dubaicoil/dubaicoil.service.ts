@@ -85,6 +85,7 @@ export class DubaicoilService implements BaseSourceService{
 
     extractCategory(arr: string[]): string {
         const categoryToKeywordMapping = {
+            "CATEGORY.HOTELS": ["/hotel_category/"],
             "CATEGORY.ATTRACTIONS": ["/attraction/"],
             "CATEGORY.TOURISM": ["city-walk", "burj", "מסגד", "טיילת", "המרינה"],
             "CATEGORY.VIEWS": ["sky view", "תצפית", "dubai frame"],
@@ -117,6 +118,7 @@ export class DubaicoilService implements BaseSourceService{
 
     extractIcon(arr: string[]) {
         const keywordToIcon = {
+            "רויאל": "⚜️",
             פרחים: "🌸",
             פרפרים: "🦋",
             גולף: "🏌️",
@@ -140,16 +142,58 @@ export class DubaicoilService implements BaseSourceService{
     }
 
     async getItemsByUrl(more_info: string): Promise<any[]> {
-        const baseUrl = "https://dubai.co.il/attraction/";
+        let baseUrl = "https://dubai.co.il/attraction/";
+        let category;
+        if (more_info.includes("/tours")) {
+            category = "CATEGORY.TOURISM";
+        }
+
+        if (more_info.includes("/hotel_category")) {
+            baseUrl = "https://dubai.co.il/hotel/";
+            category = "CATEGORY.HOTELS";
+        } else if (more_info.includes("/restaurant_category/")) {
+            baseUrl = "https://dubai.co.il/restaurant"
+            category = "CATEGORY.FOOD";
+        } else if (more_info.includes("/bar_nightlife_category/")) {
+            baseUrl = "https://dubai.co.il/bar_nightlife"
+            if (more_info.includes("beach-clubs-in-dubai")) {
+                category = "CATEGORY.BEACH_BARS";
+            }
+            else if (more_info.includes("clubs-in-dubai")) {
+                category = "CATEGORY.CLUBS";
+            }
+            else {
+                category = "CATEGORY.BARS_AND_NIGHTLIFE";
+            }
+        } else if (more_info.includes("shopping_category")) {
+            baseUrl = "https://dubai.co.il/shopping/";
+            category = "CATEGORY.SHOPPING";
+            if (more_info.includes("markets")) {
+                category = "CATEGORY.TOURISM";
+            }
+        }
+
+        let destination = "Dubai";
+        if (more_info.includes("attractions-in-abu-dhabi")) {
+            destination = "Abu Dhabi";
+        }
+
+        let suffix = "";
+        let engSuffix = "";
+        if (more_info.includes("/kosher")) {
+            suffix = " - כשר";
+            engSuffix = " - Kosher";
+        }
 
         // get page content
         const res = await axios.get(more_info);
         const pageContent = res.data;
         const htmlBlocks = pageContent
-            .split('<a href="https://dubai.co.il/attraction/')
+            .split(`<a href="${baseUrl}`)
             .filter((item, index) => {
                 return index !== 0 && item[0] !== '"';
             });
+
 
         const items = htmlBlocks
             .map((block) => {
@@ -157,7 +201,7 @@ export class DubaicoilService implements BaseSourceService{
                 const hebName = this.getValue(block, 'class="text-lg text-primary');
                 const engName = this.getValue(block, '<div class="text-smaller');
 
-                const name = [hebName, engName].filter(Boolean).join(" / ");
+                const name = [hebName + suffix, engName + engSuffix].filter(Boolean).join(" / ");
                 const description = this.getValue(block, '<div class="pb-3 text');
                 const rate = this.getRate(block);
                 const images = this.getPhotos(block);
@@ -166,14 +210,18 @@ export class DubaicoilService implements BaseSourceService{
                     return;
                 }
 
+                if (name.toLowerCase().includes("abu dhabi")) {
+                    destination = "Abu Dhabi";
+                }
+
                 const item = {
-                    category: this.extractCategory([name, description, more_info]),
+                    category: category ?? this.extractCategory([name, description, more_info]),
                     duration: "",
                     icon: this.extractIcon([name, description, more_info]),
                     location: undefined,
                     openingHours: undefined,
                     priority: this.extractPriority([name, description, more_info]),
-                    destination: this.destination,
+                    destination: destination,
                     source: this.source,
                     videos: undefined,
                     name,
@@ -209,8 +257,20 @@ export class DubaicoilService implements BaseSourceService{
             "https://dubai.co.il/attraction_category/structures-in-dubai/",
             "https://dubai.co.il/attraction_category/amusement-parks-in-dubai/",
             "https://dubai.co.il/attraction_category/extreme-attractionscruises-in-dubai/",
+            "https://dubai.co.il/attraction_category/cruises-in-dubai/",
+            "https://dubai.co.il/attraction_category/tours-in-dubai-and-abu-dhabi/",
             "https://dubai.co.il/attraction_category/recreation-centers-in-dubai/",
             "https://dubai.co.il/attraction_category/beaches-in-dubai/",
+            "https://dubai.co.il/hotel_category/resorts-in-dubai/",
+            "https://dubai.co.il/hotel_category/hotels-in-dubai/",
+            "https://dubai.co.il/restaurant_category/restaurants-in-dubai/",
+            "https://dubai.co.il/restaurant_category/kosher-restaurants-in-dubai/",
+            "https://dubai.co.il/bar_nightlife_category/beach-clubs-in-dubai/",
+            "https://dubai.co.il/bar_nightlife_category/bars-in-dubai/",
+            "https://dubai.co.il/bar_nightlife_category/clubs-in-dubai/",
+            "https://dubai.co.il/shopping_category/malls-in-dubai/",
+            "https://dubai.co.il/shopping_category/markets-in-dubai/",
+            "https://dubai.co.il/attraction_category/attractions-in-abu-dhabi/",
         ];
 
         const promises = urls.map((url) => this.getItemsByUrl(url));

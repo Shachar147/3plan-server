@@ -171,6 +171,8 @@ function getNonDefaultCategories(numOfCategories: number, title: string): Catego
                 return '🏖️';
             case 'CATEGORY.BEACH_BARS':
                 return '🍻';
+            case 'CATEGORY.CLUBS':
+                return '💃';
             // case 'CATEGORY.MUSEUMS':
             //     return '🏛️';
             default:

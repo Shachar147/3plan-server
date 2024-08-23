@@ -196,7 +196,7 @@ export class TripadvisorService implements BaseSourceService{
         }
     }
 
-    async getLocationId(destination: string) {
+    async getLocationId(destination: string): Promise<{ locationId: string | undefined, destination: string}>  {
 
         const data = JSON.stringify([
             {
@@ -277,12 +277,18 @@ export class TripadvisorService implements BaseSourceService{
         };
 
         const response = await axios.post('https://www.tripadvisor.com/data/graphql/ids', data, config);
-        return response.data[0].data["Typeahead_autocomplete"]?.["results"]?.[0]?.["locationId"];
+        return {
+            locationId: response.data[0].data["Typeahead_autocomplete"]?.["results"]?.[0]?.["locationId"],
+            destination:
+                response.data[0].data["Typeahead_autocomplete"]?.["results"]?.[0]?.["details"]?.["placeType"] == "MUNICIPALITY" ?
+                response.data[0].data["Typeahead_autocomplete"]?.["results"]?.[0]?.["details"]?.["localizedName"] ?? destination : destination
+        };
     }
 
     async search({ destination, page = 1 }: SearchDto, user: User): Promise<SearchResults> {
         page = Number(page);
-        const locationId = await this.getLocationId(destination);
+        const { locationId, destination: _destination } = await this.getLocationId(destination);
+        destination = _destination;
         if (!locationId) {
             return {
                 results: [],

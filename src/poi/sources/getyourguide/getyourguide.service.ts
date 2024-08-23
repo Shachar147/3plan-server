@@ -189,7 +189,7 @@ export class GetYourGuideService implements BaseSourceService{
         }
     }
 
-    async getLocationId(destination: string) {
+    async getLocationId(destination: string): Promise<{ locationId: string | undefined, destination: string}>  {
 
         const response = await axios.get(`https://travelers-api.getyourguide.com/search/v2/suggest?suggestEntities=location,activity,synthetic_trip_item,trip_item_group&q=${destination}`, {
             headers: {
@@ -218,12 +218,16 @@ export class GetYourGuideService implements BaseSourceService{
         // console.log("results:", response.data);
 
         // Extracting the data from the response
-        return response.data["suggestions"]?.[0]?.["locationId"];
+        return {
+            locationId: response.data["suggestions"]?.[0]?.["locationId"],
+            destination: response.data["suggestions"]?.[0]?.["type"] == "location" ? response.data["suggestions"]?.[0]?.["suggestion"] : destination
+        };
     }
 
     async searchOld({ destination, page = 1 }: SearchDto, user: User): Promise<SearchResults> {
         page = Number(page);
-        const locationId = await this.getLocationId(destination);
+        const { locationId, destination: _destination } = await this.getLocationId(destination);
+        destination = _destination;
         if (!locationId) {
             return {
                 results: [],
@@ -296,7 +300,8 @@ export class GetYourGuideService implements BaseSourceService{
 
     async search({ destination, page = 1 }: SearchDto, user: User): Promise<SearchResults> {
         page = Number(page);
-        const locationId = await this.getLocationId(destination);
+        const { locationId, destination: _destination } = await this.getLocationId(destination);
+        destination = _destination;
         if (!locationId) {
             return {
                 results: [],
