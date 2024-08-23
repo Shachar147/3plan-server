@@ -123,135 +123,152 @@ export class DistanceRepository extends Repository<Distance> {
     return result.join(' ');
   }
 
+  projectOsrmSearch(origins: string[], destinations: string[], travelMode: string): Promise<CalculateDistancesResult> {
+    const errors = [];
+    const results = [];
+
+    const baseUrl = `http://router.project-osrm.org/table/v1/${travelMode}/`;
+    const arr = Array.from(new Set([...origins, ...destinations]));
+    const url = `${baseUrl}${arr.map((x) => x.split(',').reverse().join(",")).join(";")}?annotations=distance,duration`;
+    return axios.get(url, {}).then((response) => {
+
+      if (response.statusText == "OK" && response.data.code == "Ok") {
+        for (let i =0; i < arr.length; i++){
+          for (let j = 0; j < arr.length; j++){
+            if (i == j){
+              continue;
+            }
+
+            const destination = arr[i];
+            const origin = arr[j];
+
+            if (response.data.distances[i][j]) {
+              results.push({
+                origin,
+                distance: {
+                  text: this.serializeDistance(response.data.distances[i][j]),
+                  value: response.data.distances[i][j],
+                },
+                destination,
+                duration: {
+                  text: this.serializeDuration(response.data.durations[i][j]),
+                  value: response.data.durations[i][j]
+                },
+                travelMode,
+                from: origin,
+                to: destination,
+              });
+            } else {
+              errors.push({
+                errorText:
+                    origin + " is not reachable by land from " + destination,
+                errorData: "unreachable",
+                origin,
+                distance: undefined,
+                destination,
+                duration: undefined,
+                travelMode,
+                from: origin,
+                to: destination,
+              });
+            }
+          }
+        }
+      }
+
+      return({ errors, results, numOfGoogleCalls: 0 });
+    })
+  }
+
+  googleDistanceMatrixSearch(origins: string[], destinations: string[], distance, numOfGoogleCalls: number): Promise<CalculateDistancesResult> {
+    const errors = [];
+    const results = [];
+    const travelMode = distance.options.mode.toUpperCase();
+
+    return new Promise((resolve, reject) => {
+      return distance.matrix(origins, destinations, function (err, distances) {
+        numOfGoogleCalls++;
+
+        if (err) {
+          reject(err);
+        }
+        if (!distances) {
+          reject("no distances");
+        }
+
+        if (distances.status == "OK") {
+          for (let i = 0; i < origins.length; i++) {
+            for (let j = 0; j < destinations.length; j++) {
+              const origin = distances.origin_addresses[i];
+              const destination = distances.destination_addresses[j];
+              if (distances.rows[0].elements[j].status == "OK") {
+                results.push({
+                  origin,
+                  distance: distances.rows[i].elements[j].distance,
+                  destination,
+                  duration: distances.rows[i].elements[j].duration,
+                  travelMode,
+                  from: origins[i],
+                  to: destinations[j],
+                });
+              } else {
+                errors.push({
+                  errorText:
+                      destination + " is not reachable by land from " + origin,
+                  errorData: distances.rows[0].elements[j],
+                  origin,
+                  distance: undefined,
+                  destination,
+                  duration: undefined,
+                  travelMode,
+                  from: origins[i],
+                  to: destinations[j],
+                });
+              }
+            }
+          }
+          resolve({errors, results, numOfGoogleCalls});
+        }
+      });
+    });
+  }
+
   async calculateDistances(
     origins: string[],
     destinations: string[],
     distance,
     numOfGoogleCalls: number
   ): Promise<CalculateDistancesResult> {
-    const errors = [];
-    const results = [];
     try {
-      return new Promise((resolve, reject) => {
-        const travelMode = distance.options.mode.toUpperCase();
 
-        // temp - fake
-        // for (let i = 0; i < origins.length && i <= 25; i++) {
-        //   for (let j = 0; j < destinations.length && j <= 25; j++) {
-        //     results.push({
-        //       origin: 'N/A',
-        //       distance: 'N/A',
-        //       destination: 'N/A',
-        //       duration: 'N/A',
-        //       travelMode,
-        //       from: stringToCoordinate(origins[i]),
-        //       to: stringToCoordinate(destinations[j]),
-        //     });
-        //   }
-        // }
-        //
-        // resolve({
-        //   errors,
-        //   results
-        // })
+      // temp - fake
+      // return new Promise((resolve, reject) => {
+      // for (let i = 0; i < origins.length && i <= 25; i++) {
+      //   for (let j = 0; j < destinations.length && j <= 25; j++) {
+      //     results.push({
+      //       origin: 'N/A',
+      //       distance: 'N/A',
+      //       destination: 'N/A',
+      //       duration: 'N/A',
+      //       travelMode,
+      //       from: stringToCoordinate(origins[i]),
+      //       to: stringToCoordinate(destinations[j]),
+      //     });
+      //   }
+      // }
+      //
+      // resolve({
+      //   errors,
+      //   results
+      // })
+      // });
 
-        const baseUrl = `http://router.project-osrm.org/table/v1/${distance.options.mode}/`;
-        const arr = Array.from(new Set([...origins, ...destinations]));
-        const url = `${baseUrl}${arr.map((x) => x.split(',').reverse().join(",")).join(";")}?annotations=distance,duration`;
-        axios.get(url, {}).then((response) => {
+      // moved to comment since Google is charging money now for this service:
+      // return await this.googleDistanceMatrixSearch(origins, destinations, distance, numOfGoogleCalls);
 
-          if (response.statusText == "OK" && response.data.code == "Ok") {
-            for (let i =0; i < arr.length; i++){
-              for (let j = 0; j < arr.length; j++){
-                if (i == j){
-                  continue;
-                }
+      const travelMode = distance.options.mode.toUpperCase();
+      return await this.projectOsrmSearch(origins, destinations, travelMode);
 
-                const destination = arr[i];
-                const origin = arr[j];
-
-                if (response.data.distances[i][j]) {
-                  results.push({
-                    origin,
-                    distance: {
-                      text: this.serializeDistance(response.data.distances[i][j]),
-                      value: response.data.distances[i][j],
-                    },
-                    destination,
-                    duration: {
-                      text: this.serializeDuration(response.data.durations[i][j]),
-                      value: response.data.durations[i][j]
-                    },
-                    travelMode,
-                    from: origin,
-                    to: destination,
-                  });
-                } else {
-                  errors.push({
-                    errorText:
-                        origin + " is not reachable by land from " + destination,
-                    errorData: "unreachable",
-                    origin,
-                    distance: undefined,
-                    destination,
-                    duration: undefined,
-                    travelMode,
-                    from: origin,
-                    to: destination,
-                  });
-                }
-              }
-            }
-          }
-
-          resolve({ errors, results, numOfGoogleCalls });
-        })
-
-        // distance.matrix(origins, destinations, function (err, distances) {
-        //   numOfGoogleCalls++;
-        //
-        //   if (err) {
-        //     reject(err);
-        //   }
-        //   if (!distances) {
-        //     reject("no distances");
-        //   }
-        //
-        //   if (distances.status == "OK") {
-        //     for (let i = 0; i < origins.length; i++) {
-        //       for (let j = 0; j < destinations.length; j++) {
-        //         const origin = distances.origin_addresses[i];
-        //         const destination = distances.destination_addresses[j];
-        //         if (distances.rows[0].elements[j].status == "OK") {
-        //           results.push({
-        //             origin,
-        //             distance: distances.rows[i].elements[j].distance,
-        //             destination,
-        //             duration: distances.rows[i].elements[j].duration,
-        //             travelMode,
-        //             from: origins[i],
-        //             to: destinations[j],
-        //           });
-        //         } else {
-        //           errors.push({
-        //             errorText:
-        //               destination + " is not reachable by land from " + origin,
-        //             errorData: distances.rows[0].elements[j],
-        //             origin,
-        //             distance: undefined,
-        //             destination,
-        //             duration: undefined,
-        //             travelMode,
-        //             from: origins[i],
-        //             to: destinations[j],
-        //           });
-        //         }
-        //       }
-        //     }
-        //     resolve({ errors, results, numOfGoogleCalls });
-        //   }
-        // });
-      });
     } catch (e) {
       throw new BadRequestException(
         "distanceCalcError",
