@@ -80,4 +80,7 @@ export class PointOfInterest extends BaseEntity {
 
     @Column('boolean', { default: false })
     isSystemRecommendation: boolean;
+
+    @Column('text', { nullable: true })
+    duration?: string
 }

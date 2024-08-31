@@ -238,6 +238,17 @@ export class GetYourGuideService implements BaseSourceService{
         const response = await axios.post(
             "https://travelers-api.getyourguide.com/user-interface/landing-pages/blocks",
             {
+                events: [
+                    {
+                        "event": {
+                            "type": "sortingSelected",
+                            "emitterId": "tabbing-activities-section",
+                            "payload": {
+                                "value": "rating_desc"
+                            }
+                        }
+                    }
+                ],
                 // Request body (data)
                 payload: {
                     locationId: locationId,
