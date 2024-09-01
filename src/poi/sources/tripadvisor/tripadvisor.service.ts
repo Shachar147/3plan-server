@@ -1018,10 +1018,10 @@ export class TripadvisorService implements BaseSourceService{
         const response = await axios.post(`${this.baseUrl}/data/graphql/ids`, data, config); // hebrew
 
         // Extracting the data from the response
-        const results = (response.data.map((o) => o.data?.["Result"]?.[0]?.["sections"].filter((i) => i["sectionId"] === "POI_LIST_CARD")).filter(Boolean)).flat().map((i) => this.format(destination, i))
+        let results = (response.data.map((o) => o.data?.["Result"]?.[0]?.["sections"].filter((i) => i["sectionId"] === "POI_LIST_CARD")).filter(Boolean)).flat().map((i) => this.format(destination, i))
 
         // keep on db
-        await this.poiService.upsertAll(results, user);
+        results = await this.poiService.upsertAllIds(results, user);
 
         return {
             results,

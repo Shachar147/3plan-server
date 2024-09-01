@@ -282,10 +282,10 @@ export class DubaicoilService implements BaseSourceService{
         });
 
         // filtered results:
-        const results = await this.removeDuplicateItems(allItems);
+        let results = await this.removeDuplicateItems(allItems);
 
         // keep on db
-        await this.poiService.upsertAll(results, user);
+        results = await this.poiService.upsertAllIds(results, user);
 
         return {
             nextPage: undefined,
