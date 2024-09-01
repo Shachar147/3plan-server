@@ -76,6 +76,43 @@ export class PointOfInterestService {
         return results;
     }
 
+    /**
+     * Upserts an array of points of interest (POIs).
+     * @param items - Array of POIs to be added or updated.
+     * @param user - The user performing the operation.
+     * @returns A promise that resolves when the upsert operation is complete.
+     */
+    async upsertAllIds(items: Partial<PointOfInterest>[], user: User): Promise<PointOfInterest[]> {
+        const results = []
+        for (const item of items) {
+            // Find existing POI based on the unique combination of name, source, and more_info
+            let existingPoi = await this.pointOfInterestRepository.findOne({
+                where: {
+                    name: item.name,
+                    source: item.source,
+                    more_info: item.more_info,
+                },
+            });
+
+            if (existingPoi) {
+                // Update the existing POI
+                this.logger.log(`Updating POI: ${item.name} (Source: ${item.source}, URL: ${item.more_info})`);
+                Object.assign(existingPoi, item, { updatedBy: user });
+                const poi = await this.pointOfInterestRepository.save(existingPoi);
+                item.id = poi.id;
+                results.push(item);
+            } else {
+                // Create a new POI
+                this.logger.log(`Creating new POI: ${item.name} (Source: ${item.source}, URL: ${item.more_info})`);
+                const newPoi = this.pointOfInterestRepository.create({ ...item, addedBy: user });
+                const poi = await this.pointOfInterestRepository.save(newPoi);
+                item.id = poi.id;
+                results.push(item);
+            }
+        }
+        return results;
+    }
+
     // Custom method to get the count of rows for each source for a given destination
     async getCountBySourceForDestination(destination: string): Promise<Record<string, number>> {
         const query = this.pointOfInterestRepository.createQueryBuilder('poi')

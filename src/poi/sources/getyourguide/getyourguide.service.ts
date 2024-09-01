@@ -361,7 +361,7 @@ export class GetYourGuideService implements BaseSourceService{
         results = results.map((r) => this.format(destination, r));
 
         // keep on db
-        await this.poiService.upsertAll(results, user);
+        results = await this.poiService.upsertAllIds(results, user);
 
         return {
             nextPage,
