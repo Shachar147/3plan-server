@@ -16,10 +16,4 @@ export class UnsplashService {
             return [];
         }
     }
-
-// // Example usage:
-//     getPhotosByPlace('new york')
-// .then(photos => console.log(photos))
-// .catch(error => console.error(error));
-
 }
