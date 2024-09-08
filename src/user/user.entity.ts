@@ -1,7 +1,7 @@
 import {
   BaseEntity,
   Column,
-  Entity, ManyToOne, OneToMany,
+  Entity, OneToMany,
   PrimaryGeneratedColumn,
   Unique,
 } from 'typeorm';
@@ -14,7 +14,6 @@ import {BIEvents} from "../bi-events/bi-events.entity";
 import {SharedTrips} from "../shared-trips/shared-trips.entity";
 import {TodolistTask} from "../todolist/todolist.entity";
 import { SavedCollections } from '../saved-collections/saved-collections.entity';
-import { SavedCollectionsItem } from '../saved-collections/saved-collections-item/saved-collections-item.entity';
 
 @Entity()
 @Unique(['username'])

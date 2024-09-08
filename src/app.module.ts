@@ -24,6 +24,7 @@ import {TripadvisorModule} from "./poi/sources/tripadvisor/tripadvisor.module";
 import { AiModule } from './ai/ai.module';
 import { SavedCollectionsModule } from './saved-collections/saved-collections.module';
 import { SavedCollectionsItemModule } from './saved-collections/saved-collections-item/saved-collections-item.module';
+import { PlacesPhotosModule } from './places-photos/places-photos.module';
 
 @Module({
   imports: [
@@ -53,6 +54,7 @@ import { SavedCollectionsItemModule } from './saved-collections/saved-collection
     AiModule,
     SavedCollectionsModule,
     SavedCollectionsItemModule,
+    PlacesPhotosModule,
   ],
   controllers: [AppController],
   providers: [AppService, TinderService],
