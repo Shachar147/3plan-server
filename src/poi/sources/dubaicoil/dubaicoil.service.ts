@@ -9,7 +9,6 @@ import axios from "axios";
 @Injectable()
 export class DubaicoilService implements BaseSourceService{
 
-    private destination = "Dubai";
     private source = "Dubai.co.il"
     private currency = "ILS";
     private language = "he"; // en-US

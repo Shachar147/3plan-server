@@ -3,7 +3,7 @@ import {BaseSourceService} from "../base-source-service";
 import {SearchResults} from "../../utils/interfaces";
 import axios from "axios";
 import {SearchDto} from "../../dto/search-dto";
-import {convertTime} from "../../utils/utils";
+import {convertTime, extractCategory} from "../../utils/utils";
 import {PointOfInterestService} from "../../poi.service";
 import {User} from "../../../user/user.entity";
 
@@ -21,98 +21,6 @@ export class TripadvisorService implements BaseSourceService{
     constructor(
         private poiService: PointOfInterestService
     ) {
-    }
-
-    extractCategory(arr) {
-        const categoryToKeywordMapping = {
-            "CATEGORY.ATTRACTIONS": [
-                "Studio Tour",
-                "hiking",
-                "hikes",
-                "dive",
-                " Terme ",
-                "skypool",
-                "Dubai: Desert",
-                "Waterpark",
-                "Yacht Tour",
-                "Dubai: Safari",
-                "Show Tickets",
-                "Zip Line",
-                "Helicopter Flight",
-                "The Green Planet",
-                "Adventure",
-                "Desert Safari",
-                "Dubai Snow",
-                "Ferrari World",
-                "Superyacht",
-                "jet ski",
-                "Adventure",
-                "Cruise",
-                "Boat Tours",
-                "Parasailing",
-                "Boat Rentals",
-                "Diving",
-                "Kayaking",
-                "Full-day Tours",
-                "Yoga Classes",
-                "Paddleboarding",
-                "snorkeling",
-                "paddle surf",
-                "boat trip",
-                "Buggy Excursion",
-            ],
-            "CATEGORY.NATURE": [
-                "picnic",
-                "flowers garden",
-                "forest",
-                "mountains"
-            ],
-            "CATEGORY.TOURISM": ["city-walk", "burj", "מסגד", "טיילת", "המרינה", "אייפל", "eifel", "souk", "שווקים", "Historical Tours"],
-            "CATEGORY.VIEWS": ["sky view", "תצפית", "dubai frame"],
-            "CATEGORY.BARS_AND_NIGHTLIFE": ["dance club", "lounge", "club"],
-            "CATEGORY.PARKS": ["פארק"],
-            "CATEGORY.CITIES": ["עיירה", "עיירות"],
-            "CATEGORY.BEACHES": ["beach "],
-            "CATEGORY.BEACH_BARS": ["beach bar"],
-            "CATEGORY.MUSEUMS": ["Museum"],
-            "CATEGORY.HOTELS": [
-                "six senses",
-                "sixsenses",
-                "hotel",
-                "resort",
-                "בית מלון",
-                "המלון",
-            ],
-            "CATEGORY.FOOD": ["restaurant", "cafe", "מסעדה", "chocolate", "croissants", "food", "drink"],
-        };
-        let toReturn = "";
-
-        let matchedCategories = [];
-        Object.keys(categoryToKeywordMapping).forEach((category) => {
-            arr.forEach((str) => {
-                categoryToKeywordMapping[category].forEach((keyword) => {
-                    if (str.toLowerCase().indexOf(keyword.toLowerCase()) !== -1) {
-                        // toReturn = category;
-                        matchedCategories.push(category);
-                        // return toReturn;
-                    }
-                });
-                // if (toReturn !== "") {
-                //     // return toReturn;
-                // }
-            });
-            if (matchedCategories.length > 0){
-                if (matchedCategories.includes("בתי מלון") && matchedCategories.length > 1) {
-                    matchedCategories = matchedCategories.filter((i) => i != "בתי מלון");
-                }
-                toReturn = matchedCategories[0];
-                return matchedCategories[0]
-            }
-            // if (toReturn !== "") {
-            //     return toReturn;
-            // }
-        });
-        return toReturn;
     }
 
     format(destination: string, json: Record<string, any>){
@@ -153,12 +61,13 @@ export class TripadvisorService implements BaseSourceService{
 
             }
         }
+        const additionalText = data?.["primaryInfo"]?.["text"] ?? "";
         const location = ""; // activityCardMetaData?.["coordinates"];
         // const category = activityCardMetaData?.["categoryLabel"];
-        const category = this.extractCategory([
+        const category = extractCategory([
             title,
             description,
-            data?.["primaryInfo"]?.["text"] ?? ""
+            additionalText
         ]);
 
         const priority = rating.rating == 5 && Number(rating.quantity) > 1000 ? "high" : undefined;
@@ -193,7 +102,7 @@ export class TripadvisorService implements BaseSourceService{
             currency: currency,
             extra: {
                 price,
-                currency: currency
+                currency: currency,
             }
         }
     }

@@ -71,6 +71,24 @@ export class PointOfInterestController {
         return this.pointOfInterestService.getSearchResults(searchKeyword, page);
     }
 
+    @Get('/fix-categories')
+    @UseGuards(AuthGuard())
+    async fixCategoriesDryRun(@GetUser() user: User,): Promise<{
+        totalDiffs: number,
+        totalUpdated: number
+    }> {
+        return await this.pointOfInterestService.fixCategories(user);
+    }
+
+    @Post('/fix-categories')
+    @UseGuards(AuthGuard())
+    async fixCategories(@GetUser() user: User,): Promise<{
+        totalDiffs: number,
+        totalUpdated: number
+    }> {
+        return await this.pointOfInterestService.fixCategories(user, false);
+    }
+
     @Get('/:id')
     @UseGuards(AuthGuard())
     async getPointOfInterestById(@Param('id') id: number): Promise<PointOfInterest> {
@@ -97,5 +115,11 @@ export class PointOfInterestController {
     @UseGuards(AuthGuard())
     async getCountBySourceForDestination(@Param('destination') destination: string, @GetUser() user: User): Promise<Record<string, number>> {
         return this.pointOfInterestService.getCountBySourceForDestination(destination);
+    }
+
+    @Get('/by-category/all')
+    @UseGuards(AuthGuard())
+    async getPointsOfInterestByCategory(@GetUser() user: User): Promise<Record<string, any>> {
+        return await this.pointOfInterestService.getPointsOfInterestByCategory(user);
     }
 }

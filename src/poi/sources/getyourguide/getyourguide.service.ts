@@ -3,7 +3,7 @@ import {BaseSourceService} from "../base-source-service";
 import {SearchResults} from "../../utils/interfaces";
 import axios from "axios";
 import {SearchDto} from "../../dto/search-dto";
-import {convertTime} from "../../utils/utils";
+import {convertTime, extractCategory} from "../../utils/utils";
 import {PointOfInterestService} from "../../poi.service";
 import {User} from "../../../user/user.entity";
 
@@ -21,84 +21,6 @@ export class GetYourGuideService implements BaseSourceService{
     ) {
     }
 
-    extractCategory(arr) {
-        const categoryToKeywordMapping = {
-            "CATEGORY.ATTRACTIONS": [
-                "Studio Tour",
-                "hiking",
-                "hikes",
-                "dive",
-                " Terme ",
-                "skypool",
-                "Dubai: Desert",
-                "Waterpark",
-                "Yacht Tour",
-                "Dubai: Safari",
-                "Show Tickets",
-                "Zip Line",
-                "Helicopter Flight",
-                "The Green Planet",
-                "Adventure",
-                "Desert Safari",
-                "Dubai Snow",
-                "Ferrari World",
-                "Superyacht",
-                "jet ski"
-            ],
-            "CATEGORY.NATURE": [
-                "picnic",
-                "flowers garden",
-                "forest",
-                "mountains"
-            ],
-            "CATEGORY.TOURISM": ["city-walk", "burj", "מסגד", "טיילת", "המרינה", "אייפל", "eifel", "souk", "שווקים"],
-            "CATEGORY.VIEWS": ["sky view", "תצפית", "dubai frame"],
-            "CATEGORY.BARS_AND_NIGHTLIFE": ["dance club", "lounge"],
-            "CATEGORY.PARKS": ["פארק"],
-            "CATEGORY.CITIES": ["עיירה", "עיירות"],
-            "CATEGORY.BEACHES": ["beach "],
-            "CATEGORY.BEACH_BARS": ["beach bar"],
-            "CATEGORY.MUSEUMS": ["Museum"],
-            "CATEGORY.HOTELS": [
-                "six senses",
-                "sixsenses",
-                "hotel",
-                "resort",
-                "בית מלון",
-                "המלון",
-            ],
-            "CATEGORY.FOOD": ["restaurant", "cafe", "מסעדה", "chocolate", "croissants"],
-        };
-        let toReturn = "";
-
-        let matchedCategories = [];
-        Object.keys(categoryToKeywordMapping).forEach((category) => {
-            arr.forEach((str) => {
-                categoryToKeywordMapping[category].forEach((keyword) => {
-                    if (str.toLowerCase().indexOf(keyword.toLowerCase()) !== -1) {
-                        // toReturn = category;
-                        matchedCategories.push(category);
-                        // return toReturn;
-                    }
-                });
-                // if (toReturn !== "") {
-                //     // return toReturn;
-                // }
-            });
-            if (matchedCategories.length > 0){
-                if (matchedCategories.includes("בתי מלון") && matchedCategories.length > 1) {
-                    matchedCategories = matchedCategories.filter((i) => i != "בתי מלון");
-                }
-                toReturn = matchedCategories[0];
-                return matchedCategories[0]
-            }
-            // if (toReturn !== "") {
-            //     return toReturn;
-            // }
-        });
-        return toReturn;
-    }
-
     formatOld(destination: string, json: Record<string, any>){
         const moreInfoLink = json["onClickLink"]?.["link"];
         const activityCardMetaData = JSON.parse(json["onClickTrackingEvent"]?.["properties"]?.["metadata"] ?? "{}")?.["activity_card"];
@@ -110,13 +32,16 @@ export class GetYourGuideService implements BaseSourceService{
         const price = activityCard?.["price"]?.["starting_price"];
         const location = activityCardMetaData?.["coordinates"];
         // const category = activityCardMetaData?.["categoryLabel"];
-        const category = this.extractCategory([
-            json["title"],
+
+        const name = json["title"];
+
+        const category = extractCategory([
+            name,
             description
         ]);
         const priority = JSON.stringify(json).includes("top pick") || JSON.stringify(json).includes("bestseller") ? "high" : undefined;
         return {
-            name: json["title"],
+            name,
             destination,
             description,
             images: json["images"],
@@ -124,8 +49,7 @@ export class GetYourGuideService implements BaseSourceService{
             source: this.source,
             more_info: moreInfoLink ? `https://www.getyourguide.com${moreInfoLink}` : undefined,
             duration: duration != undefined ? convertTime(duration) : undefined,
-            category, // todo modify?
-            //
+            category,
             icon: undefined, // ?
             openingHours: undefined, // ?
             priority,
@@ -136,10 +60,10 @@ export class GetYourGuideService implements BaseSourceService{
             status: "active",
             isVerified: true, // ?
             price,
-            currency: 'ILS',
+            currency: this.currency,
             extra: {
                 price,
-                currency: 'ILS'
+                currency: this.currency
             }
         }
     }
@@ -154,14 +78,15 @@ export class GetYourGuideService implements BaseSourceService{
         const duration = json["duration"] ? `${json["duration"]["min"]} - ${json["duration"]["max"]} ${json["duration"]["units"]}` : undefined;
         const price = json?.["price"]?.["startingPrice"];
         const location = json["coordinates"];
+        const name = json["title"];
         // const category = activityCardMetaData?.["categoryLabel"];
-        const category = this.extractCategory([
-            json["title"],
+        const category = extractCategory([
+            name,
             description
         ]);
         const priority = undefined; // ?
         return {
-            name: json["title"],
+            name,
             destination,
             description,
             images: json["images"],
@@ -181,10 +106,10 @@ export class GetYourGuideService implements BaseSourceService{
             status: "active",
             isVerified: true, // ?
             price,
-            currency: 'ILS',
+            currency: this.currency,
             extra: {
                 price,
-                currency: 'ILS',
+                currency: this.currency,
             }
         }
     }
@@ -194,7 +119,7 @@ export class GetYourGuideService implements BaseSourceService{
         const response = await axios.get(`https://travelers-api.getyourguide.com/search/v2/suggest?suggestEntities=location,activity,synthetic_trip_item,trip_item_group&q=${destination}`, {
             headers: {
                 'accept': 'application/json, text/plain, */*',
-                'accept-currency': 'ILS',
+                'accept-currency': this.currency,
                 'accept-language': 'en-US',
                 'geo-ip-country': 'IL',
                 'origin': 'https://www.getyourguide.com',

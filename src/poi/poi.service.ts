@@ -1,10 +1,11 @@
-import { Injectable, Logger } from '@nestjs/common';
+import {Injectable, Logger, UnauthorizedException} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PointOfInterestRepository } from './poi.repository';
 import { PointOfInterest } from './poi.entity';
 import { User } from '../user/user.entity';
 import {SearchResults, SearchSuggestion} from "./utils/interfaces";
 import {Brackets, Like} from "typeorm";
+import {extractCategory} from "./utils/utils";
 
 @Injectable()
 export class PointOfInterestService {
@@ -21,7 +22,7 @@ export class PointOfInterestService {
     }
 
     async getAllPointsOfInterest(): Promise<PointOfInterest[]> {
-        return this.pointOfInterestRepository.find();
+        return this.pointOfInterestRepository.find({});
     }
 
     async getPointOfInterestById(id: number): Promise<PointOfInterest> {
@@ -158,6 +159,16 @@ export class PointOfInterestService {
     }
 
     async getSearchResults(searchKeyword: string, page: number, limit: number = 50): Promise<SearchResults> {
+        const total = await this.pointOfInterestRepository.count({
+            where: [
+                { name: Like(`%${searchKeyword}%`) },
+                { description: Like(`%${searchKeyword}%`) },
+                { destination: Like(`%${searchKeyword}%`) }
+            ],
+        });
+
+        const totalPages = Math.ceil(total/limit)
+
         // Fetch the points of interest based on the given searchKeyword, page, and limit
         const pointsOfInterest = await this.pointOfInterestRepository.find({
             where: [
@@ -183,6 +194,8 @@ export class PointOfInterestService {
 
         // Return the formatted response
         return {
+            total,
+            totalPages,
             results: pointsOfInterest,
             isFinished,
             nextPage,
@@ -262,5 +275,98 @@ export class PointOfInterestService {
             })
         })
         return suggestions;
+    }
+
+    async fixCategories(user: User, isDryRun: boolean = true) {
+        if (user.username !== 'Shachar'){
+            throw new UnauthorizedException();
+        }
+
+        this.logger.log("getting all POIs")
+        const allPois = await this.getAllPointsOfInterest();
+        this.logger.log(`got ${allPois.length} POIs`);
+
+        const diffs = [];
+        const diffsByCategories = {};
+        let updatedRows = 0;
+
+        for (let i=0; i< allPois.length; i++){
+            const row = allPois[i];
+            if (row.source == "Dubai.co.il") {
+                continue;
+            }
+            const existingCategory = row.category || 'CATEGORY.GENERAL';
+            const newCategory = extractCategory([
+                row.name,
+                row.description
+            ]) || 'CATEGORY.GENERAL';
+
+            if (existingCategory != newCategory) {
+                const diffByCategory = `${existingCategory} -> ${newCategory}`;
+                diffsByCategories[diffByCategory] = diffsByCategories[diffByCategory] || [];
+                const diff = `${row.name} | ${diffByCategory}`;
+                this.logger.log(diff);
+                diffs.push(diff);
+                // diffsByCategories[diffByCategory].push(row.name + "     -      " + row.description);
+                diffsByCategories[diffByCategory].push(row.name);
+
+                // i = allPois.length+1;
+
+                const percents = Math.round(((i+1) / allPois.length) * 100);
+                if (percents % 5 === 0){
+                    this.logger.log(`finished ${percents}% - ${i+1}/${allPois.length}`);
+                }
+
+                if (!isDryRun) {
+                    this.logger.log("applying change...");
+                    if (!row.backupCategory) {
+                        row.backupCategory = row.category || "CATEGORY.GENERAL";
+                    }
+                    row.category = newCategory;
+                    await row.save();
+                    updatedRows++;
+                    // if (updatedRows) {
+                    //     i = allPois.length + 1;
+                    // }
+                    this.logger.log(`saved! so far ${updatedRows} rows modified`);
+                }
+            }
+        }
+
+        // const relevantKeys = Object.keys(diffsByCategories).filter((k) => k.endsWith(" -> CATEGORY.GENERAL") || k.endsWith(" -> CATEGORY.DESSERTS"));
+        // const k = {};
+        // relevantKeys.forEach((_k) => {
+        //     k[_k] = diffsByCategories[_k];
+        // })
+
+        return {
+            diffs: diffsByCategories,
+            totalRows: allPois.length,
+            totalDiffs: diffs.length,
+            totalUpdated: updatedRows
+        };
+    }
+
+    async getPointsOfInterestByCategory(user: User){
+        if (user.username !== 'Shachar'){
+            throw new UnauthorizedException();
+        }
+
+        const allPois = await this.getAllPointsOfInterest();
+        const result: Record<string, any> = {};
+        allPois.forEach((poi) => {
+            const category = poi.category || "CATEGORY.GENERAL";
+            result[category] = result[category] || [];
+            result[category].push(poi.name);
+        });
+
+        const totals = {};
+        Object.keys(result).forEach((categoryName) => {
+            totals[categoryName] = result[categoryName].length;
+        })
+
+        result["totals"] = totals;
+
+        return result;
     }
 }
