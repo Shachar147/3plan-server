@@ -83,4 +83,7 @@ export class PointOfInterest extends BaseEntity {
 
     @Column('text', { nullable: true })
     duration?: string
+
+    @Column('text', { nullable: true })
+    backupCategory?: string
 }

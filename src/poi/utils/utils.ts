@@ -69,3 +69,257 @@ export function convertTime(input) {
     // Pad hours and minutes to ensure two digits and format the result as "HH:MM"
     return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
 }
+
+export function extractCategory(arr: string[]): string {
+
+    const categoriesPriorities = [
+        "CATEGORY.NATURE",
+        "CATEGORY.GIMMICKS",
+        "CATEGORY.MUSEUMS",
+        "CATEGORY.ATTRACTIONS",
+        "CATEGORY.DESSERTS",
+        "CATEGORY.FOOD",
+        "CATEGORY.TOURISM",
+        "CATEGORY.VIEWS",
+        "CATEGORY.BARS_AND_NIGHTLIFE",
+        "CATEGORY.PARKS",
+        "CATEGORY.CITIES",
+        "CATEGORY.BEACH_BARS",
+        "CATEGORY.BEACHES",
+        "CATEGORY.HOTELS"
+    ];
+
+    const excludeKeywords = [
+        "Business Lounge"
+    ]
+
+    const knownResturants = [
+        "amazonico",
+        "zuma",
+        "McDonald's",
+        "Subway",
+        "Starbucks",
+        "KFC",
+        "Burger King",
+        "Pizza Hut",
+        "Dominos",
+        "Domino's",
+        "Panda Express",
+        "Applebee's",
+        "Shake Shack",
+        "Cheesecake factory",
+        "Vapiano",
+        "Arcaffe",
+        "Aroma Espresso Bar",
+        "Café Amazon",
+        "Café Café",
+        "Caffè Nero",
+        "Cofix",
+        "Costa Cafe"
+    ]
+
+    if (knownResturants.find((k) => arr[0].includes(k))) {
+        return "CATEGORY.FOOD";
+    }
+
+    if (arr[0].includes("Bike Tour")) {
+        arr = [
+            "Bike Tour"
+        ];
+    }
+
+    const categoryToKeywordMapping = {
+        "CATEGORY.GIMMICKS": [
+            "glow in the dark",
+            "glow in dark",
+            "secret bar",
+            "fairy tales",
+            "Miracle Garden",
+            "harry potter pub",
+            "harry potter bar",
+            "spongebob",
+            "smurfs",
+            "moomins",
+            "secret pub",
+            "Selfie Museum",
+            "Museum of Selfies",
+            "golf in the dark",
+            "Hysteria Haunted Attraction",
+            "beer spa",
+            "convertible Prague sightseeing tour",
+            "Flying Dress Photoshoot",
+            "Hot Air Balloon Ride",
+            "Sumo Entertainment Show",
+            "Tuk Tuk City Tour",
+            "Shark Cage Diving",
+        ],
+        "CATEGORY.GENERAL": [
+            "Doha Private City Tour Create Your Own Itinerary",
+        ],
+        "CATEGORY.ATTRACTIONS": [
+            "Romantic Canal Cruise",
+            "ספארי במדבר | טרקטורונים | עליית חול | טיול גמלים",
+            "Private Couples Photography Session",
+            "Sunset Boat Tour in Ibiza with All Inclusive",
+            "Rope Trips Aventuras Radicais",
+            "4WD Jeep Tours",
+            "Bali Full Day The Gate of Heaven Tour by VW Safari Classic Car",
+            "VW Safari Classic Car",
+            "Outdoor Shooting Experience",
+            "Helicopter tour",
+            "Helicopter ride",
+            "Airboat ride",
+            "Polaris Slignshot rental",
+            "Bike tour",
+            "סיור רכב סילון",
+            "Speedboat",
+            "Helicopter Experience",
+            "Speedboat Tour",
+            "Studio Tour",
+            "hiking",
+            // "hikes",
+            "dive",
+            " Terme ",
+            "skypool",
+            "Dubai: Desert",
+            "Waterpark",
+            "Yacht Tour",
+            "Dubai: Safari",
+            "Show Tickets",
+            "Zip Line",
+            "Helicopter Flight",
+            "The Green Planet",
+            "Adventure",
+            "Desert Safari",
+            "Dubai Snow",
+            "Ferrari World",
+            "Superyacht",
+            "jet ski",
+            "Adventure",
+            "Cruise",
+            "Boat Tours",
+            "Parasailing",
+            "Boat Rentals",
+            "Diving",
+            "Kayaking",
+            "Full-day Tours",
+            "Yoga Classes",
+            "Paddleboarding",
+            "snorkeling",
+            "paddle surf",
+            "boat trip",
+            "Buggy Excursion",
+            "Walking Tour",
+            "Canoeing",
+            "Wine Tasting"
+        ],
+        "CATEGORY.NATURE": [
+            "Waterfalls",
+            // " hike ",
+            "Niagara Falls",
+            "forest",
+            "picnic",
+            "flowers garden",
+            "forest",
+            "mountains",
+            "הר געש, שדות תה ואורז, מעיינות חמים",
+            "Panoramic historical walking tour of Naples",
+        ],
+        "CATEGORY.TOURISM": [
+            "city-walk", "burj", "מסגד", "טיילת", "המרינה", "אייפל", "eifel", "souk", "שווקים", "Historical Tours", "old town", "windsor castle",
+            "Pyramids of Giza", "ancient Egyptian", "Egyptian Antiquities", "Tour of Old Nice", "Walking Tour, in Nice", "Historical Stone town tour", "London: Buckingham Palace",
+            "Private Tailor Made Tour", "Sagrada Familia", "La Sagrada Familia", "Walking Historic Highlights Tour", "סיור רגלי לקבוצות קטנות עם מדריך",
+            "historical walking tour", "Private Full Day Tour: Ulun Danu Beratan Temple, Jatiluwih and Tanah Lot Temple", "Treblinka Tour",
+            "Guided City Tour", "Private City Tour"
+        ],
+        "CATEGORY.VIEWS": ["sky view", "תצפית", "dubai frame", "Observatory"],
+        "CATEGORY.BARS_AND_NIGHTLIFE": ["dance club", "lounge", "AnonymouS Bar", "rooftop bar", "Icebar", "Korean Drinking Games Night"],
+        "CATEGORY.PARKS": ["פארק"],
+        "CATEGORY.CITIES": ["עיירה", "עיירות"],
+        "CATEGORY.BEACH_BARS": ["beach bar", "beach club"],
+        "CATEGORY.BEACHES": ["beach "],
+        "CATEGORY.MUSEUMS": ["Museum", "art museum", "Paris: Louvre", "Ripley's Believe it or not"],
+        "CATEGORY.HOTELS": [
+            "six senses",
+            "sixsenses",
+            // " hotel ",
+            // " resort ",
+            "בית מלון",
+            "המלון",
+            "אתר נופש"
+        ],
+        "CATEGORY.DESSERTS": [
+            'desserts',
+            'קינוחים',
+            'גלידה',
+            'macaroons',
+            'מקרונים',
+            'cookie',
+            'עוגייה',
+            'ice cream',
+        ],
+        "CATEGORY.FOOD": [
+            "Wine Tour",
+            "Food cooking class",
+            "Cooking Class",
+            "סיור טעימות", "Food tour",
+            "restaurant", "cafe", "מסעדה", "chocolate", "croissants",
+            "Pizza", "Pasta", "Hamburger", "Burger", "Sushi",
+            "Brixton Market Tour with African and Caribbean Cuisine",
+            "Brooklyn NYC Food & Walking Tour with a 5th Generation New Yorker"
+        ],
+    };
+
+    let matchedCategories: Record<string, number> = {};
+    Object.keys(categoryToKeywordMapping).forEach((category) => {
+        arr.forEach((str) => {
+
+            excludeKeywords.forEach((k) => {
+                str = str.replace(k, "");
+            })
+
+            categoryToKeywordMapping[category].forEach((keyword) => {
+                if (str.toLowerCase().indexOf(keyword.toLowerCase()) !== -1) {
+                    matchedCategories[category] = matchedCategories[category] || 0;
+                    matchedCategories[category] += 1;
+
+                    if (str == keyword){
+                        matchedCategories[category] += 10;
+                    }
+                }
+            });
+        });
+
+        // if (Object.keys(matchedCategories).length > 0){
+        //     if (Object.keys(matchedCategories).length > 1) {
+        //         console.log("hereee", matchedCategories, matchedCategories.sort((a, b) => categoriesPriorities.indexOf(a) - categoriesPriorities.indexOf(b))[0])
+        //     }
+        //     toReturn = matchedCategories.sort((a,b) => categoriesPriorities.indexOf(a) - categoriesPriorities.indexOf(b))[0];
+        //     return matchedCategories[0]
+        // }
+    });
+
+
+    if (Object.keys(matchedCategories).length == 0){
+        return "";
+    }
+
+    if (matchedCategories["CATEGORY.GIMMICKS"]) {
+        return "CATEGORY.GIMMICKS";
+    }
+
+    // Step 1: Find the highest score
+    const highestScore = Math.max(...Object.values(matchedCategories));
+
+    // Step 2: Filter categories with the highest score
+    const topCategories = Object.keys(matchedCategories).filter(category => matchedCategories[category] === highestScore);
+
+    // Step 3: Sort top categories by priority
+    const bestCategory = topCategories.sort((a, b) => {
+        return categoriesPriorities.indexOf(a) - categoriesPriorities.indexOf(b);
+    })[0];
+
+    // console.log(bestCategory);  // Output the category with the highest priority
+
+    return bestCategory;
+}

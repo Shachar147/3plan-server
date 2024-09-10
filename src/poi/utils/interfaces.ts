@@ -1,4 +1,6 @@
 export interface SearchResults {
+    total?: number;
+    totalPages?: number;
     results: any[]; // todo complete: type of Suggestion
     nextPage?: number;
     isFinished: boolean;
