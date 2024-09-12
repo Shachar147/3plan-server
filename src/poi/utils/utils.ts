@@ -158,6 +158,9 @@ export function extractCategory(arr: string[]): string {
             "מפראג: סיור לשוויץ הסקסונית והבוהמית",
         ],
         "CATEGORY.ATTRACTIONS": [
+            "הרפתקאות באגי דיונה",
+            "All Inclusive! Tulum Ruins, Tequila Tasting + Swim in 3 Cenotes in Small Group!",
+            "סיור וספה וינטג'",
             "ברלין: מגדל הטלוויזיה מהיר כרטיס והזמנה למסעדה",
             "בורה בורה ביבשה ובים: ספארי 4WD ושנורקל",
             "מהו צ'י מין: טרק Can Gio Mangrove, אי הקופים",
@@ -228,6 +231,7 @@ export function extractCategory(arr: string[]): string {
             "mountains",
             "הר געש, שדות תה ואורז, מעיינות חמים",
             "Panoramic historical walking tour of Naples",
+            "הלגונות והחופים",
         ],
         "CATEGORY.TOURISM": [
             "city-walk", "burj", "מסגד", "טיילת", "המרינה", "אייפל", "eifel", "souk", "שווקים", "Historical Tours", "old town", "windsor castle",
@@ -264,6 +268,7 @@ export function extractCategory(arr: string[]): string {
             'ice cream',
         ],
         "CATEGORY.FOOD": [
+            "dishes from all over Greece",
             "סיור טעימות של אוכל רחוב",
             "פאלרמו: סיור טעימות של אוכל רחוב ושוק מקומי",
             "Wine Tour",
