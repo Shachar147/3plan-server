@@ -155,8 +155,12 @@ export function extractCategory(arr: string[]): string {
         ],
         "CATEGORY.GENERAL": [
             "Doha Private City Tour Create Your Own Itinerary",
+            "מפראג: סיור לשוויץ הסקסונית והבוהמית",
         ],
         "CATEGORY.ATTRACTIONS": [
+            "ברלין: מגדל הטלוויזיה מהיר כרטיס והזמנה למסעדה",
+            "בורה בורה ביבשה ובים: ספארי 4WD ושנורקל",
+            "מהו צ'י מין: טרק Can Gio Mangrove, אי הקופים",
             "Romantic Canal Cruise",
             "ספארי במדבר | טרקטורונים | עליית חול | טיול גמלים",
             "Private Couples Photography Session",
@@ -209,7 +213,7 @@ export function extractCategory(arr: string[]): string {
             "paddle surf",
             "boat trip",
             "Buggy Excursion",
-            "Walking Tour",
+            // "Walking Tour",
             "Canoeing",
             "Wine Tasting"
         ],
@@ -230,7 +234,8 @@ export function extractCategory(arr: string[]): string {
             "Pyramids of Giza", "ancient Egyptian", "Egyptian Antiquities", "Tour of Old Nice", "Walking Tour, in Nice", "Historical Stone town tour", "London: Buckingham Palace",
             "Private Tailor Made Tour", "Sagrada Familia", "La Sagrada Familia", "Walking Historic Highlights Tour", "סיור רגלי לקבוצות קטנות עם מדריך",
             "historical walking tour", "Private Full Day Tour: Ulun Danu Beratan Temple, Jatiluwih and Tanah Lot Temple", "Treblinka Tour",
-            "Guided City Tour", "Private City Tour"
+            "Guided City Tour", "Private City Tour", "Castle Tour", "Churchil War Rooms", "London Landmarks", "White House Walking Tour", "Historic Shared Walking Tour",
+            "Walking Tour",
         ],
         "CATEGORY.VIEWS": ["sky view", "תצפית", "dubai frame", "Observatory"],
         "CATEGORY.BARS_AND_NIGHTLIFE": ["dance club", "lounge", "AnonymouS Bar", "rooftop bar", "Icebar", "Korean Drinking Games Night"],
@@ -244,9 +249,9 @@ export function extractCategory(arr: string[]): string {
             "sixsenses",
             // " hotel ",
             // " resort ",
-            "בית מלון",
-            "המלון",
-            "אתר נופש"
+            // "בית מלון",
+            // "המלון",
+            // "אתר נופש"
         ],
         "CATEGORY.DESSERTS": [
             'desserts',
@@ -259,6 +264,8 @@ export function extractCategory(arr: string[]): string {
             'ice cream',
         ],
         "CATEGORY.FOOD": [
+            "סיור טעימות של אוכל רחוב",
+            "פאלרמו: סיור טעימות של אוכל רחוב ושוק מקומי",
             "Wine Tour",
             "Food cooking class",
             "Cooking Class",
@@ -266,7 +273,10 @@ export function extractCategory(arr: string[]): string {
             "restaurant", "cafe", "מסעדה", "chocolate", "croissants",
             "Pizza", "Pasta", "Hamburger", "Burger", "Sushi",
             "Brixton Market Tour with African and Caribbean Cuisine",
-            "Brooklyn NYC Food & Walking Tour with a 5th Generation New Yorker"
+            "Brooklyn NYC Food & Walking Tour with a 5th Generation New Yorker",
+            "Food markets",
+            "Street Food Walking Tour",
+            "Foody walking tour"
         ],
     };
 
