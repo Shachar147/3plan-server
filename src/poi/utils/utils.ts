@@ -291,10 +291,11 @@ export function extractCategory(arr: string[]): string {
             categoryToKeywordMapping[category].forEach((keyword) => {
                 if (str.toLowerCase().indexOf(keyword.toLowerCase()) !== -1) {
                     matchedCategories[category] = matchedCategories[category] || 0;
-                    matchedCategories[category] += 1;
 
                     if (str == keyword){
-                        matchedCategories[category] += 10;
+                        matchedCategories[category] += 100;
+                    } else {
+                        matchedCategories[category] += keyword.length;
                     }
                 }
             });
