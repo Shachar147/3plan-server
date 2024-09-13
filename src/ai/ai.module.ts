@@ -5,10 +5,12 @@ import {AuthModule} from "../auth/auth.module";
 import {PassportModule} from "@nestjs/passport";
 import {TripModule} from "../trip/trip.module";
 import {UserModule} from "../user/user.module";
+import {PoiModule} from "../poi/poi.module";
 
 @Module({
   imports: [
     AuthModule,
+    PoiModule, // Import the PoiModule here
     PassportModule,
     TripModule,
     UserModule

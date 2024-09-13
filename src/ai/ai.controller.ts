@@ -18,11 +18,22 @@ export class AIController {
     @ApiOperation({ summary: "Create a Trip using AI", description: "Create a trip on Triplan using AI" })
     @Post('/')
     @UseGuards(AuthGuard())
-    async getTripAdvisorSuggestions(
+    async createTripUsingAI(
         @Body(ValidationPipe) params: CreateTripDto,
         @GetUser() user: User,
         @Req() request: Request
     ) {
-        return await this.aiService.createTrip(params, user, request)
+        return await this.aiService.createWonderplanTrip(params, user, request)
+    }
+
+    // @ApiOperation({ summary: "Create a Trip Template using AI", description: "Create a trip template on Triplan using AI" })
+    @Post('/template')
+    @UseGuards(AuthGuard())
+    async createTripTemplateUsingAI(
+        @Body(ValidationPipe) params: CreateTripDto,
+        @GetUser() user: User,
+        @Req() request: Request
+    ) {
+        return await this.aiService.createWonderplanTrip(params, user, request, true)
     }
 }
