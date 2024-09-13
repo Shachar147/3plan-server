@@ -128,6 +128,14 @@ export function extractCategory(arr: string[]): string {
         ];
     }
 
+    if (arr[0].includes("Bus Transfer") || arr[0].includes("Shuttle") || arr[0].includes("Transportation Ticket") || arr[0].includes("Airport Transfer")) {
+        return "CATEGORY.GENERAL";
+    }
+
+    if (arr[0].includes("Outlet") || arr[0] == "Dubai Mall" || arr[0] == "The Dubai Mall") {
+        return "CATEGORY.SHOPPING";
+    }
+
     const categoryToKeywordMapping = {
         "CATEGORY.GIMMICKS": [
             "glow in the dark",
@@ -152,6 +160,7 @@ export function extractCategory(arr: string[]): string {
             "Sumo Entertainment Show",
             "Tuk Tuk City Tour",
             "Shark Cage Diving",
+            "Haunted Pubs",
         ],
         "CATEGORY.GENERAL": [
             "Doha Private City Tour Create Your Own Itinerary",
@@ -239,7 +248,8 @@ export function extractCategory(arr: string[]): string {
             "Private Tailor Made Tour", "Sagrada Familia", "La Sagrada Familia", "Walking Historic Highlights Tour", "סיור רגלי לקבוצות קטנות עם מדריך",
             "historical walking tour", "Private Full Day Tour: Ulun Danu Beratan Temple, Jatiluwih and Tanah Lot Temple", "Treblinka Tour",
             "Guided City Tour", "Private City Tour", "Castle Tour", "Churchil War Rooms", "London Landmarks", "White House Walking Tour", "Historic Shared Walking Tour",
-            "Walking Tour",
+            // "Walking Tour",
+            "Mosque",
         ],
         "CATEGORY.VIEWS": ["sky view", "תצפית", "dubai frame", "Observatory"],
         "CATEGORY.BARS_AND_NIGHTLIFE": ["dance club", "lounge", "AnonymouS Bar", "rooftop bar", "Icebar", "Korean Drinking Games Night"],
@@ -267,7 +277,22 @@ export function extractCategory(arr: string[]): string {
             'עוגייה',
             'ice cream',
         ],
+        "CATEGORY.SHOPPING": [
+            "Fashion Center",
+            "Lacost",
+            "Zara ",
+            "Hollister",
+            "Abercombie",
+            "Chanel",
+            "Calvin Klein",
+            "Tommy Hilfiger",
+            "Nike ",
+            "Adidas",
+            "Ralph Lauren",
+        ],
         "CATEGORY.FOOD": [
+            "traditional dishes",
+            "cuisine", // מטבח
             "dishes from all over Greece",
             "סיור טעימות של אוכל רחוב",
             "פאלרמו: סיור טעימות של אוכל רחוב ושוק מקומי",
@@ -281,6 +306,7 @@ export function extractCategory(arr: string[]): string {
             "Brooklyn NYC Food & Walking Tour with a 5th Generation New Yorker",
             "Food markets",
             "Street Food Walking Tour",
+            "Local Food Walking Tour",
             "Food Walking Tour",
             "Foody walking tour"
         ],

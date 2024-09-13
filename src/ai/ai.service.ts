@@ -1,6 +1,12 @@
 import {BadRequestException, Injectable, Logger, NotFoundException} from '@nestjs/common';
 import axios from "axios";
-import {CreateTripDto} from "./dto/create-trip-dto";
+import {
+    Budget,
+    budgetToBudgetType,
+    CreateTripDto, wonderPlanActivityTypeToActivityType,
+    WonderPlanTravelingWith,
+    wonderPlanTravelingWithToGroupType
+} from "./dto/create-trip-dto";
 import {User} from "../user/user.entity";
 import {convertTime, extractCategory} from "../poi/utils/utils";
 import {TripService} from "../trip/trip.service";
@@ -12,7 +18,6 @@ import {Request} from "express";
 // keep to PointOfInterests
 // keep to TripTemplates
 
-const DEFAULT_NUM_OF_DAYS = 7;
 const DEFAULT_EVENT_DURATION = "01:00";
 const DEFAULT_EVENT_DURATION_MIN = 60;
 
@@ -271,8 +276,7 @@ export class AIService {
 
     constructor(
         private userService: UserService,
-        private tripService: TripService,
-        // private poiService: PointOfInterestService
+        private tripService: TripService
     ) {
     }
 
@@ -281,7 +285,8 @@ export class AIService {
             headers: {
                 'accept': '*/*',
                 'accept-language': 'en-US,en;q=0.9,he;q=0.8',
-                'cookie': '_ga=GA1.1.1750019122.1726229255; session_id=041fc7a9-3c0c-4805-8854-80ec8244cf2b; _ga_H8E2Z4JKJP=GS1.1.1726229254.1.1.1726230227.0.0.0',
+                // 'cookie': '_ga=GA1.1.1750019122.1726229255; session_id=041fc7a9-3c0c-4805-8854-80ec8244cf2b; _ga_H8E2Z4JKJP=GS1.1.1726229254.1.1.1726230227.0.0.0',
+                'cookie': '_ga=GA1.1.904366573.1726256127; session_id=e48f8de4-1a19-4f46-b0e7-368dcac81c77; _ga_H8E2Z4JKJP=GS1.1.1726256126.1.1.1726256177.0.0.0',
                 'priority': 'u=1, i',
                 'referer': 'https://wonderplan.ai/v2/trip-planner',
                 'sec-ch-ua': '"Chromium";v="128", "Not;A=Brand";v="24", "Google Chrome";v="128"',
@@ -368,10 +373,10 @@ export class AIService {
             allDay: Number(duration.split(":")[0]) >= 8,
             images: item["imageUrl"],
             moreInfo,
-            price: item["budgetUsd"],
-            currency: "usd",
+            // price: item["budgetUsd"], <- prices are not correct in this API so I rather not using them at all.
+            // currency: "usd",
             extra: {
-                currency: "usd",
+                // currency: "usd",
                 category: category,
                 categoryId: category,
             }
@@ -379,27 +384,15 @@ export class AIService {
     }
 
     async _createTrip(params: CreateTripDto, locationId: number) {
-        // todo add: travelingWith
-        // todo add: includePets?
-        // todo add: includeChildren?
-        // todo add: interests?
+        const numberOfDays = this.getNumberOfDays(params);
 
         const data = JSON.stringify({
             "destinationDestinationId": locationId,
-            "travelAt": "2024-09-19T21:00:00.000Z",
-            "days": params.numberOfDays,
-            "budgetType": 3, // todo complete - add to params
-            "groupType": 2, // todo complete - add to params
-            "activityTypes": [
-                1,
-                2,
-                3,
-                6,
-                5,
-                4,
-                7,
-                8
-            ],
+            "travelAt": `${params.dateRange.start}T09:00:00.000Z`, // "2024-09-19T21:00:00.000Z",
+            "days": numberOfDays,
+            "budgetType": budgetToBudgetType(params.budget ?? Budget.medium),  // 3,
+            "groupType": wonderPlanTravelingWithToGroupType(params.travelingWith ?? WonderPlanTravelingWith.solo), // 2,
+            "activityTypes": params.activityTypes.map((a) => wonderPlanActivityTypeToActivityType(a)).filter(Boolean),  // [1, 2, 3, 6, 5, 4, 7, 8],
             "isVegan": false,
             "isHalal": false
         });
@@ -409,7 +402,8 @@ export class AIService {
                 'accept': '*/*',
                 'accept-language': 'en-US,en;q=0.9,he;q=0.8',
                 'content-type': 'application/json',
-                'cookie': '_ga=GA1.1.1750019122.1726229255; session_id=041fc7a9-3c0c-4805-8854-80ec8244cf2b; _ga_H8E2Z4JKJP=GS1.1.1726229254.1.1.1726229896.0.0.0',
+                'cookie': '_ga=GA1.1.904366573.1726256127; session_id=e48f8de4-1a19-4f46-b0e7-368dcac81c77; _ga_H8E2Z4JKJP=GS1.1.1726256126.1.1.1726256177.0.0.0',
+                // 'cookie': '_ga=GA1.1.1750019122.1726229255; session_id=041fc7a9-3c0c-4805-8854-80ec8244cf2b; _ga_H8E2Z4JKJP=GS1.1.1726229254.1.1.1726229896.0.0.0',
                 'origin': 'https://wonderplan.ai',
                 'priority': 'u=1, i',
                 'referer': 'https://wonderplan.ai/v2/trip-planner',
@@ -1140,8 +1134,8 @@ export class AIService {
         const DAY_END_HOUR = 23;
 
         // Range for variability in gaps between events
-        const MIN_GAP_MINUTES = 30;
-        const MAX_GAP_MINUTES = 180; // 3 hours in minutes
+        const MIN_GAP_MINUTES = 30; // 30;
+        const MAX_GAP_MINUTES = 90; // 180; // 3 hours in minutes
 
         // Parse trip start date
         const tripStartDate = parseDate(params.dateRange.start);
@@ -1167,7 +1161,7 @@ export class AIService {
             const items = dayItinerary?.["activities"].map((i) => this.format(i, params));
 
             // Calculate total duration of all events
-            const totalEventMinutes = items.reduce((sum, item) => sum + (item["durationMin"] ?? DEFAULT_EVENT_DURATION_MIN), 0);
+            const totalEventMinutes = items.reduce((sum, item) => sum + parseDuration(item["duration"]), 0);
 
             // Calculate the remaining time for gaps
             const availableGapTime = (dayEnd.getTime() - dayStart.getTime()) / 60000 - totalEventMinutes;
@@ -1178,7 +1172,7 @@ export class AIService {
             // Distribute events and gaps throughout the day
             items.forEach((item, index) => {
                 if (item) {
-                    const durationInMinutes = item["durationMin"] ?? DEFAULT_EVENT_DURATION_MIN;
+                    const durationInMinutes = parseDuration(item["duration"]);
 
                     // Round current time to the nearest 15-minute increment
                     currentTime = roundToNearest15Minutes(currentTime);
@@ -1241,8 +1235,28 @@ export class AIService {
         return urlObj.toString();
     }
 
+    getNumberOfDays(params: CreateTripDto) {
+        const { dateRange } = params;
+        const startDate = new Date(dateRange.start).getTime();
+        const endDate = new Date(dateRange.end).getTime();
+
+        if (startDate > endDate) {
+            throw new BadRequestException(`start date cannot be bigger than end date`);
+        }
+        
+        // Calculate the difference in time (milliseconds)
+        const diffInTime = endDate - startDate;
+
+        // Convert the difference from milliseconds to days
+        const numberOfDays = (diffInTime / (1000 * 60 * 60 * 24)) + 1;
+        if (numberOfDays > 7) {
+            // throw new BadRequestException(`AI Trip can be max 7 days`);
+        }
+        return numberOfDays;
+    }
+
     async _createItinerary(tripId: number, params: CreateTripDto) {
-        const { currency = 'ILS', numberOfDays = DEFAULT_NUM_OF_DAYS } = params;
+        const numberOfDays = this.getNumberOfDays(params);
 
         let trip;
         if (this.debugMode){
@@ -1250,7 +1264,7 @@ export class AIService {
         } else {
 
             const promises = [];
-            for (let i = 0; i< params.numberOfDays; i++){
+            for (let i = 0; i< numberOfDays; i++){
                 promises.push(
                     axios.get(`https://sonderback-us-6h6yp6ucpq-uc.a.run.app/v4/trips/${tripId}/days/${Number(i+1)}:blocking`)
                 )
@@ -1269,23 +1283,46 @@ export class AIService {
 
         const calendarLocale = params.calendarLocale ?? "he";
 
-        const travelingWith = getClasses(
-            // @ts-ignore
-            params.travelingWith === 'SPOUSE' && 'partner', params.travelingWith === 'FAMILY' && 'family', params.travelingWith === 'FRIENDS' && 'friends', params.includeChildren && 'children', params.includePets && 'pets'
-        );
+        function getTravelWithString(){
+            const travelWith = params.travelingWith ?? WonderPlanTravelingWith.solo;
+            if (calendarLocale === "he"){
+                switch (travelWith) {
+                    case WonderPlanTravelingWith.friends:
+                        return "עם חברים";
+                    case WonderPlanTravelingWith.couple:
+                        return "לזוג";
+                    case WonderPlanTravelingWith.solo:
+                        return "לאדם אחד";
+                    case WonderPlanTravelingWith.family:
+                        return "עם המשפחה";
+                }
+            }
+            else {
+                let prefix = "";
+                if (travelWith == WonderPlanTravelingWith.solo) {
+                    return "solo";
+                }
+                if (travelWith == WonderPlanTravelingWith.couple) {
+                    prefix = "for a"
+                }
+                else if (travelWith == WonderPlanTravelingWith.friends || travelWith == WonderPlanTravelingWith.family) {
+                    prefix = "with"
+                }
+                return `${prefix} ${travelWith.toLocaleLowerCase()}`.trim();
+            }
+        }
 
         function getTripName(){
+            const budget = params.budget ?? Budget.medium;
+            const travelWith = getTravelWithString();
             if (calendarLocale === "he"){
                 const where = destinationTranslations['he']?.[params.destination] ?? params.destination;
                 const days = `${numberOfDays} ימים`;
-                const travelingWith = getClasses(
-                    // @ts-ignore
-                    params.travelingWith === 'SPOUSE' && 'בני זוג', params.travelingWith === 'FAMILY' && 'משפחה', params.travelingWith === 'FRIENDS' && 'חברים', params.includeChildren && 'ילדים', params.includePets && 'חיות'
-                );
-                return getClasses(`${where} ל ${days} עם ${travelingWith}`);
+                const budgetStr = budget == Budget.low ? 'חסכוני' : budget == Budget.medium ? 'בינוני' : 'גבוה';
+                return getClasses(`${where} ל ${days} ${travelWith} בתקציב ${budgetStr}`).replace("  "," ");
             } else {
                 const days = `${numberOfDays} days`;
-                return getClasses(`${params.destination} x ${days} with ${travelingWith}`);
+                return getClasses(`${params.destination} x ${days} ${travelWith} ${budget} budget`).replace("  "," ");
             }
         }
 
