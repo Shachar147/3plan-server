@@ -1,6 +1,7 @@
 import {BadRequestException, Injectable, Logger, NotFoundException} from '@nestjs/common';
 import axios from "axios";
 import {
+    ALL_ACTIVITY_TYPES,
     Budget,
     budgetToBudgetType,
     CreateTripDto, wonderPlanActivityTypeToActivityType,
@@ -12,6 +13,7 @@ import {convertTime, extractCategory} from "../poi/utils/utils";
 import {TripService} from "../trip/trip.service";
 import {UserService} from "../user/user.service";
 import {Request} from "express";
+import {PointOfInterestService} from "../poi/poi.service";
 
 // todo complete:
 // parameterize - currency, language
@@ -178,8 +180,8 @@ function getNonDefaultCategories(numOfCategories: number, title: string): Catego
                 return '🍻';
             case 'CATEGORY.CLUBS':
                 return '💃';
-            // case 'CATEGORY.MUSEUMS':
-            //     return '🏛️';
+            case 'CATEGORY.MUSEUMS':
+                return '🏛️';
             default:
                 return '';
         }
@@ -264,11 +266,13 @@ const destinationTranslations = {
         "Koh Tao": "קו טאו",
         "Koh Samui": "קוסמוי",
         "Phuket": "פוקט",
+        "Bergen": "ברגן",
     }
 }
 
 @Injectable()
 export class AIService {
+    private source = 'WonderPlan';
     private logger = new Logger("AIService");
     private debugMode = false; // change to false
     private nameToId = {};
@@ -276,7 +280,8 @@ export class AIService {
 
     constructor(
         private userService: UserService,
-        private tripService: TripService
+        private tripService: TripService,
+        private poiService: PointOfInterestService
     ) {
     }
 
@@ -386,13 +391,23 @@ export class AIService {
     async _createTrip(params: CreateTripDto, locationId: number) {
         const numberOfDays = this.getNumberOfDays(params);
 
+        const activityTypes = [];
+
+        (params.activityTypes ?? ALL_ACTIVITY_TYPES).forEach((a) => {
+            const parsed = wonderPlanActivityTypeToActivityType(a);
+            if (!parsed){
+                throw new BadRequestException(`${a} is not a valid activity type. try one of these: [${ALL_ACTIVITY_TYPES.join(" | ")}]`);
+            }
+            activityTypes.push(parsed);
+        });
+
         const data = JSON.stringify({
             "destinationDestinationId": locationId,
             "travelAt": `${params.dateRange.start}T09:00:00.000Z`, // "2024-09-19T21:00:00.000Z",
             "days": numberOfDays,
             "budgetType": budgetToBudgetType(params.budget ?? Budget.medium),  // 3,
             "groupType": wonderPlanTravelingWithToGroupType(params.travelingWith ?? WonderPlanTravelingWith.solo), // 2,
-            "activityTypes": params.activityTypes.map((a) => wonderPlanActivityTypeToActivityType(a)).filter(Boolean),  // [1, 2, 3, 6, 5, 4, 7, 8],
+            "activityTypes": activityTypes,  // [1, 2, 3, 6, 5, 4, 7, 8],
             "isVegan": false,
             "isHalal": false
         });
@@ -1255,8 +1270,57 @@ export class AIService {
         return numberOfDays;
     }
 
+    getTripName(params: CreateTripDto, calendarLocale?: 'he' | 'en'){
+        if (!calendarLocale) {
+            calendarLocale = params.calendarLocale ?? "he";
+        }
+        const budget = params.budget ?? Budget.medium;
+        const travelWith = this.getTravelWithString(params, calendarLocale);
+        const numberOfDays = this.getNumberOfDays(params);
+
+        if (calendarLocale === "he"){
+            const where = destinationTranslations['he']?.[params.destination] ?? params.destination;
+            const days = `${numberOfDays} ימים`;
+            const budgetStr = budget == Budget.low ? 'חסכוני' : budget == Budget.medium ? 'בינוני' : 'גבוה';
+            return getClasses(`${where} ל ${days} ${travelWith} בתקציב ${budgetStr}`).replace("  "," ");
+        } else {
+            const days = `${numberOfDays} days`;
+            return getClasses(`${params.destination} x ${days} ${travelWith} ${budget} budget`).replace("  "," ");
+        }
+    }
+
+    getTravelWithString(params: CreateTripDto, calendarLocale: 'en' | 'he'){
+        const travelWith = params.travelingWith ?? WonderPlanTravelingWith.solo;
+        if (calendarLocale === "he"){
+            switch (travelWith) {
+                case WonderPlanTravelingWith.friends:
+                    return "עם חברים";
+                case WonderPlanTravelingWith.couple:
+                    return "לזוג";
+                case WonderPlanTravelingWith.solo:
+                    return "לאדם אחד";
+                case WonderPlanTravelingWith.family:
+                    return "עם המשפחה";
+            }
+        }
+        else {
+            let prefix = "";
+            if (travelWith == WonderPlanTravelingWith.solo) {
+                return "solo";
+            }
+            if (travelWith == WonderPlanTravelingWith.couple) {
+                prefix = "for a"
+            }
+            else if (travelWith == WonderPlanTravelingWith.friends || travelWith == WonderPlanTravelingWith.family) {
+                prefix = "with"
+            }
+            return `${prefix} ${travelWith.toLocaleLowerCase()}`.trim();
+        }
+    }
+
     async _createItinerary(tripId: number, params: CreateTripDto) {
         const numberOfDays = this.getNumberOfDays(params);
+        const calendarLocale = params.calendarLocale ?? "he";
 
         let trip;
         if (this.debugMode){
@@ -1281,55 +1345,33 @@ export class AIService {
             return trip;
         }
 
-        const calendarLocale = params.calendarLocale ?? "he";
-
-        function getTravelWithString(){
-            const travelWith = params.travelingWith ?? WonderPlanTravelingWith.solo;
-            if (calendarLocale === "he"){
-                switch (travelWith) {
-                    case WonderPlanTravelingWith.friends:
-                        return "עם חברים";
-                    case WonderPlanTravelingWith.couple:
-                        return "לזוג";
-                    case WonderPlanTravelingWith.solo:
-                        return "לאדם אחד";
-                    case WonderPlanTravelingWith.family:
-                        return "עם המשפחה";
-                }
-            }
-            else {
-                let prefix = "";
-                if (travelWith == WonderPlanTravelingWith.solo) {
-                    return "solo";
-                }
-                if (travelWith == WonderPlanTravelingWith.couple) {
-                    prefix = "for a"
-                }
-                else if (travelWith == WonderPlanTravelingWith.friends || travelWith == WonderPlanTravelingWith.family) {
-                    prefix = "with"
-                }
-                return `${prefix} ${travelWith.toLocaleLowerCase()}`.trim();
-            }
-        }
-
-        function getTripName(){
-            const budget = params.budget ?? Budget.medium;
-            const travelWith = getTravelWithString();
-            if (calendarLocale === "he"){
-                const where = destinationTranslations['he']?.[params.destination] ?? params.destination;
-                const days = `${numberOfDays} ימים`;
-                const budgetStr = budget == Budget.low ? 'חסכוני' : budget == Budget.medium ? 'בינוני' : 'גבוה';
-                return getClasses(`${where} ל ${days} ${travelWith} בתקציב ${budgetStr}`).replace("  "," ");
-            } else {
-                const days = `${numberOfDays} days`;
-                return getClasses(`${params.destination} x ${days} ${travelWith} ${budget} budget`).replace("  "," ");
-            }
-        }
-
         const allEvents = (trip["itinerary"].map((r) => r["activities"]).flat()).map((i) => this.format(i, params))
 
         // add non standard categories if needed
         let categories = getDefaultCategories();
+
+        const pois = allEvents.map((poi) => {
+            if (!poi.images){
+                return false;
+            }
+            return {
+                name: poi.title,
+                destination: params.destination,
+                description: poi.description,
+                images: poi.images.split('\n'),
+                source: this.source,
+                more_info: poi.moreInfo,
+                category: poi.category,
+                location: poi.location,
+                rate: poi.rate,
+                status: undefined, // ?
+                isVerified: true, // ?
+                price: poi.price,
+                currency: poi.currency,
+                duration: poi.duration
+            }
+        }).filter(Boolean);
+
         allEvents.forEach((e) => {
             let category = categories.find((c) => e.category == c.title);
             if (!category) {
@@ -1356,8 +1398,8 @@ export class AIService {
             c.title = categoryTranslations[calendarLocale][c.title] ?? c.title;
         });
 
-        return {
-            name: getTripName(),
+        const itinerary = {
+            name: this.getTripName(params),
             numOfDays: numberOfDays,
             categories,
             allEvents,
@@ -1369,9 +1411,14 @@ export class AIService {
                 params.destination
             ],
         }
+
+        return {
+            itinerary,
+            pois
+        };
     }
 
-    async createWonderplanTrip(params: CreateTripDto, user: User, request: Request) {
+    async createWonderplanTrip(params: CreateTripDto, user: User, request: Request, templateOnly: boolean = false) {
         this.logger.log(`creating trip using ai... fetching location id for ${params.destination}`)
         const locationId = await this.getLocationId(params.destination);
         if (!locationId) {
@@ -1394,7 +1441,13 @@ export class AIService {
         this.logger.log(`wonderplan trip created! ${wonderplanTripId}`);
 
         this.logger.log("creating itinerary...")
-        const itinerary = await this._createItinerary(wonderplanTripId, params);
+        const { itinerary, pois } = await this._createItinerary(wonderplanTripId, params);
+
+        const itineraryWithHebName = {...itinerary};
+        const hebName = this.getTripName(params, 'he')
+        const engName = this.getTripName(params, 'en')
+        itineraryWithHebName['name'] = `${engName} | ${hebName}`;
+        itineraryWithHebName['calendarLocale'] = 'en';
 
         this.logger.log(`itinerary created! ${itinerary['name']}`)
         this.logger.log("creating Triplan trip...")
@@ -1402,20 +1455,22 @@ export class AIService {
         // create a trip
         // 5q/1>O8dlf4W
         const templatesUser = await this.userService.getUserByName("templates");
+        // @ts-ignore
         const createdTrips = await Promise.all([
-            this.tripService.createTrip(itinerary, templatesUser, request, false),
-            this.tripService.createTrip(itinerary, user, request, false)
-        ]);
+            this.tripService.createTrip(itineraryWithHebName, templatesUser, request, false),
+            !templateOnly && this.tripService.createTrip(itinerary, user, request, false)
+        ].filter(Boolean));
 
         this.logger.log(`trip created! ${createdTrips?.[0]?.['name']}`)
 
-        // todo complete:
         // keep on db
-        // await this.poiService.upsertAll(results, user);
+        const { totalAdded, totalUpdated } = await this.poiService.upsertAll(pois, user);
 
         return {
             itinerary,
-            createdTrips
+            createdTrips,
+            totalAddedPois: totalAdded,
+            totalUpdatedPois: totalUpdated
         };
     }
 }

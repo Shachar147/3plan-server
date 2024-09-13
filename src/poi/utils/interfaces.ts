@@ -13,4 +13,5 @@ export interface SearchSuggestion {
     category: string;
     destination: string;
     image?: string;
+    rating?: number;
 }

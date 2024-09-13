@@ -278,6 +278,7 @@ export function extractCategory(arr: string[]): string {
             'ice cream',
         ],
         "CATEGORY.SHOPPING": [
+            "shopping street",
             "Fashion Center",
             "Lacost",
             "Zara ",

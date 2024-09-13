@@ -4,8 +4,10 @@ import { PointOfInterestRepository } from './poi.repository';
 import { PointOfInterest } from './poi.entity';
 import { User } from '../user/user.entity';
 import {SearchResults, SearchSuggestion} from "./utils/interfaces";
-import {Brackets, Like} from "typeorm";
+import {Brackets, ILike, Like} from "typeorm";
 import {extractCategory} from "./utils/utils";
+
+export type UpsertAllResponse = { results: PointOfInterest[], totalAdded: number, totalUpdated: number};
 
 @Injectable()
 export class PointOfInterestService {
@@ -48,8 +50,10 @@ export class PointOfInterestService {
      * @param user - The user performing the operation.
      * @returns A promise that resolves when the upsert operation is complete.
      */
-    async upsertAll(items: Partial<PointOfInterest>[], user: User): Promise<PointOfInterest[]> {
-        const results = []
+    async upsertAll(items: Partial<PointOfInterest>[], user: User): Promise<UpsertAllResponse> {
+        const results = [];
+        let totalAdded = 0;
+        let totalUpdated = 0;
         for (const item of items) {
             // Find existing POI based on the unique combination of name, source, and more_info
             let existingPoi = await this.pointOfInterestRepository.findOne({
@@ -66,15 +70,17 @@ export class PointOfInterestService {
                 Object.assign(existingPoi, item, { updatedBy: user });
                 const poi = await this.pointOfInterestRepository.save(existingPoi);
                 results.push(poi);
+                totalUpdated += 1;
             } else {
                 // Create a new POI
                 this.logger.log(`Creating new POI: ${item.name} (Source: ${item.source}, URL: ${item.more_info})`);
                 const newPoi = this.pointOfInterestRepository.create({ ...item, addedBy: user });
                 const poi = await this.pointOfInterestRepository.save(newPoi);
                 results.push(poi);
+                totalAdded += 1;
             }
         }
-        return results;
+        return { results, totalUpdated, totalAdded };
     }
 
     /**
@@ -172,9 +178,10 @@ export class PointOfInterestService {
         // Fetch the points of interest based on the given searchKeyword, page, and limit
         const pointsOfInterest = await this.pointOfInterestRepository.find({
             where: [
-                { name: Like(`%${searchKeyword}%`) },
-                { description: Like(`%${searchKeyword}%`) },
-                { destination: Like(`%${searchKeyword}%`) }
+                { name: ILike(`%${searchKeyword}%`) },
+                { description: ILike(`%${searchKeyword}%`) },
+                { destination: ILike(`%${searchKeyword}%`) },
+                { source: ILike(`${searchKeyword}`) }
             ],
             skip: (page - 1) * limit,
             take: limit,
@@ -251,28 +258,34 @@ export class PointOfInterestService {
                 new Brackets((qb) => {
                     qb.where('poi.name ILIKE :searchKeyword', { searchKeyword: `%${searchKeyword}%` })
                     .orWhere('poi.destination ILIKE :searchKeyword', { searchKeyword: `%${searchKeyword}%` })
-                    .orWhere('poi.description ILIKE :searchKeyword', { searchKeyword: `%${searchKeyword}%` });
-                })
-            ).andWhere(
-                new Brackets((qb) => {
-                    qb.where('poi.isSystemRecommendation IS true')
-                        .orWhere('poi.rate IS NOT NULL AND (CAST(poi.rate AS jsonb) ->> \'rating\')::float > 4')
+                    .orWhere('poi.description ILIKE :searchKeyword', { searchKeyword: `%${searchKeyword}%` })
+                    .orWhere(':searchKeyword ILIKE poi.source', { searchKeyword: `${searchKeyword}` });
                 })
             )
             .orderBy('poi.isSystemRecommendation', 'DESC')
-            .addOrderBy('CAST(poi.rate->>\'rating\' AS FLOAT)', 'DESC')
+            .addOrderBy(
+                `COALESCE(CAST(poi.rate->>'rating' AS FLOAT), 0)`, 'DESC'
+            )
             .take(30)
             .getMany();
 
         const suggestions: SearchSuggestion[] = [];
         pointsOfInterest.forEach((p) => {
-            suggestions.push({
+            const category = p.category || 'CATEGORY.GENERAL';
+            const suggestion = {
                 "id": p.id,
                 "name": p.name,
-                "category": p.category || 'CATEGORY.GENERAL',
+                "category": category,
                 "destination": p.destination,
-                "image": p.images?.[0]
-            })
+                "image": p.images?.[0],
+            };
+            if (p.rate?.rating){
+                suggestion["rating"] = p.rate.rating;
+                if (p.rate.rating.toString().length > 3) {
+                    suggestion["rating"] = p.rate.rating.toFixed(2);
+                }
+            }
+            suggestions.push(suggestion);
         })
         return suggestions;
     }

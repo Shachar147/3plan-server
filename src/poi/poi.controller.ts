@@ -1,6 +1,6 @@
 // point-of-interest.controller.ts
 import {Controller, Get, Post, Body, Param, Patch, Delete, UseGuards, Query, Put} from '@nestjs/common';
-import { PointOfInterestService } from './poi.service';
+import {PointOfInterestService, UpsertAllResponse} from './poi.service';
 import { PointOfInterest } from './poi.entity';
 import { AuthGuard } from '@nestjs/passport';
 import { GetUser } from '../auth/get-user.decorator';
@@ -26,8 +26,8 @@ export class PointOfInterestController {
     async upsertPointOfInteresets(
         @Body() items: Partial<PointOfInterest>[],
         @GetUser() user: User,
-    ): Promise<PointOfInterest[]> {
-        return this.pointOfInterestService.upsertAll(items, user);
+    ): Promise<UpsertAllResponse> {
+        return await this.pointOfInterestService.upsertAll(items, user);
     }
 
     @Put('/upsert/system-recommendation')
@@ -35,11 +35,11 @@ export class PointOfInterestController {
     async upsertPointOfInteresetsSystemRecommendations(
         @Body() items: Partial<PointOfInterest>[],
         @GetUser() user: User,
-    ): Promise<PointOfInterest[]> {
+    ): Promise<UpsertAllResponse> {
         items.forEach((item) => {
             item.isSystemRecommendation = true;
         })
-        return this.pointOfInterestService.upsertAll(items, user);
+        return await this.pointOfInterestService.upsertAll(items, user);
     }
 
     // @Get()

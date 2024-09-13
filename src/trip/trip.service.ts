@@ -69,7 +69,8 @@ export class TripService {
     } else {
       try {
         return await this.tripRepository.createTrip(createTripDto, user, request, this.backupsService);
-      } catch {
+      } catch (error) {
+        this.logger.error("trip creation failed:", error)
         return undefined
       }
     }
