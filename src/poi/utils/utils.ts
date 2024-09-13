@@ -281,6 +281,7 @@ export function extractCategory(arr: string[]): string {
             "Brooklyn NYC Food & Walking Tour with a 5th Generation New Yorker",
             "Food markets",
             "Street Food Walking Tour",
+            "Food Walking Tour",
             "Foody walking tour"
         ],
     };

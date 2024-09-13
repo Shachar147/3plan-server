@@ -1,4 +1,5 @@
 import {
+    IsArray,
     IsBoolean, IsEnum,
     IsNotEmpty,
     IsString,
@@ -8,6 +9,8 @@ import {IsOptional} from "class-validator";
 
 export enum TravelingWith {
     SPOUSE = 'SPOUSE',
+    SOLO = 'SOLO',
+    FRIENDS = 'FRIENDS',
     FAMILY = 'FAMILY'
 }
 
@@ -55,7 +58,7 @@ export class CreateTripDto {
     includePets?: boolean;
 
     @IsOptional()
-    @IsBoolean()
+    @IsArray()
     @ApiProperty({ required: false })
     interests?: string[]
 

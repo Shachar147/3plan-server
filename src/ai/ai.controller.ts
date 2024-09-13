@@ -23,6 +23,6 @@ export class AIController {
         @GetUser() user: User,
         @Req() request: Request
     ) {
-        return await this.aiService.createTrip(params, user, request)
+        return await this.aiService.createWonderplanTrip(params, user, request)
     }
 }

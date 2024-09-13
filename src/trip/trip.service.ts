@@ -63,8 +63,16 @@ export class TripService {
     return this.tripRepository.getTripByName(name, user);
   }
 
-  async createTrip(createTripDto: CreateTripDto, user: User, request: Request) {
-    return await this.tripRepository.createTrip(createTripDto, user, request, this.backupsService);
+  async createTrip(createTripDto: CreateTripDto, user: User, request: Request, raiseError: boolean = true) {
+    if (raiseError) {
+      return await this.tripRepository.createTrip(createTripDto, user, request, this.backupsService);
+    } else {
+      try {
+        return await this.tripRepository.createTrip(createTripDto, user, request, this.backupsService);
+      } catch {
+        return undefined
+      }
+    }
   }
 
   async upsertTrip(createTripDto: CreateTripDto, user: User, request: Request) {
