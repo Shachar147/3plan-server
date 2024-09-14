@@ -2,6 +2,7 @@ import {Controller, Get, UseGuards} from '@nestjs/common';
 import {StatisticsService} from "./statistics.service";
 // import { AdminGuard } from 'src/auth/admin.guard';
 import {AuthGuard} from "@nestjs/passport";
+import {TEMPLATES_USER_NAME} from "../shared/const";
 
 @Controller('admin-statistics')
 export class StatisticsController {
@@ -47,10 +48,20 @@ export class StatisticsController {
         let totalCategories = 0; // for average categories on trip (?)
         let totalNumOfLogins = {}; // for average num of logins per user (?)
         const usersWithoutTrips = {};
+        let totalTemplates = 0;
+        let totalApprovedTemplates = 0;
 
         tripsAndUsersStats.forEach((row) => {
             const { name, username, sidebar_events, scheduled_events, num_of_categories, numOfLogins } = row;
             totalUsers[username] = true;
+
+            if (username == TEMPLATES_USER_NAME){
+                totalTemplates += 1;
+
+                if (!row.isHidden) {
+                    totalApprovedTemplates += 1;
+                }
+            }
 
             if (name == undefined){
                 usersWithoutTrips[username] = true;
@@ -91,7 +102,11 @@ export class StatisticsController {
             totalSavedItems,
             avgSavedItemsPerUser: Number(Number(totalSavedItems / Object.keys(totalUsers).length).toFixed(0)),
             totalDestinations,
-            totalSavedCollections
+            totalSavedCollections,
+
+            // templates:
+            totalTemplates,
+            totalApprovedTemplates
         }
     }
 }

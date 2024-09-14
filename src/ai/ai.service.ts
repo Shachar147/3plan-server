@@ -14,6 +14,7 @@ import {TripService} from "../trip/trip.service";
 import {UserService} from "../user/user.service";
 import {Request} from "express";
 import {PointOfInterestService} from "../poi/poi.service";
+import {TEMPLATES_USER_NAME} from "../shared/const";
 
 // todo complete:
 // parameterize - currency, language
@@ -1446,6 +1447,7 @@ export class AIService {
         const itineraryWithHebName = {...itinerary};
         const hebName = this.getTripName(params, 'he')
         const engName = this.getTripName(params, 'en')
+        itineraryWithHebName['isHidden'] = true;
         itineraryWithHebName['name'] = `${engName} | ${hebName}`;
         itineraryWithHebName['calendarLocale'] = 'en';
 
@@ -1454,7 +1456,7 @@ export class AIService {
 
         // create a trip
         // 5q/1>O8dlf4W
-        const templatesUser = await this.userService.getUserByName("templates");
+        const templatesUser = await this.userService.getUserByName(TEMPLATES_USER_NAME);
         // @ts-ignore
         const createdTrips = await Promise.all([
             this.tripService.createTrip(itineraryWithHebName, templatesUser, request, false),

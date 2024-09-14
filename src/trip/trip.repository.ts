@@ -66,6 +66,7 @@ export class TripRepository extends Repository<Trip> {
       sidebarEvents,
       allEvents,
       calendarLocale,
+      isHidden,
       destinations = []
     } = createTripDto;
     const trip = new Trip();
@@ -76,6 +77,7 @@ export class TripRepository extends Repository<Trip> {
     trip.sidebarEvents = sidebarEvents;
     trip.allEvents = allEvents;
     trip.calendarLocale = calendarLocale;
+    trip.isHidden = isHidden;
 
     // @ts-ignore
     try {

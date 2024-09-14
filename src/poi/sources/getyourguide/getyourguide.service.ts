@@ -216,6 +216,16 @@ export class GetYourGuideService implements BaseSourceService{
             }
         );
 
+        if (!response.data){
+            this.logger.log(`no results for ${destination}; page: ${page}; source: ${this.source}`)
+            return {
+                results: [],
+                nextPage: undefined,
+                isFinished: true,
+                source: this.source
+            };
+        }
+
         // Extracting the data from the response
         let results = response.data["content"][0]["content"];
         const isFinished = response.data["content"].length == 1;

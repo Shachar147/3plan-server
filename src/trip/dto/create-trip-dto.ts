@@ -1,5 +1,5 @@
 import {
-  IsArray,
+  IsBoolean,
   IsNotEmpty, IsOptional,
   IsString,
 } from 'class-validator';
@@ -57,4 +57,8 @@ export class CreateTripDto {
     message: 'missing: destinations',
   })
   destinations: "jsonb";
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  isHidden?: boolean;
 }

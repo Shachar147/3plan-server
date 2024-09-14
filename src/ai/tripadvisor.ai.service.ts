@@ -9881,7 +9881,7 @@
 //
 //         // create a trip
 //         // 5q/1>O8dlf4W
-//         // const templatesUser = await this.userService.getUserByName("templates");
+//         // const templatesUser = await this.userService.getUserByName(TEMPLATES_USER_NAME);
 //         const createdTrips = await Promise.all([
 //             // this.tripService.createTrip(itinerary, templatesUser, request),
 //             this.tripService.createTrip(itinerary, user, request)
