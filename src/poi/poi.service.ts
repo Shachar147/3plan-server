@@ -196,7 +196,7 @@ export class PointOfInterestService {
             ]
         });
 
-        const isFinished = (page * limit) >= totalPointsOfInterest;
+        const isFinished = (page * limit) > totalPointsOfInterest;
         const nextPage = isFinished ? null : page + 1;
 
         // Return the formatted response

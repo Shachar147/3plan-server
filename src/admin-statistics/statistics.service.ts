@@ -5,7 +5,7 @@ import {getConnection} from "typeorm";
 export class StatisticsService {
     async getTripsStatistics(): Promise<any[]> {
         const query = `
-      SELECT t.name, jsonb_array_length(t."categories") AS num_of_categories, jsonb_array_length(t."calendarEvents") AS scheduled_events, a.sidebar_events, u."id" as "userId", u."username", t."lastUpdateAt", u."lastLoginAt", u."numOfLogins"
+      SELECT t.name, t."isHidden", jsonb_array_length(t."categories") AS num_of_categories, jsonb_array_length(t."calendarEvents") AS scheduled_events, a.sidebar_events, u."id" as "userId", u."username", t."lastUpdateAt", u."lastLoginAt", u."numOfLogins"
       FROM trip as t
       LEFT JOIN LATERAL (
         SELECT COUNT(*) as sidebar_events

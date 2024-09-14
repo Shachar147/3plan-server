@@ -1,3 +1,4 @@
+export const TEMPLATES_USER_NAME = "templates";
 export const POPULAR_PLAYERS = [
   'Dejounte Murray',
   'Duncan Robinson',

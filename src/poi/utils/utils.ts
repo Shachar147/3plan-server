@@ -138,6 +138,9 @@ export function extractCategory(arr: string[]): string {
 
     const categoryToKeywordMapping = {
         "CATEGORY.GIMMICKS": [
+            // todo complete: highest X in the world
+            // todo complete: smallest house in the world
+            // todo complete: smallest street in the world etc
             "glow in the dark",
             "glow in dark",
             "secret bar",
