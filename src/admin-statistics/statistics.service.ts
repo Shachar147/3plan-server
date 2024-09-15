@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import {getConnection} from "typeorm";
+import {TEMPLATES_USER_NAME} from "../shared/const";
 
 @Injectable()
 export class StatisticsService {
@@ -12,7 +13,8 @@ export class StatisticsService {
         FROM jsonb_each(t."sidebarEvents") AS json_element
         CROSS JOIN LATERAL jsonb_array_elements_text(json_element.value::jsonb) AS unnested_elements
       ) as a ON true
-      RIGHT JOIN public.user u ON u.id = t."userId"
+      RIGHT JOIN public.user u ON u.id = t."userId
+      WHERE u.username != ${TEMPLATES_USER_NAME}"
       ORDER BY t."lastUpdateAt" DESC
     `;
 
