@@ -25,6 +25,7 @@ import { AiModule } from './ai/ai.module';
 import { SavedCollectionsModule } from './saved-collections/saved-collections.module';
 import { SavedCollectionsItemModule } from './saved-collections/saved-collections-item/saved-collections-item.module';
 import { PlacesPhotosModule } from './places-photos/places-photos.module';
+import { TripTemplatesModule } from './trip-templates/trip-templates.module';
 
 @Module({
   imports: [
@@ -55,6 +56,7 @@ import { PlacesPhotosModule } from './places-photos/places-photos.module';
     SavedCollectionsModule,
     SavedCollectionsItemModule,
     PlacesPhotosModule,
+    TripTemplatesModule,
   ],
   controllers: [AppController],
   providers: [AppService, TinderService],
