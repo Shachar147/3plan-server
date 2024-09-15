@@ -14,7 +14,7 @@ export class StatisticsService {
         CROSS JOIN LATERAL jsonb_array_elements_text(json_element.value::jsonb) AS unnested_elements
       ) as a ON true
       RIGHT JOIN public.user u ON u.id = t."userId"
-      WHERE u.username != ${TEMPLATES_USER_NAME}
+      WHERE u.username != '${TEMPLATES_USER_NAME}'
       ORDER BY t."lastUpdateAt" DESC
     `;
 
