@@ -61,6 +61,7 @@ export class StatisticsController {
                 if (!row.isHidden) {
                     totalApprovedTemplates += 1;
                 }
+                return;
             }
 
             if (name == undefined){
