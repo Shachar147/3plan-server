@@ -25,6 +25,6 @@ export class TripTemplatesService {
 
         // todo complete: add some logic of how to choose which templates to show? (prefer templates created by us? do some kind of rating mechanism for templates as well?)
 
-        return approvedTrips.slice(0, Math.min(approvedTrips.length, 12));
+        return approvedTrips.slice(0, Math.min(approvedTrips.length, 5));
     }
 }
