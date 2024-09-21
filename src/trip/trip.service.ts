@@ -111,7 +111,7 @@ export class TripService {
     const keepPhotosPromises = [];
     for (let i = 0; i < results.length; i++){
       const searchKeyword: string = results[i].searchKeyword;
-      const image: string = results[i].image ?? results[i]?.details['thumbnail']?.['photoSizeDynamic']?.['urlTemplate']?.replace("{width}", 400)?.replace("{height}", 400);
+      const image: string = results[i].image ?? results[i]?.details?.['thumbnail']?.['photoSizeDynamic']?.['urlTemplate']?.replace("{width}", 400)?.replace("{height}", 400);
 
       // keep photos
       if (results[i].details) {
