@@ -80,7 +80,7 @@ export class TripService {
     // @ts-ignore
     const searchKeywords = createTripDto.calendarEvents.map((c) => {
       if (!c.images?.length) {
-        const keyword = c.location.address?.split(",")[0]?.trim() ?? c.title.split("|")[0];
+        const keyword = c.location.eventName ?? c.location.address?.split(",")[0]?.trim() ?? c.title.split("|")[0];
         keywordToIds[keyword] = keywordToIds[keyword] || [];
         keywordToIds[keyword].push(c.id);
         idToKeyword[c.id] = keyword;
