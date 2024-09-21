@@ -15,6 +15,9 @@ import {BackupsService} from "../backups/backups.service";
 import { Request } from 'express';
 import {HistoryService} from "../history/history.service";
 import {ImportCalendarEventsDto} from "./dto/import-calendar-events-dto";
+import {TripadvisorService} from "../poi/sources/tripadvisor/tripadvisor.service";
+import {PlacesPhotosService} from "../places-photos/places-photos.service";
+import {CreateDto} from "../places-photos/dto/create-dto";
 
 @Injectable()
 export class TripService {
@@ -24,6 +27,8 @@ export class TripService {
     private tripRepository: TripRepository,
     private backupsService: BackupsService,
     private historyService: HistoryService,
+    private tripadvisorService: TripadvisorService,
+    private placesPhotosService: PlacesPhotosService
   ) {
 
   }
@@ -63,17 +68,138 @@ export class TripService {
     return this.tripRepository.getTripByName(name, user);
   }
 
-  async createTrip(createTripDto: CreateTripDto, user: User, request: Request, raiseError: boolean = true) {
+  async autoFillTrip(createTripDto: CreateTripDto, user: User) {
+    const promiseMap: Record<string, Promise<any>> = {};
+    const keywordToIds: Record<string, number[]> = {};
+    const idToKeyword: Record<string, string> = {};
+
+    let totalUpdatedEvents = 0;
+    let totalFoundExistingImages = 0;
+    let totalFoundNewImages = 0;
+
+    // @ts-ignore
+    const searchKeywords = createTripDto.calendarEvents.map((c) => {
+      if (!c.images?.length) {
+        const keyword = c.location.address?.split(",")[0]?.trim() ?? c.title.split("|")[0];
+        keywordToIds[keyword] = keywordToIds[keyword] || [];
+        keywordToIds[keyword].push(c.id);
+        idToKeyword[c.id] = keyword;
+        return keyword;
+      }
+    });
+
+    const existingPoisPhotos: Record<string, string> = await this.placesPhotosService.listPOIsByKeywords(searchKeywords, user);
+    // console.log({ searchKeywords, existingPoisPhotos })
+
+    searchKeywords.forEach((keyword) => {
+
+      if (existingPoisPhotos[keyword]) {
+        totalFoundExistingImages += 1;
+        promiseMap[keyword] = Promise.resolve({
+          searchKeyword: keyword,
+          image: existingPoisPhotos[keyword]
+        })
+      }
+
+      if (!promiseMap[keyword]) {
+        promiseMap[keyword] = this.tripadvisorService.getLocationDetails(keyword);
+      }
+    });
+
+    const keywordToImage: Record<string, string> = {};
+    const results = await Promise.all(Object.values(promiseMap));
+    const keepPhotosPromises = [];
+    for (let i = 0; i < results.length; i++){
+      const searchKeyword: string = results[i].searchKeyword;
+      const image: string = results[i].image ?? results[i]?.details['thumbnail']?.['photoSizeDynamic']?.['urlTemplate']?.replace("{width}", 400)?.replace("{height}", 400);
+
+      // keep photos
+      if (results[i].details) {
+        try {
+          keepPhotosPromises.push(this.placesPhotosService.createRecord({
+            place: searchKeyword,
+            photo: image,
+            is_poi: true
+          } as unknown as CreateDto, user));
+
+          totalFoundNewImages += 1;
+        } catch {
+        }
+      }
+
+      if (image) {
+        keywordToImage[searchKeyword] = image;
+      } else {
+        console.log(`no image found for ${searchKeyword}`);
+      }
+    }
+
+    // update calendar events
+    // @ts-ignore
+    createTripDto.calendarEvents.forEach((c) => {
+      const keyword = idToKeyword[c.id];
+      if (keyword){
+        const image = keywordToImage[keyword];
+        if (image){
+          c.images = image;
+          totalUpdatedEvents += 1;
+        }
+      }
+    })
+
+    try {
+      await Promise.all(keepPhotosPromises);
+    } catch {}
+
+    // @ts-ignore
+    const updatedImages = createTripDto.calendarEvents.map((c) => ({ title: c.title, images: c.images }));
+
+    // console.log({
+    //   totalUpdatedEvents,
+    //   totalFoundExistingImages,
+    //   totalFoundNewImages,
+    //   keywordToImage,
+    //   keywordToIds,
+    //   updatedImages
+    // })
+
+    return {
+      createTripDto,
+      autoFillData: {
+        totalUpdatedEvents,
+        totalFoundExistingImages,
+        totalFoundNewImages
+      }
+    }
+  }
+
+  async createTrip(createTripDto: CreateTripDto, user: User, request: Request, raiseError: boolean = true, autoFill = false) {
+
+    let autoFillData;
+    if (autoFill) {
+      this.logger.log("Performing auto fill for trip...");
+      const updatedData = await this.autoFillTrip(createTripDto, user);
+      createTripDto = updatedData.createTripDto;
+      autoFillData = updatedData.autoFillData;
+      this.logger.log("Finished autofill!", JSON.stringify(autoFillData));
+    }
+
+    let createdTrip;
     if (raiseError) {
-      return await this.tripRepository.createTrip(createTripDto, user, request, this.backupsService);
+      createdTrip = await this.tripRepository.createTrip(createTripDto, user, request, this.backupsService);
     } else {
       try {
-        return await this.tripRepository.createTrip(createTripDto, user, request, this.backupsService);
+        createdTrip = await this.tripRepository.createTrip(createTripDto, user, request, this.backupsService);
       } catch (error) {
         this.logger.error("trip creation failed:", error)
         return undefined
       }
     }
+
+    return {
+      ...createdTrip,
+      autoFillData
+    };
   }
 
   async upsertTrip(createTripDto: CreateTripDto, user: User, request: Request) {

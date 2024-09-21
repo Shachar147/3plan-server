@@ -18,12 +18,13 @@ export class PlacesPhotosRepository extends Repository<PlacesPhotos> {
     createDto: CreateDto,
     user: User,
   ): Promise<PlacesPhotos> {
-    const { place, photo, other_photos } = createDto;
+    const { place, photo, other_photos = '[]', is_poi = false } = createDto;
 
     const record = this.create();
     record.place = place;
     record.photo = photo;
     record.other_photos = other_photos;
+    record.is_poi = is_poi;
 
     try {
       await record.save();
@@ -57,8 +58,37 @@ export class PlacesPhotosRepository extends Repository<PlacesPhotos> {
 
     return record;
   }
-  
-  async listRecords(filterDto: ListDto, user: User) {
+
+    async getExistingPOIs(searchKeywords: string[], user: User): Promise<Record<string, string>> {
+        const query = this.createQueryBuilder('places_photos');
+
+        query
+            .select(['places_photos.place', 'places_photos.photo', 'places_photos.is_poi'])
+            .where('places_photos.place IN (:...searchKeywords)', { searchKeywords }) // Use IN operator for search keywords
+            .andWhere('places_photos.is_poi = :is_poi', { is_poi: true }) // Ensure is_poi is true
+            .orderBy('places_photos.id', 'ASC'); // Optional ordering
+
+        try {
+            const records = await query.getMany();
+
+            // Return the desired format (place -> image)
+            const result: Record<string, string> = {};
+            records.forEach((record) => {
+                if (searchKeywords.includes(record.place) && record.is_poi) {
+                    result[record.place] = record.photo;
+                }
+            })
+            return result;
+        } catch (error) {
+            this.logger.error(
+                `Failed to get records. Keywords: ${JSON.stringify(searchKeywords)}`,
+                error.stack,
+            );
+            throw new InternalServerErrorException();
+        }
+    }
+
+    async listRecords(filterDto: ListDto, user: User) {
     const { place } = filterDto;
 
     const query = this.createQueryBuilder('places_photos');

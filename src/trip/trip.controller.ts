@@ -136,6 +136,14 @@ export class TripController {
     return this.tripService.createTrip(createTripDto, user, request);
   }
 
+  @ApiOperation({ summary: "Create Trip & auto find photos", description: "Create a trip & auto find photos." })
+  @Post("/autoFill")
+  @UsePipes(new ValidationPipe({ transform: true }))
+  @UseGuards(AuthGuard())
+  createTripFillPhotos(@Body() createTripDto: CreateTripDto, @GetUser() user: User, @Req() request: Request) {
+    return this.tripService.createTrip(createTripDto, user, request, undefined, true);
+  }
+
   @ApiOperation({ summary: "Upsert Trip", description: "Upsert a trip." })
   @Post("/upsert")
   @UsePipes(new ValidationPipe({ transform: true }))
