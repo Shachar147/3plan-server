@@ -1,5 +1,6 @@
-import { BaseEntity, Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
+import {BaseEntity, Entity, PrimaryGeneratedColumn, Column, ManyToOne, Unique} from 'typeorm';
 
+@Unique(['place'])
 @Entity()
 export class PlacesPhotos extends BaseEntity{
   @PrimaryGeneratedColumn()
@@ -13,4 +14,7 @@ export class PlacesPhotos extends BaseEntity{
 
   @Column()
   other_photos: string;
+
+  @Column({ default: false, nullable: true })
+  is_poi?: boolean
 }

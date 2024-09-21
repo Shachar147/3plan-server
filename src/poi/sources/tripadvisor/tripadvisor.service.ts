@@ -107,7 +107,7 @@ export class TripadvisorService implements BaseSourceService{
         }
     }
 
-    async getLocationId(destination: string): Promise<{ locationId: string | undefined, destination: string}>  {
+    async getLocationDetails(destination: string): Promise<{ locationId: string | undefined, destination: string, details: Record<string, any>, searchKeyword: string}>  {
 
         const data = JSON.stringify([
             {
@@ -190,15 +190,17 @@ export class TripadvisorService implements BaseSourceService{
         const response = await axios.post(`${this.baseUrl}/data/graphql/ids`, data, config);
         return {
             locationId: response.data[0].data["Typeahead_autocomplete"]?.["results"]?.[0]?.["locationId"],
+            details: response.data[0].data["Typeahead_autocomplete"]?.["results"]?.[0]?.["details"],
             destination:
                 response.data[0].data["Typeahead_autocomplete"]?.["results"]?.[0]?.["details"]?.["placeType"] == "MUNICIPALITY" ?
-                response.data[0].data["Typeahead_autocomplete"]?.["results"]?.[0]?.["details"]?.["localizedName"] ?? destination : destination
+                response.data[0].data["Typeahead_autocomplete"]?.["results"]?.[0]?.["details"]?.["localizedName"] ?? destination : destination,
+            searchKeyword: destination
         };
     }
 
     async search({ destination, page = 1 }: SearchDto, user: User): Promise<SearchResults> {
         page = Number(page);
-        const { locationId, destination: _destination } = await this.getLocationId(destination);
+        const { locationId, destination: _destination } = await this.getLocationDetails(destination);
         destination = _destination;
         if (!locationId) {
             return {

@@ -46,6 +46,10 @@ export class PlacesPhotosService {
     return await this.placesPhotosRepository.updateRecord(record, updateDto);
   }
 
+  async listPOIsByKeywords(searchKeywords: string[], user: User) {
+    return await this.placesPhotosRepository.getExistingPOIs(searchKeywords, user);
+  }
+
   async listRecords(filterDto: ListDto, user: User) {
     let records = await this.placesPhotosRepository.listRecords(filterDto, user);
 
