@@ -26,6 +26,7 @@ import { SavedCollectionsModule } from './saved-collections/saved-collections.mo
 import { SavedCollectionsItemModule } from './saved-collections/saved-collections-item/saved-collections-item.module';
 import { PlacesPhotosModule } from './places-photos/places-photos.module';
 import { TripTemplatesModule } from './trip-templates/trip-templates.module';
+import { FileUploadModule } from './file-upload/file-upload.module';
 
 @Module({
   imports: [
@@ -57,6 +58,7 @@ import { TripTemplatesModule } from './trip-templates/trip-templates.module';
     SavedCollectionsItemModule,
     PlacesPhotosModule,
     TripTemplatesModule,
+    FileUploadModule,
   ],
   controllers: [AppController],
   providers: [AppService, TinderService],
