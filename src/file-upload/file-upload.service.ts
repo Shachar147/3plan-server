@@ -1,40 +1,52 @@
+import { S3Client, PutObjectCommand, ObjectCannedACL } from '@aws-sdk/client-s3';
 import { Injectable } from '@nestjs/common';
-import * as fs from 'fs';
 import * as path from 'path';
-import {getFrontendAddress} from "../config/server.config";
+import * as mime from 'mime-types';
+
 
 @Injectable()
 export class FileUploadService {
+    private s3Client: S3Client;
+    private bucketName = process.env.AWS_S3_BUCKET_NAME; // Set this in your .env file
+
+    constructor() {
+        this.s3Client = new S3Client({
+            region: process.env.AWS_REGION, // Set your AWS region in .env
+            credentials: {
+                accessKeyId: process.env.AWS_ACCESS_KEY_ID, // Set in .env
+                secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY, // Set in .env
+            },
+        });
+    }
+
     async uploadFile(file): Promise<string> {
-        const uploadPath = path.join(getFrontendAddress(), 'images', 'pois'); // Adjust the path as necessary
+        const fileName = this.sanitizeFileName(file.originalname); // Sanitize file name
+        const fileExtension = path.extname(file.originalname); // Get the file extension
+        const mimeType = mime.lookup(fileExtension); // Get MIME type
 
-        const fileName = this.sanitizeFileName(file.originalname);
-        const filePath = path.join(uploadPath, fileName);
+        // Prepare S3 upload parameters
+        const uploadParams = {
+            Bucket: this.bucketName, // Your bucket name
+            Key: `images/pois/${fileName}`, // The file path in S3
+            Body: file.buffer, // File content
+            ContentType: mimeType || 'application/octet-stream', // File type
+            // ACL: ObjectCannedACL.aws_exec_read, // Use the enum for ACL
+        };
 
-        // Save the file to the filesystem
-        if (!fs.existsSync(filePath)) {
-            await fs.promises.writeFile(filePath, file.buffer);
+        try {
+            // Upload to S3
+            const data = await this.s3Client.send(new PutObjectCommand(uploadParams));
+            // console.log('File uploaded successfully:', data);
+
+            // Return the S3 URL of the uploaded file
+            return `https://${this.bucketName}.s3.${process.env.AWS_REGION}.amazonaws.com/images/pois/${fileName}`;
+        } catch (error) {
+            console.error('Error uploading file:', error);
+            throw new Error('File upload failed');
         }
-        return `/images/pois/${fileName}`;
     }
 
-    async uploadFiles(files): Promise<string[]> {
-        const uploadPath = path.join(__dirname, '..', '..', 'public', 'images', 'pois'); // Adjust the path as necessary
-        const uploadedFiles: string[] = [];
-
-        for (const file of files) {
-            const fileName = this.sanitizeFileName(file.originalname);
-            const filePath = path.join(uploadPath, fileName);
-
-            // Save the file to the filesystem
-            await fs.promises.writeFile(filePath, file.buffer);
-            uploadedFiles.push(`/images/pois/${fileName}`); // Return the relative path
-        }
-
-        return uploadedFiles;
-    }
-
-    private sanitizeFileName(originalName: string): string {
-        return originalName.replace(/[^a-zA-Z0-9-_.]/g, '-').toLowerCase(); // Sanitize the file name
+    private sanitizeFileName(fileName: string): string {
+        return fileName.replace(/[^a-zA-Z0-9.-]/g, '-'); // Replace invalid characters with '-'
     }
 }

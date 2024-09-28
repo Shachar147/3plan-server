@@ -27,6 +27,7 @@ import { SavedCollectionsItemModule } from './saved-collections/saved-collection
 import { PlacesPhotosModule } from './places-photos/places-photos.module';
 import { TripTemplatesModule } from './trip-templates/trip-templates.module';
 import { FileUploadModule } from './file-upload/file-upload.module';
+import {ConfigModule} from "@nestjs/config";
 
 @Module({
   imports: [
@@ -34,6 +35,9 @@ import { FileUploadModule } from './file-upload/file-upload.module';
       ...typeOrmConfig,
       name: 'default', // for migrations
       keepConnectionAlive: true, // for migrations
+    }),
+    ConfigModule.forRoot({
+      isGlobal: true, // Makes it globally available
     }),
     ScheduleModule.forRoot(),
     UserModule,
