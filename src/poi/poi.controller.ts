@@ -1,5 +1,17 @@
 // point-of-interest.controller.ts
-import {Controller, Get, Post, Body, Param, Patch, Delete, UseGuards, Query, Put} from '@nestjs/common';
+import {
+    Controller,
+    Get,
+    Post,
+    Body,
+    Param,
+    Patch,
+    Delete,
+    UseGuards,
+    Query,
+    Put,
+    UnauthorizedException
+} from '@nestjs/common';
 import {PointOfInterestService, UpsertAllResponse} from './poi.service';
 import { PointOfInterest } from './poi.entity';
 import { AuthGuard } from '@nestjs/passport';
@@ -36,6 +48,10 @@ export class PointOfInterestController {
         @Body() items: Partial<PointOfInterest>[],
         @GetUser() user: User,
     ): Promise<UpsertAllResponse> {
+        if (user.username !== 'Shachar'){
+            throw new UnauthorizedException();
+        }
+
         items.forEach((item) => {
             item.isSystemRecommendation = true;
         })
