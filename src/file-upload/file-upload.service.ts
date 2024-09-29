@@ -1,8 +1,27 @@
 import { S3Client, PutObjectCommand, ObjectCannedACL } from '@aws-sdk/client-s3';
 import {Injectable, Logger} from '@nestjs/common';
 import * as path from 'path';
+import * as fs from 'fs';
 import * as mime from 'mime-types';
 
+function loadEnv() {
+    // Only load .env in local development environments (like NODE_ENV=development)
+    const envFilePath = path.resolve(__dirname, '../../.env');
+
+    // Check if .env exists
+    const mode = process.env.NODE_ENV;
+    if (mode && mode.trim() === 'development' && fs.existsSync(envFilePath)) {
+        const envFileContent = fs.readFileSync(envFilePath, 'utf8');
+        const envVars = envFileContent.split('\n');
+
+        envVars.forEach((line) => {
+            const [key, value] = line.split('=');
+            if (key && value) {
+                process.env[key.trim()] = value.trim(); // Set process.env if not already set
+            }
+        });
+    }
+}
 
 @Injectable()
 export class FileUploadService {
@@ -11,16 +30,24 @@ export class FileUploadService {
     private logger = new Logger("FileUploadController");
 
     constructor() {
+        loadEnv();
+        this.bucketName = process.env.AWS_S3_BUCKET_NAME;
+        const region = process.env.AWS_REGION;
+        const accessKeyId = process.env.AWS_ACCESS_KEY_ID;
+        const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
+
         this.s3Client = new S3Client({
-            region: process.env.AWS_REGION, // Set your AWS region in .env
+            region: region, // Set your AWS region in .env
             credentials: {
-                accessKeyId: process.env.AWS_ACCESS_KEY_ID, // Set in .env
-                secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY, // Set in .env
+                accessKeyId, // Set in .env
+                secretAccessKey, // Set in .env
             },
         });
     }
 
     async uploadFile(file): Promise<string> {
+        const region = process.env.AWS_REGION;
+
         console.log('reached FileUploadService::uploadFile');
         const fileName = this.sanitizeFileName(file.originalname); // Sanitize file name
         console.log('sanitized file name');
@@ -52,7 +79,7 @@ export class FileUploadService {
             console.log('Upload finished successfully!');
 
             // Return the S3 URL of the uploaded file
-            return `https://${this.bucketName}.s3.${process.env.AWS_REGION}.amazonaws.com/images/pois/${fileName}`;
+            return `https://${this.bucketName}.s3.${region}.amazonaws.com/images/pois/${fileName}`;
         } catch (error) {
             console.error('Error uploading file:', error);
 
