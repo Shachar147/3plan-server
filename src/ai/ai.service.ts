@@ -1223,7 +1223,11 @@ export class AIService {
         });
 
         // Collect unused events
-        const sidebarEvents = Object.values(unusedEventsById).filter(Boolean);
+        const sidebarEventsList = Object.values(unusedEventsById).filter(Boolean);
+
+        const sidebarEvents = sidebarEventsList.length > 0 ? {
+            1: sidebarEventsList
+        } : {}
 
 
         return { calendarEvents, sidebarEvents };
