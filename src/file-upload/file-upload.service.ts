@@ -21,12 +21,12 @@ export class FileUploadService {
     }
 
     async uploadFile(file): Promise<string> {
-        this.logger.log('reached FileUploadService::uploadFile');
+        console.log('reached FileUploadService::uploadFile');
         const fileName = this.sanitizeFileName(file.originalname); // Sanitize file name
-        this.logger.log('sanitized file name');
+        console.log('sanitized file name');
         const fileExtension = path.extname(file.originalname); // Get the file extension
         const mimeType = mime.lookup(fileExtension); // Get MIME type
-        this.logger.log(`extracted file extension and mimeType: ${fileExtension}; ${mimeType}`);
+        console.log(`extracted file extension and mimeType: ${fileExtension}; ${mimeType}`);
 
         // Prepare S3 upload parameters
         const uploadParams = {
@@ -37,19 +37,19 @@ export class FileUploadService {
             // ACL: ObjectCannedACL.aws_exec_read, // Use the enum for ACL
         };
 
-        this.logger.log(`built s3 upload params: ${JSON.stringify({
+        console.log(`built s3 upload params: ${JSON.stringify({
             ...uploadParams,
             Body: '***File***'
         })}`);
 
         try {
-            this.logger.log('Trying to upload to s3....');
+            console.log('Trying to upload to s3....');
 
             // Upload to S3
             const data = await this.s3Client.send(new PutObjectCommand(uploadParams));
             // console.log('File uploaded successfully:', data);
 
-            this.logger.log('Upload finished successfully!');
+            console.log('Upload finished successfully!');
 
             // Return the S3 URL of the uploaded file
             return `https://${this.bucketName}.s3.${process.env.AWS_REGION}.amazonaws.com/images/pois/${fileName}`;

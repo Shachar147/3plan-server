@@ -11,7 +11,7 @@ export class FileUploadController {
     @Post()
     @UseInterceptors(FileInterceptor('file')) // 'file' should match the name in FormData
     async uploadFiles(@UploadedFile() file) {
-        this.logger.log('reached FileUploadController');
+        console.log('reached FileUploadController');
         const uploadedFile = await this.fileUploadService.uploadFile(file);
         return { message: 'File uploaded successfully', file: uploadedFile };
     }
