@@ -1,23 +1,20 @@
-import { S3Client, PutObjectCommand, ObjectCannedACL } from '@aws-sdk/client-s3';
-import {Injectable, Logger} from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as mime from 'mime-types';
+import * as AWS from 'aws-sdk';
 
 function loadEnv() {
-    // Only load .env in local development environments (like NODE_ENV=development)
     const envFilePath = path.resolve(__dirname, '../../.env');
 
-    // Check if .env exists
-    const mode = process.env.NODE_ENV;
-    if (mode && mode.trim() === 'development' && fs.existsSync(envFilePath)) {
+    if (process.env.NODE_ENV === 'development' && fs.existsSync(envFilePath)) {
         const envFileContent = fs.readFileSync(envFilePath, 'utf8');
         const envVars = envFileContent.split('\n');
 
         envVars.forEach((line) => {
             const [key, value] = line.split('=');
             if (key && value) {
-                process.env[key.trim()] = value.trim(); // Set process.env if not already set
+                process.env[key.trim()] = value.trim();
             }
         });
     }
@@ -25,66 +22,57 @@ function loadEnv() {
 
 @Injectable()
 export class FileUploadService {
-    private s3Client: S3Client;
-    private bucketName = process.env.AWS_S3_BUCKET_NAME; // Set this in your .env file
-    private logger = new Logger("FileUploadController");
+    private s3: AWS.S3;
+    private bucketName = process.env.AWS_S3_BUCKET_NAME;
+    private logger = new Logger('FileUploadService');
 
     constructor() {
         loadEnv();
         this.bucketName = process.env.AWS_S3_BUCKET_NAME;
-        const region = process.env.AWS_REGION;
-        const accessKeyId = process.env.AWS_ACCESS_KEY_ID;
-        const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
 
-        this.s3Client = new S3Client({
-            region: region, // Set your AWS region in .env
-            credentials: {
-                accessKeyId, // Set in .env
-                secretAccessKey, // Set in .env
-            },
+        // Configure AWS SDK with your credentials and region
+        AWS.config.update({
+            region: process.env.AWS_REGION,
+            accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+            secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
         });
+
+        this.s3 = new AWS.S3();
     }
 
     async uploadFile(file): Promise<string> {
-        const region = process.env.AWS_REGION;
+        console.log('Reached FileUploadService::uploadFile');
+        const fileName = this.sanitizeFileName(file.originalname);
+        const fileExtension = path.extname(file.originalname);
+        const mimeType = mime.lookup(fileExtension);
 
-        console.log('reached FileUploadService::uploadFile');
-        const fileName = this.sanitizeFileName(file.originalname); // Sanitize file name
-        console.log('sanitized file name');
-        const fileExtension = path.extname(file.originalname); // Get the file extension
-        const mimeType = mime.lookup(fileExtension); // Get MIME type
-        console.log(`extracted file extension and mimeType: ${fileExtension}; ${mimeType}`);
+        console.log(`Extracted file extension and MIME type: ${fileExtension}; ${mimeType}`);
 
         // Prepare S3 upload parameters
         const uploadParams = {
-            Bucket: this.bucketName, // Your bucket name
-            Key: `images/pois/${fileName}`, // The file path in S3
-            Body: file.buffer, // File content
-            ContentType: mimeType || 'application/octet-stream', // File type
-            // ACL: ObjectCannedACL.aws_exec_read, // Use the enum for ACL
+            Bucket: this.bucketName,
+            Key: `images/pois/${fileName}`,
+            Body: file.buffer,
+            ContentType: mimeType || 'application/octet-stream',
         };
 
-        console.log(`built s3 upload params: ${JSON.stringify({
+        console.log(`Built S3 upload params: ${JSON.stringify({
             ...uploadParams,
-            Body: '***File***'
+            Body: '***File***',
         })}`);
 
         try {
-            console.log('Trying to upload to s3....');
+            console.log('Trying to upload to S3...');
 
             // Upload to S3
-            const data = await this.s3Client.send(new PutObjectCommand(uploadParams));
-            // console.log('File uploaded successfully:', data);
-
+            const data = await this.s3.upload(uploadParams).promise();
             console.log('Upload finished successfully!');
 
             // Return the S3 URL of the uploaded file
-            return `https://${this.bucketName}.s3.${region}.amazonaws.com/images/pois/${fileName}`;
+            return `https://${this.bucketName}.s3.${process.env.AWS_REGION}.amazonaws.com/images/pois/${fileName}`;
         } catch (error) {
             console.error('Error uploading file:', error);
-
             this.logger.error('Upload failed :(');
-
             throw new Error('File upload failed');
         }
     }
