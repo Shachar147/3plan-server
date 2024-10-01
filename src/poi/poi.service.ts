@@ -249,12 +249,12 @@ export class PointOfInterestService {
         };
     }
 
-    async getFeedItems(withoutSystemRecommendations: boolean): Promise<SearchResults> {
+    async getFeedItems(withoutSystemRecommendations: number): Promise<SearchResults> {
         let query = this.pointOfInterestRepository
             .createQueryBuilder('poi')
             .where('poi.rate IS NOT NULL AND CAST(poi.rate AS jsonb) ->> \'rating\' = :rating AND CAST(poi.rate AS jsonb) ->> \'quantity\' >= :quantity', { rating: '5', quantity: 50 });
 
-        if (!withoutSystemRecommendations){
+        if (withoutSystemRecommendations == 0){
             query = query.orWhere('poi.isSystemRecommendation = true');
         } else {
             query = query.andWhere('poi.isSystemRecommendation = false');
