@@ -232,12 +232,35 @@ export class PointOfInterestService {
     //     };
     // }
 
-    async getFeedItems(): Promise<SearchResults> {
+    async getSystemRecommendations(): Promise<SearchResults> {
         const pointsOfInterest = await this.pointOfInterestRepository
             .createQueryBuilder('poi')
             .where('poi.isSystemRecommendation = true')
-            .orWhere('poi.rate IS NOT NULL AND CAST(poi.rate AS jsonb) ->> \'rating\' = :rating AND CAST(poi.rate AS jsonb) ->> \'quantity\' >= :quantity', { rating: '5', quantity: 50 })
-            .orderBy('poi.isSystemRecommendation', 'DESC')
+            .orderBy('RANDOM()')
+            .take(8)
+            .getMany();
+
+        // Return the formatted response
+        return {
+            results: pointsOfInterest,
+            isFinished: true,
+            nextPage: null,
+            source: 'Local',
+        };
+    }
+
+    async getFeedItems(withoutSystemRecommendations: boolean): Promise<SearchResults> {
+        let query = this.pointOfInterestRepository
+            .createQueryBuilder('poi')
+            .where('poi.rate IS NOT NULL AND CAST(poi.rate AS jsonb) ->> \'rating\' = :rating AND CAST(poi.rate AS jsonb) ->> \'quantity\' >= :quantity', { rating: '5', quantity: 50 });
+
+        if (!withoutSystemRecommendations){
+            query = query.orWhere('poi.isSystemRecommendation = true');
+        } else {
+            query = query.andWhere('poi.isSystemRecommendation = false');
+        }
+
+        const pointsOfInterest = await query.orderBy('poi.isSystemRecommendation', 'DESC')
             .addOrderBy('RANDOM()')
             .take(12)
             .getMany();

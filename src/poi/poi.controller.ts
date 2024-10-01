@@ -73,8 +73,15 @@ export class PointOfInterestController {
     }
 
     @Get('/feed')
-    async getFeedItems(): Promise<SearchResults> {
-        return this.pointOfInterestService.getFeedItems();
+    async getFeedItems(
+        @Query('withoutSystemRecommendations') withoutSystemRecommendations: boolean = false,
+    ): Promise<SearchResults> {
+        return this.pointOfInterestService.getFeedItems(withoutSystemRecommendations);
+    }
+
+    @Get('/system-recommendations')
+    async getSystemRecommendations(): Promise<SearchResults> {
+        return this.pointOfInterestService.getSystemRecommendations();
     }
 
     @Get('/search-suggestions')
