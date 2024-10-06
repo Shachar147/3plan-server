@@ -5,9 +5,6 @@ import {
     PrimaryGeneratedColumn,
     Column,
     ManyToOne,
-    CreateDateColumn,
-    UpdateDateColumn,
-    DeleteDateColumn,
 } from 'typeorm';
 import { User } from '../user/user.entity';
 

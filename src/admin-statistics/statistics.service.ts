@@ -28,6 +28,13 @@ export class StatisticsService {
         return totalPoisResult[0]["totalpois"];
     }
 
+    async getTotalSystemRecommendations(): Promise<number> {
+        const query = `SELECT COUNT(*) as totalpois FROM point_of_interest WHERE isSystemRecommendation == true`;
+        const connection = getConnection();
+        const totalPoisResult = await connection.query(query);
+        return totalPoisResult[0]["totalpois"];
+    }
+
     async getTotalSavedItems(): Promise<number> {
         const query = `SELECT COUNT(*) as totalsaved FROM saved_collections_item`;
         const connection = getConnection();

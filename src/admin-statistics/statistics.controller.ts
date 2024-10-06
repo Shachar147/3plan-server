@@ -31,12 +31,13 @@ export class StatisticsController {
     @Get('/summaries')
     @UseGuards(AuthGuard())
     async getAllStatistics(){
-        const [tripsAndUsersStats, totalPois, totalSavedItems, totalSavedCollections, totalDestinations] = await Promise.all([
+        const [tripsAndUsersStats, totalPois, totalSavedItems, totalSavedCollections, totalDestinations, totalSystemRecommendations] = await Promise.all([
             this.statisticsService.getTripsStatistics(),
             this.statisticsService.getTotalPointOfInterests(),
             this.statisticsService.getTotalSavedItems(),
             this.statisticsService.getTotalSavedCollections(),
             this.statisticsService.getTotalDestinations(),
+            this.statisticsService.getTotalSystemRecommendations()
         ]);
 
         const totalUsers = {};
@@ -104,6 +105,7 @@ export class StatisticsController {
             avgSavedItemsPerUser: Number(Number(totalSavedItems / Object.keys(totalUsers).length).toFixed(0)),
             totalDestinations,
             totalSavedCollections,
+            totalSystemRecommendations,
 
             // templates:
             totalTemplates,
