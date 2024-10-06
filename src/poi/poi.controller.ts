@@ -75,8 +75,9 @@ export class PointOfInterestController {
     @Get('/feed')
     async getFeedItems(
         @Query('withoutSystemRecommendations') withoutSystemRecommendations: number = 0,
+        @Query('p') page?: number,
     ): Promise<SearchResults> {
-        return this.pointOfInterestService.getFeedItems(withoutSystemRecommendations);
+        return this.pointOfInterestService.getFeedItems(withoutSystemRecommendations, page);
     }
 
     @Get('/system-recommendations')

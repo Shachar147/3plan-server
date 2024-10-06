@@ -265,7 +265,7 @@ export class PointOfInterestService {
         };
     }
 
-    async getFeedItems(withoutSystemRecommendations: number): Promise<SearchResults> {
+    async getFeedItems(withoutSystemRecommendations: number, page?: number): Promise<SearchResults> {
         let query = this.pointOfInterestRepository
             .createQueryBuilder('poi')
             .where('poi.rate IS NOT NULL AND CAST(poi.rate AS jsonb) ->> \'rating\' = :rating AND CAST(poi.rate AS jsonb) ->> \'quantity\' >= :quantity', { rating: '5', quantity: 50 });
@@ -276,16 +276,28 @@ export class PointOfInterestService {
             query = query.andWhere('poi.isSystemRecommendation = false');
         }
 
-        const pointsOfInterest = await query.orderBy('poi.isSystemRecommendation', 'DESC')
-            .addOrderBy('RANDOM()')
-            .take(12)
-            .getMany();
+        let pointsOfInterest;
 
-        // Return the formatted response
+        if (page){
+            pointsOfInterest = await query
+                .orderBy('poi.isSystemRecommendation', 'DESC')
+                .skip((page-1) * 12)
+                .take(12)
+                .getMany();
+
+            pointsOfInterest = shuffle(pointsOfInterest);
+        } else {
+            pointsOfInterest = await query.orderBy('poi.isSystemRecommendation', 'DESC')
+                .addOrderBy('RANDOM()')
+                .take(12)
+                .getMany();
+        }
+
+        const isFinished = page ? pointsOfInterest.length != 12 : true;
         return {
             results: pointsOfInterest,
-            isFinished: true,
-            nextPage: null,
+            isFinished,
+            nextPage: page && !isFinished ? page+1 : null,
             source: 'Local',
         };
     }
