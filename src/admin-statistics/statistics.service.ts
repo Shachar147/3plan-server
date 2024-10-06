@@ -29,7 +29,7 @@ export class StatisticsService {
     }
 
     async getTotalSystemRecommendations(): Promise<number> {
-        const query = `SELECT COUNT(*) as totalpois FROM point_of_interest WHERE isSystemRecommendation == true`;
+        const query = `SELECT COUNT(*) as totalpois FROM point_of_interest WHERE "isSystemRecommendation" is true`;
         const connection = getConnection();
         const totalPoisResult = await connection.query(query);
         return totalPoisResult[0]["totalpois"];
