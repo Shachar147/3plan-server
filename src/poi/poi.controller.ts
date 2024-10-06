@@ -148,4 +148,14 @@ export class PointOfInterestController {
     async getPointsOfInterestByCategory(@GetUser() user: User): Promise<Record<string, any>> {
         return await this.pointOfInterestService.getPointsOfInterestByCategory(user);
     }
+
+    @Get('/by-category/count')
+    @UseGuards(AuthGuard())
+    async getTotalPointsOfInterestByCategory(@GetUser() user: User): Promise<Record<string, any>> {
+        const r = await this.pointOfInterestService.getPointsOfInterestByCategory(user);
+        Object.keys(r).forEach((category) => {
+            r[category] = r[category].length
+        });
+        return r;
+    }
 }
