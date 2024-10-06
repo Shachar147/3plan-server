@@ -359,6 +359,9 @@ export class PointOfInterestService {
             if (row.source == "Dubai.co.il") {
                 continue;
             }
+            if (row.isSystemRecommendation) {
+                continue;
+            }
             const existingCategory = row.category || 'CATEGORY.GENERAL';
             const newCategory = extractCategory([
                 row.name,
