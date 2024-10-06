@@ -256,10 +256,11 @@ export class PointOfInterestService {
         }
 
         // Return the formatted response
+        const isFinished = page ? pointsOfInterest.length != 8 : true;
         return {
             results: pointsOfInterest,
-            isFinished: page ? pointsOfInterest.length === 8 : true,
-            nextPage: page ? page+1 : null,
+            isFinished,
+            nextPage: page && !isFinished ? page+1 : null,
             source: 'Local',
         };
     }
