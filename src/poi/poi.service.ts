@@ -6,6 +6,7 @@ import { User } from '../user/user.entity';
 import {SearchResults, SearchSuggestion} from "./utils/interfaces";
 import {Brackets, ILike, Like} from "typeorm";
 import {extractCategory} from "./utils/utils";
+import {shuffle} from "../shared/utils";
 
 export type UpsertAllResponse = { results: PointOfInterest[], totalAdded: number, totalUpdated: number};
 
@@ -239,10 +240,11 @@ export class PointOfInterestService {
             pointsOfInterest = await this.pointOfInterestRepository
                 .createQueryBuilder('poi')
                 .where('poi.isSystemRecommendation = true')
-                .offset((page-1) * 8)
+                .skip((page-1) * 8)
                 .take(8)
-                .orderBy('RANDOM()')
                 .getMany();
+
+            pointsOfInterest = shuffle(pointsOfInterest);
         }
         else {
             pointsOfInterest = await this.pointOfInterestRepository
