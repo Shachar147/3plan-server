@@ -466,7 +466,7 @@ export class InstagramService {
     // https://www.instagram.com/_marcelsiebert/ -> 277627304
     // https://www.instagram.com/jeremyaustiin/ -> 22767954
     // https://www.instagram.com/or.zano/ -> travel inspirations -> 2961005690
-    // https://www.instagram.com/judit.bar.dimri/-> 216755086
+    // https://www.instagradam.com/judit.bar.dimri/-> 216755086
     // https://www.instagram.com/itay_erlich/ -> 184393676
     // https://www.instagram.com/travelmina_/ -> 20750067
     // https://www.instagram.com/simply.madeleine/ -> 2189369414
