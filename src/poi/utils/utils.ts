@@ -233,7 +233,7 @@ export function extractCategory(arr: string[]): string {
             "Wine Tasting"
         ],
         "CATEGORY.NATURE": [
-            "Natural Pools",
+            // "Natural Pools",
             "Waterfalls",
             // " hike ",
             "Niagara Falls",
