@@ -80,8 +80,10 @@ export class PointOfInterestController {
     }
 
     @Get('/system-recommendations')
-    async getSystemRecommendations(): Promise<SearchResults> {
-        return this.pointOfInterestService.getSystemRecommendations();
+    async getSystemRecommendations(
+        @Query('p') page?: number
+    ): Promise<SearchResults> {
+        return this.pointOfInterestService.getSystemRecommendations(page);
     }
 
     @Get('/search-suggestions')

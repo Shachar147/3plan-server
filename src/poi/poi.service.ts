@@ -232,19 +232,32 @@ export class PointOfInterestService {
     //     };
     // }
 
-    async getSystemRecommendations(): Promise<SearchResults> {
-        const pointsOfInterest = await this.pointOfInterestRepository
-            .createQueryBuilder('poi')
-            .where('poi.isSystemRecommendation = true')
-            .orderBy('RANDOM()')
-            .take(8)
-            .getMany();
+    async getSystemRecommendations(page?: number): Promise<SearchResults> {
+
+        let pointsOfInterest;
+        if (page){
+            pointsOfInterest = await this.pointOfInterestRepository
+                .createQueryBuilder('poi')
+                .where('poi.isSystemRecommendation = true')
+                .offset((page-1) * 8)
+                .take(8)
+                .orderBy('RANDOM()')
+                .getMany();
+        }
+        else {
+            pointsOfInterest = await this.pointOfInterestRepository
+                .createQueryBuilder('poi')
+                .where('poi.isSystemRecommendation = true')
+                .orderBy('RANDOM()')
+                .take(8)
+                .getMany();
+        }
 
         // Return the formatted response
         return {
             results: pointsOfInterest,
-            isFinished: true,
-            nextPage: null,
+            isFinished: page ? pointsOfInterest.length === 8 : true,
+            nextPage: page ? page+1 : null,
             source: 'Local',
         };
     }
