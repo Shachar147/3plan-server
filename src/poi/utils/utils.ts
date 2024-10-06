@@ -233,7 +233,7 @@ export function extractCategory(arr: string[]): string {
             "Wine Tasting"
         ],
         "CATEGORY.NATURE": [
-            // "Natural Pools",
+            "Natural Pools",
             "Waterfalls",
             // " hike ",
             "Niagara Falls",
@@ -247,7 +247,7 @@ export function extractCategory(arr: string[]): string {
             "הלגונות והחופים",
         ],
         "CATEGORY.TOURISM": [
-            "Stonehenge", "Eiffel Tower", "Eiffel",
+            "Stonehenge",
             "city-walk", "burj", "מסגד", "טיילת", "המרינה", "אייפל", "eifel", "souk", "שווקים", "Historical Tours", "old town", "windsor castle",
             "Pyramids of Giza", "ancient Egyptian", "Egyptian Antiquities", "Tour of Old Nice", "Walking Tour, in Nice", "Historical Stone town tour", "London: Buckingham Palace",
             "Private Tailor Made Tour", "Sagrada Familia", "La Sagrada Familia", "Walking Historic Highlights Tour", "סיור רגלי לקבוצות קטנות עם מדריך",
