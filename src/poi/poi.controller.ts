@@ -5,7 +5,6 @@ import {
     Post,
     Body,
     Param,
-    Patch,
     Delete,
     UseGuards,
     Query,
@@ -18,6 +17,10 @@ import { AuthGuard } from '@nestjs/passport';
 import { GetUser } from '../auth/get-user.decorator';
 import { User } from '../user/user.entity';
 import {SearchResults, SearchSuggestion} from "./utils/interfaces";
+
+export function isAdmin(user: User){
+    return user.username == "Shachar";
+}
 
 @Controller('poi')
 @UseGuards(AuthGuard())
@@ -39,6 +42,9 @@ export class PointOfInterestController {
         @Body() items: Partial<PointOfInterest>[],
         @GetUser() user: User,
     ): Promise<UpsertAllResponse> {
+        // if (!isAdmin(user)) {
+        //     throw new UnauthorizedException();
+        // }
         return await this.pointOfInterestService.upsertAll(items, user);
     }
 
@@ -48,7 +54,8 @@ export class PointOfInterestController {
         @Body() items: Partial<PointOfInterest>[],
         @GetUser() user: User,
     ): Promise<UpsertAllResponse> {
-        if (user.username !== 'Shachar'){
+        // if (user.username !== 'Shachar'){
+        if (!isAdmin(user)) {
             throw new UnauthorizedException();
         }
 
@@ -103,6 +110,9 @@ export class PointOfInterestController {
         totalDiffs: number,
         totalUpdated: number
     }> {
+        if (!isAdmin(user)) {
+            throw new UnauthorizedException();
+        }
         return await this.pointOfInterestService.fixCategories(user);
     }
 
@@ -112,6 +122,9 @@ export class PointOfInterestController {
         totalDiffs: number,
         totalUpdated: number
     }> {
+        if (!isAdmin(user)) {
+            throw new UnauthorizedException();
+        }
         return await this.pointOfInterestService.fixCategories(user, false);
     }
 
@@ -128,30 +141,45 @@ export class PointOfInterestController {
         @Body() data: Partial<PointOfInterest>,
         @GetUser() user: User,
     ): Promise<PointOfInterest> {
+        if (!isAdmin(user)) {
+            throw new UnauthorizedException();
+        }
         return this.pointOfInterestService.updatePointOfInterest(id, data, user);
     }
 
     @Delete('/:id')
     @UseGuards(AuthGuard())
     async deletePointOfInterest(@Param('id') id: number, @GetUser() user: User): Promise<void> {
+        if (!isAdmin(user)) {
+            throw new UnauthorizedException();
+        }
         return this.pointOfInterestService.deletePointOfInterest(id, user);
     }
 
     @Get('/count/by-source/:destination')
     @UseGuards(AuthGuard())
     async getCountBySourceForDestination(@Param('destination') destination: string, @GetUser() user: User): Promise<Record<string, number>> {
+        if (!isAdmin(user)) {
+            throw new UnauthorizedException();
+        }
         return this.pointOfInterestService.getCountBySourceForDestination(destination);
     }
 
     @Get('/by-category/all')
     @UseGuards(AuthGuard())
     async getPointsOfInterestByCategory(@GetUser() user: User): Promise<Record<string, any>> {
+        if (!isAdmin(user)) {
+            throw new UnauthorizedException();
+        }
         return await this.pointOfInterestService.getPointsOfInterestByCategory(user);
     }
 
     @Get('/by-category/count')
     @UseGuards(AuthGuard())
     async getTotalPointsOfInterestByCategory(@GetUser() user: User): Promise<Record<string, any>> {
+        if (!isAdmin(user)) {
+            throw new UnauthorizedException();
+        }
         const r = await this.pointOfInterestService.getPointsOfInterestByCategory(user);
         Object.keys(r).forEach((category) => {
             r[category] = r[category].length

@@ -240,6 +240,7 @@ export class PointOfInterestService {
             pointsOfInterest = await this.pointOfInterestRepository
                 .createQueryBuilder('poi')
                 .where('poi.isSystemRecommendation = true')
+                .andWhere('poi.deletedAt IS NULL')
                 .skip((page-1) * 8)
                 .take(8)
                 .getMany();
@@ -250,6 +251,7 @@ export class PointOfInterestService {
             pointsOfInterest = await this.pointOfInterestRepository
                 .createQueryBuilder('poi')
                 .where('poi.isSystemRecommendation = true')
+                .andWhere('poi.deletedAt IS NULL')
                 .orderBy('RANDOM()')
                 .take(8)
                 .getMany();
