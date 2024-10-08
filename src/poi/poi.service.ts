@@ -105,6 +105,14 @@ export class PointOfInterestService {
             if (existingPoi) {
                 // Update the existing POI
                 this.logger.log(`Updating POI: ${item.name} (Source: ${item.source}, URL: ${item.more_info})`);
+
+                if (existingPoi.name.includes("|")) {
+                    item.name = existingPoi.name; // to prevent it from overriding the name.
+                }
+
+                if (existingPoi.description.includes("|")) {
+                    item.description = existingPoi.description; // to prevent it from overriding the description.
+                }
                 Object.assign(existingPoi, item, { updatedBy: user });
                 const poi = await this.pointOfInterestRepository.save(existingPoi);
                 item.id = poi.id;
