@@ -174,48 +174,46 @@ export class PointOfInterestService {
     }
 
     async getSearchResults(searchKeyword: string, page: number, limit: number = 50): Promise<SearchResults> {
+        // Step 1: Count total items that match the search criteria (both recommended and non-recommended)
         const total = await this.pointOfInterestRepository.count({
             where: [
                 { name: Like(`%${searchKeyword}%`) },
                 { description: Like(`%${searchKeyword}%`) },
-                { destination: Like(`%${searchKeyword}%`) }
-            ],
+                { destination: Like(`%${searchKeyword}%`) },
+                { source: Like(`%${searchKeyword}%`) }
+            ]
         });
 
-        const totalPages = Math.ceil(total/limit)
+        const totalPages = Math.ceil(total / limit);
 
-        // Fetch the points of interest based on the given searchKeyword, page, and limit
+        // Step 2: Fetch the points of interest based on the searchKeyword, page, and limit
+        // Order by isSystemRecommendation first (true comes first), then apply pagination
         const pointsOfInterest = await this.pointOfInterestRepository.find({
             where: [
                 { name: ILike(`%${searchKeyword}%`) },
                 { description: ILike(`%${searchKeyword}%`) },
                 { destination: ILike(`%${searchKeyword}%`) },
-                { source: ILike(`${searchKeyword}`) }
+                { source: ILike(`%${searchKeyword}%`) }
             ],
+            order: {
+                isSystemRecommendation: "DESC" // System recommendations first
+            },
             skip: (page - 1) * limit,
             take: limit,
         });
 
-        // Check if there are more results for the next page
-        const totalPointsOfInterest = await this.pointOfInterestRepository.count({
-            where: [
-                { name: Like(`%${searchKeyword}%`) },
-                { description: Like(`%${searchKeyword}%`) },
-                { destination: Like(`%${searchKeyword}%`) }
-            ]
-        });
-
-        const isFinished = (page * limit) > totalPointsOfInterest;
+        // Step 3: Check if there are more results for the next page
+        const isFinished = (page * limit) >= total;
         const nextPage = isFinished ? null : page + 1;
 
-        // Return the formatted response
+        // Step 4: Return the formatted response
         return {
             total,
             totalPages,
             results: pointsOfInterest,
             isFinished,
             nextPage,
-            source: "Local"
+            source: "Local",
         };
     }
 
