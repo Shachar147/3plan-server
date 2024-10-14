@@ -241,14 +241,16 @@ export class PointOfInterestService {
 
     async getSystemRecommendations(page?: number): Promise<SearchResults> {
 
+        const pageSize = page ? 30 : 8;
+
         let pointsOfInterest;
         if (page){
             pointsOfInterest = await this.pointOfInterestRepository
                 .createQueryBuilder('poi')
                 .where('poi.isSystemRecommendation = true')
                 .andWhere('poi.deletedAt IS NULL')
-                .skip((page-1) * 8)
-                .take(8)
+                .skip((page-1) * pageSize)
+                .take(pageSize)
                 .getMany();
 
             pointsOfInterest = shuffle(pointsOfInterest);
@@ -259,12 +261,12 @@ export class PointOfInterestService {
                 .where('poi.isSystemRecommendation = true')
                 .andWhere('poi.deletedAt IS NULL')
                 .orderBy('RANDOM()')
-                .take(8)
+                .take(pageSize)
                 .getMany();
         }
 
         // Return the formatted response
-        const isFinished = page ? pointsOfInterest.length != 8 : true;
+        const isFinished = page ? pointsOfInterest.length != pageSize : true;
         return {
             results: pointsOfInterest,
             isFinished,
