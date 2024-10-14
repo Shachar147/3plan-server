@@ -251,6 +251,7 @@ export class PointOfInterestService {
                 .andWhere('poi.deletedAt IS NULL')
                 .skip((page-1) * pageSize)
                 .take(pageSize)
+                .orderBy("poi.id", "DESC")
                 .getMany();
 
             pointsOfInterest = shuffle(pointsOfInterest);
