@@ -313,20 +313,35 @@ export class PointOfInterestService {
     async getSearchSuggestions(searchKeyword: string): Promise<SearchSuggestion[]> {
         const pointsOfInterest = await this.pointOfInterestRepository
             .createQueryBuilder('poi')
-            .andWhere(
-                new Brackets((qb) => {
-                    qb.where('poi.name ILIKE :searchKeyword', { searchKeyword: `%${searchKeyword}%` })
-                    .orWhere('poi.destination ILIKE :searchKeyword', { searchKeyword: `%${searchKeyword}%` })
-                    .orWhere('poi.description ILIKE :searchKeyword', { searchKeyword: `%${searchKeyword}%` })
-                    .orWhere(':searchKeyword ILIKE poi.source', { searchKeyword: `${searchKeyword}` });
-                })
-            )
-            .orderBy('poi.isSystemRecommendation', 'DESC')
+            .where([
+                { name: ILike(`%${searchKeyword}%`) },
+                { description: ILike(`%${searchKeyword}%`) },
+                { destination: ILike(`%${searchKeyword}%`) },
+                { source: ILike(`%${searchKeyword}%`) }
+            ])
+            .orderBy('poi.isSystemRecommendation', 'DESC') // Prioritize system recommendations
             .addOrderBy(
-                `COALESCE(CAST(poi.rate->>'rating' AS FLOAT), 0)`, 'DESC'
+                `COALESCE(CAST(poi.rate->>'rating' AS FLOAT), 0)`, 'DESC' // Fallback to 0 if rating is not available
             )
             .take(30)
             .getMany();
+
+        // const pointsOfInterest = await this.pointOfInterestRepository
+        //     .createQueryBuilder('poi')
+        //     .andWhere(
+        //         new Brackets((qb) => {
+        //             qb.where('poi.name ILIKE :searchKeyword', { searchKeyword: `%${searchKeyword}%` })
+        //             .orWhere('poi.destination ILIKE :searchKeyword', { searchKeyword: `%${searchKeyword}%` })
+        //             .orWhere('poi.description ILIKE :searchKeyword', { searchKeyword: `%${searchKeyword}%` })
+        //             .orWhere(':searchKeyword ILIKE poi.source', { searchKeyword: `${searchKeyword}` });
+        //         })
+        //     )
+        //     .orderBy('poi.isSystemRecommendation', 'DESC')
+        //     .addOrderBy(
+        //         `COALESCE(CAST(poi.rate->>'rating' AS FLOAT), 0)`, 'DESC'
+        //     )
+        //     .take(30)
+        //     .getMany();
 
         const suggestions: SearchSuggestion[] = [];
         pointsOfInterest.forEach((p) => {
