@@ -95,6 +95,7 @@ export class StatisticsController {
             totalUsersWithNoTrip: Object.keys(usersWithoutTrips).length,
             totalUsersThatLoggedInToday: Object.keys(usersThatLoggedInToday).length,
             totalUsersThatLoggedInThisWeek: Object.keys(usersThatLoggedInThisWeek).length,
+            usersThatLoggedInThisWeek,
             totalPlacesOnSidebar,
             totalPlacesOnCalendar,
             avgSidebarItemsInTrip: Number(Number(totalPlacesOnSidebar / Object.keys(totalTrips).length).toFixed(0)),
