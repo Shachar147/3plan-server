@@ -3,6 +3,8 @@ import {StatisticsService} from "./statistics.service";
 // import { AdminGuard } from 'src/auth/admin.guard';
 import {AuthGuard} from "@nestjs/passport";
 import {TEMPLATES_USER_NAME} from "../shared/const";
+import {GetUser} from "../auth/get-user.decorator";
+import {User} from "../user/user.entity";
 
 @Controller('admin-statistics')
 export class StatisticsController {
@@ -30,7 +32,9 @@ export class StatisticsController {
 
     @Get('/summaries')
     @UseGuards(AuthGuard())
-    async getAllStatistics(){
+    async getAllStatistics(
+        @GetUser() user: User
+    ){
         const [tripsAndUsersStats, totalPois, totalSavedItems, totalSavedCollections, totalDestinations, totalSystemRecommendations] = await Promise.all([
             this.statisticsService.getTripsStatistics(),
             this.statisticsService.getTotalPointOfInterests(),
@@ -95,7 +99,7 @@ export class StatisticsController {
             totalUsersWithNoTrip: Object.keys(usersWithoutTrips).length,
             totalUsersThatLoggedInToday: Object.keys(usersThatLoggedInToday).length,
             totalUsersThatLoggedInThisWeek: Object.keys(usersThatLoggedInThisWeek).length,
-            usersThatLoggedInThisWeek,
+            usersThatLoggedInThisWeek: user.isAdmin ? usersThatLoggedInThisWeek : undefined,
             totalPlacesOnSidebar,
             totalPlacesOnCalendar,
             avgSidebarItemsInTrip: Number(Number(totalPlacesOnSidebar / Object.keys(totalTrips).length).toFixed(0)),
