@@ -151,6 +151,9 @@ export class PointOfInterestService {
         // Fetch the points of interest based on the given destination, page, and limit
         const pointsOfInterest = await this.pointOfInterestRepository.find({
             where: { destination },
+            order: {
+                isSystemRecommendation: "DESC" // System recommendations first
+            },
             skip: (page - 1) * limit,
             take: limit,
         });
