@@ -18,6 +18,9 @@ import {ImportCalendarEventsDto} from "./dto/import-calendar-events-dto";
 import {TripadvisorService} from "../poi/sources/tripadvisor/tripadvisor.service";
 import {PlacesPhotosService} from "../places-photos/places-photos.service";
 import {CreateDto} from "../places-photos/dto/create-dto";
+import {SearchResults} from "../poi/utils/interfaces";
+import {extractCategory} from "../poi/utils/utils";
+import axios from "axios";
 
 @Injectable()
 export class TripService {
@@ -717,4 +720,115 @@ export class TripService {
     const trip = await this.getTripByName(name, user);
     return this.tripRepository.updateTrip({ isHidden }, trip, user, request, this.backupsService);
   }
+
+  getImagesFromAlbums(albumsImages: Record<string, string[]>): string[] {
+    const MAX_IMAGES = 10;
+
+
+    const albumNames = Object.keys(albumsImages);
+    const totalAlbums = albumNames.length;
+
+    // If there are fewer than MAX_IMAGES images total, just flatten all images
+    // @ts-ignore
+    const allImages = albumNames.map(album => albumsImages[album]).flat();
+    if (allImages.length <= MAX_IMAGES) {
+      return allImages.slice(0, MAX_IMAGES);
+    }
+
+    const imagesPerAlbum = Math.min(Math.floor(MAX_IMAGES / totalAlbums), MAX_IMAGES); // Equal amount from each
+    let selectedImages: string[] = [];
+
+    // Take up to imagesPerAlbum from each album
+    albumNames.forEach(album => {
+      const albumImages = albumsImages[album].slice(0, imagesPerAlbum);
+      selectedImages = selectedImages.concat(albumImages);
+    });
+
+    // If we still need more images, take from albums with extra images
+    if (selectedImages.length < MAX_IMAGES) {
+      let remainingImages = MAX_IMAGES - selectedImages.length;
+
+      // Find albums that still have extra images to take
+      // @ts-ignore
+      const extraImages = albumNames.map(album => albumsImages[album].slice(imagesPerAlbum)).flat();
+
+      selectedImages = selectedImages.concat(extraImages.slice(0, remainingImages));
+    }
+
+    return selectedImages.slice(0, MAX_IMAGES); // Ensure total doesn't exceed MAX_IMAGES
+  }
+
+  async autoFillData(name: string, user: User) {
+        const keepOnDb = false;
+        const { locationId, details } = await this.tripadvisorService.getLocationDetails(name);
+        const tripAdvisorUrl = `${this.tripadvisorService.baseUrl}${details['url']}`;
+
+        this.tripadvisorService.baseUrl = 'https://www.tripadvisor.co.il';
+        const { details: details_heb } = await this.tripadvisorService.getLocationDetails(name);
+
+        const geoId = details["url"].split('-').find((p) => p.startsWith("g")).replace("g", "");
+
+        // const baseUrl = this.tripadvisorService.baseUrl;
+        //
+        // const config = {
+        //   headers: {
+        //     'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+        //     'accept-language': 'en-US,en;q=0.9',
+        //     'priority': 'u=0, i',
+        //     'sec-ch-ua': '"Chromium";v="130", "Google Chrome";v="130", "Not?A_Brand";v="99"',
+        //     'sec-ch-ua-mobile': '?0',
+        //     'sec-ch-ua-platform': '"macOS"',
+        //     'sec-fetch-dest': 'document',
+        //     'sec-fetch-mode': 'navigate',
+        //     'sec-fetch-site': 'none',
+        //     'sec-fetch-user': '?1',
+        //     'upgrade-insecure-requests': '1',
+        //     'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
+        //     'Cookie': 'TAUnique=%1%enc%3AD%2Fch1%2BQ2hpeH0%2F%2BuCFHlKaolf3ScFFQaXQs0JsPcVadR7t%2FphnBsBy96c2%2FgF6t%2BNox8JbUSTxk%3D; _abck=CFCC95316C817ECEC69FF1FC649B009D~-1~YAAQnYdkX4uFwoiQAQAAnT8XjQwBLqxDq4Ai1z7w+gm5G3e6UDZk4LG3CtOedG+YaTvGdfjSAV6DKjFQIGVWZsx1bEQ5ZkwXxTCaFNxnXI9dF9AXeBt73yMaxdpodaQ+FsQIK4vqbJ2fgBrdYys7nclckPCKrRj1wUfcHMoLALqYLGM1f8NEczfpgxmUeKvCF/lRg7MICv8WjVLCrZok2u/j6xbR/mqOGNpMKmaxfnRA9nCHHtfjMmrJ6qlxT5XAFaH+Htd42adl9ip86kqzFbquCQpyidqCHgL0m0EYOEDV8/t2ETi6DSJmYwK5YT605vI+nh8eAeTQIbQzdo5Xwj5qdrBRR6MKjlV/VLGzHsZ+VloBlyAeD9j3JoTlQNJ8aLRDrw==~-1~-1~-1; datadome=C0NJKBWq2bnr8ezlFAekW1r36c_RqS2qN4USab0EXAaELcli63VCCy~sWVqHXKgiBe3kxKmfoThXbLZFsnkEo7VDEQvt6L4zDjFGrM7SIrPw18uPwFLVe12Lr~PM3hex; TADCID=6xMqF6Ov9aFOlR8PABQCrj-Ib21-TgWwDB4AzTFpg4D2j4gSnblaWjZSX4cn-rEADQ9aP3MwhaoXk8R9y7s6F1Jori2QsQfzjzc; TASID=93D344FADF06E6F013AD88BEBD84D2E2; TASameSite=1; __vt=gtRXwWOOtI4oGVUaABQCjdMFtf3dS_auw5cMBDN7STDUL4BecuVnelJIyqlP18njWqmjQg4R1400eUdI8mBvUC-Ur3ujvjaGP8Qu9kIMrF0gxz5tCTwtlIE7eTEzLYZV0zZTxL53nB6z3TRQryI82CW0aUA'
+        //   }
+        // };
+        //
+        // const results = await axios.get(tripAdvisorUrl, config);
+
+        name = details['localizedName'] == details_heb['localizedName'] ? details['localizedName'] : `${details['localizedName']} | ${details_heb['localizedName']}`;
+
+        const moreImages: Record<string, string[]> = await this.tripadvisorService.getPhotos(locationId, geoId)
+
+        const i = this.getImagesFromAlbums(moreImages);
+
+        return {
+          // ...details,
+          // destination
+          name, // todo complete - hebrew
+          description: '', // todo complete
+          images: [
+            details['thumbnail']['photoSizeDynamic']['urlTemplate'].replace('{width}', 400).replace('{height}', 400),
+            ...i
+          ],
+          source: 'TripAdvisor',
+          more_info: tripAdvisorUrl,
+          category: extractCategory([
+              name,
+              details['localizedName'],
+              details['placeType']
+          ]),
+          location: {
+            latitude: details['latitude'],
+            longitude: details['longitude'],
+          },
+
+          // todo complete:
+          // rate: {
+          //   rating: 0,
+          //   quantity: 0
+          // },
+
+          // todo complete:
+          // price: 0,
+          // currency: null,
+
+          // todo complete:
+          // duration: '01:00'
+        }
+    }
 }

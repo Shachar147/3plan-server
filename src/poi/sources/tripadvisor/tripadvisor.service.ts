@@ -12,11 +12,10 @@ export class TripadvisorService implements BaseSourceService{
 
     private source = "TripAdvisor"
     private currency = "ILS";
-    private language = "he"; // en-US
     // private visitorId = "R4QUTT0XNY3NLKXQILFA90DXMBH4B9L6";
     private logger = new Logger("TripAdvisorService");
 
-    private baseUrl = 'https://www.tripadvisor.com'; // 'https://www.tripadvisor.co.il';
+    public baseUrl = 'https://www.tripadvisor.com'; // 'https://www.tripadvisor.co.il';
 
     constructor(
         private poiService: PointOfInterestService
@@ -188,17 +187,183 @@ export class TripadvisorService implements BaseSourceService{
         };
 
         const response = await axios.post(`${this.baseUrl}/data/graphql/ids`, data, config);
+
+        const item = response.data[0].data["Typeahead_autocomplete"]?.["results"]?.find((i) => i['details']) // response.data[0].data["Typeahead_autocomplete"]?.["results"]?.[0];
+        const placeType = item?.["details"]?.["placeType"];
+
         return {
-            locationId: response.data[0].data["Typeahead_autocomplete"]?.["results"]?.[0]?.["locationId"],
-            details: response.data[0].data["Typeahead_autocomplete"]?.["results"]?.[0]?.["details"],
+            locationId: item?.["locationId"],
+            details: item?.["details"],
             destination:
-                response.data[0].data["Typeahead_autocomplete"]?.["results"]?.[0]?.["details"]?.["placeType"] == "MUNICIPALITY" ?
-                response.data[0].data["Typeahead_autocomplete"]?.["results"]?.[0]?.["details"]?.["localizedName"] ?? destination : destination,
+                 placeType == "MUNICIPALITY" ?
+                item?.["details"]?.["localizedName"] ?? destination : destination,
             searchKeyword: destination
         };
     }
 
-    async search({ destination, page = 1 }: SearchDto, user: User): Promise<SearchResults> {
+    async getPhotos(locationId: string, geoId: string): Promise<Record<string,string[]>> {
+        if (!geoId){
+            geoId = "4481668";
+        }
+        const data = JSON.stringify([
+            {
+                "variables": {
+                    "events": [
+                        {
+                            "schemaName": "media_gallery_interacted",
+                            "eventJson": "{\"producer_ref\":\"ta-web-domain\",\"event_source\":{\"brand\":\"TA\",\"governance\":{\"domain\":\"Unknown\"}},\"user_device\":{\"os\":\"unknown\",\"kind\":\"desktop\",\"app_kind\":\"web\",\"browser\":\"chrome\",\"browser_version\":\"130\"},\"identifiers\":{},\"consent\":{\"ta\":{}},\"page\":{\"locale\":\"en-US\",\"uid\":\"LIT@OLjbDEwmkd4rFmXLM11X\"},\"interaction_kind\":\"clicked\",\"component\":\"media_gallery_entry_album_selected\",\"geo\":{\"id\":" + geoId + "},\"entity\":{\"id\":" + locationId + "},\"client_timestamp\":\"2024-10-18T22:26:17.474Z\",\"request\":{\"session\":\"8CCF83B7926F02E152642299E0989C41\",\"id\":\"CACC3E8153BD94E1CD3B50C018FBD8BA\"},\"event_details\":{\"album\":{\"id\":-182}}}"
+                        }
+                    ]
+                },
+                "extensions": {
+                    "preRegisteredQueryId": "138a581628285094"
+                }
+            },
+            {
+                "variables": {
+                    "locationId": locationId
+                },
+                "extensions": {
+                    "preRegisteredQueryId": "aecc26fe363d9291"
+                }
+            },
+            {
+                "variables": {
+                    "locationId": locationId,
+                    "configuration": "rrap",
+                    "client": "rr",
+                    "filter": {
+                        "mediaGroup": "ALL_INCLUDING_RESTRICTED"
+                    }
+                },
+                "extensions": {
+                    "preRegisteredQueryId": "d8ba2f1f0b1decee"
+                }
+            },
+            {
+                "variables": {
+                    "locationId": locationId,
+                    "albumId": -182,
+                    "subAlbumId": -182,
+                    "client": "rr",
+                    "dataStrategy": "rr",
+                    "filter": {
+                        "mediaGroup": "ALL_INCLUDING_RESTRICTED"
+                    },
+                    "offset": 0,
+                    "limit": 50
+                },
+                "extensions": {
+                    "preRegisteredQueryId": "189f3ede1e7a832f"
+                }
+            },
+            // {
+            //     "variables": {
+            //         "pageName": "Restaurant_Review",
+            //         "relativeUrl": "/Restaurant_Review-g4481668-d8025259-Reviews-Fedrik-Modiin_Central_District.html#/media/8025259/?albumid=-182&type=ALL_INCLUDING_RESTRICTED&category=-182",
+            //         "parameters": [
+            //             {
+            //                 "key": "geoId",
+            //                 "value": "4481668"
+            //             },
+            //             {
+            //                 "key": "detailId",
+            //                 "value": locationId.toString()
+            //             }
+            //         ],
+            //         "route": {
+            //             "page": "Restaurant_Review",
+            //             "params": {
+            //                 "geoId": 4481668,
+            //                 "detailId": locationId
+            //             }
+            //         },
+            //         "routingLinkBuilding": false
+            //     },
+            //     "extensions": {
+            //         "preRegisteredQueryId": "211573a2b002568c"
+            //     }
+            // },
+            // {
+            //     "variables": {
+            //         "routesRequest": [
+            //             {
+            //                 "fragment": "/media/8025259/?albumid=-182&type=ALL_INCLUDING_RESTRICTED&category=-182",
+            //                 "page": "Restaurant_Review",
+            //                 "params": {
+            //                     "geoId": 4481668,
+            //                     "detailId": locationId,
+            //                     "offset": 0
+            //                 }
+            //             },
+            //             {
+            //                 "fragment": "/media/8025259/?albumid=-182&type=ALL_INCLUDING_RESTRICTED&category=-182",
+            //                 "page": "Restaurant_Review",
+            //                 "params": {
+            //                     "geoId": 4481668,
+            //                     "detailId": locationId,
+            //                     "offset": "r15"
+            //                 }
+            //             }
+            //         ]
+            //     },
+            //     "extensions": {
+            //         "preRegisteredQueryId": "3f2df7139a71a643"
+            //     }
+            // },
+            // {
+            //     "variables": {
+            //         "page": "Restaurant_Review",
+            //         "locale": "en-US",
+            //         "platform": "desktop",
+            //         "id": locationId.toString(),
+            //         "urlRoute": "/Restaurant_Review-g4481668-d8025259-Reviews-Fedrik-Modiin_Central_District.html#/media/8025259/?albumid=-182&type=ALL_INCLUDING_RESTRICTED&category=-182"
+            //     },
+            //     "extensions": {
+            //         "preRegisteredQueryId": "d194875f0fc023a6"
+            //     }
+            // }
+        ]);
+
+        const config = {
+            headers: {
+                'accept': '*/*',
+                'accept-language': 'en-US,en;q=0.9,he;q=0.8',
+                'content-type': 'application/json',
+                'cookie': '_lc2_fpi=b140173de591--01gt429gejrkxt413pqa652v0a; _ga=GA1.1.638195325.1689358016; TASameSite=1; TAUnique=%1%enc%3A0bPt1DAbYLIqESpYS80bugE8%2B5kuzt268t5VIrI2MPcjSQ4AgGj8MYa8cLRVZTbhNox8JbUSTxk%3D; TASSK=enc%3AAL9%2FMo7e0LFaHvbB4kNE6KtR7Ii3NAFypprnC7ot6mhaZn9rdNcrDztNHuC3QAdjtblZSysSh4o5%2BmxIqMBt8jjSWRiYaIyD78WQKEe2OT%2BW99oEwcmfzaQiOOwv57BBsA%3D%3D; _lc2_fpi_meta=%7B%22w%22%3A1718369435081%7D; _lr_env_src_ats=true; TATrkConsent=eyJvdXQiOiJTT0NJQUxfTUVESUEiLCJpbiI6IkFEVixBTkEsRlVOQ1RJT05BTCJ9; _gcl_au=1.1.979765644.1726170911; PMC=V2*MS.78*MD.20240820*LD.20240919; pbjs_sharedId=6fe71443-2069-4220-83e3-0ab4ed7e1500; pbjs_sharedId_cst=zix7LPQsHA%3D%3D; VRMCID=%1%V1*id.10568*llp.%2FAttraction_Review-g274707-d13864960-Reviews-Original_Beer_Spa-Prague_Bohemia%5C.html*e.1728217797135; pbjs_unifiedID=%7B%22TDID%22%3A%225c2f933c-fe19-45d0-9e85-0f04151db2c3%22%2C%22TDID_LOOKUP%22%3A%22TRUE%22%2C%22TDID_CREATED_AT%22%3A%222024-08-29T12%3A30%3A07%22%7D; pbjs_unifiedID_cst=zix7LPQsHA%3D%3D; _li_dcdm_c=.tripadvisor.com; _abck=CFCC95316C817ECEC69FF1FC649B009D~-1~YAAQwOxlX5JKNTSSAQAAxjy1Ywxo1GigRVXR7VgYKDz3E4AoKpJMcxwsw7bSwK6dKQvy+IAPlqy92Up8htM2OragRLViEW4eiYYJMFABL8ErTLT4y9VKuUo5pPztkbAxTFtbW4YIl7JiUlmqJsbxSUZA9DwR829erFM59Nnd7N/GmulwVFCu+S7y6SsMGUkfcqpTSusRkaF9dbvUJ4Qj7q18yiiQlIP7zkc7vtHgucgnCOIi+CmUycmuJTyJuisGDIIblN8t5ftOgo0QYfC5HEk38C4I5EYCW0iP79U6400SfRwxNNx6kpv+ltHmSOvkmdsfBNrdRGZhd/oGA9Vtc3g2Kc32oPROkW/5xujQ+LbWBcYBWaIwAG+wqo8tXcI8kDKBOA==~-1~-1~-1; TART=%1%enc%3AacB1OBrvcdhjgcuA1HiXSi%2BS810ZJYoDBKdoiOV2vO39kNc73WGbBH3jrMkZXmv%2Fe%2BPbFvGde5o%3D; AMZN-Token=v2FweIB2aS84Mk03a1V3OUh2ck1xVmxXTks1OXFtUTRoZmt1eThCandMbVJ3QTNySWNObUFrRnZIL0VWSFFaLzVWODZyYWwyQ1ZOWUM4WHlCNVhNbDBTYzNRRVlGVENWNkZKSEJxWHF0MDhCMnpuN2JieUVQeDl0NlYyQ2dndTRkNloxWmJrdgFiaXZ4GGVDNDNkRHdHYnUrL3ZlKy92VVJ3NzcrOf8=; TADCID=eFbacI9Q_RjY2uXpABQCrj-Ib21-TgWwDB4AzTFpg4EBwKn7fsKwbJllJ7_x9ijpFosCwtyXTNtkRAs9Nv_VVcCWpaCzIFRl4xo; TAAUTHEAT=UyutPCcelZW3HDu_ABQCS_DXENAPSyOjZ55LXtF4ZEDYwNyfujfx1C0jj-4LfCTN5VEuodjO7L5eSgmeVz9Z6xT_AiU5Mzk-KpQUGiICf5dMZpaWHjGCRPDCuZS2OHaFNdWvVe7xtT9uVIekeAeJJqJVc9M3LPBq_5X6-KBzG41nKHDwUJZHtxM6odS_yC-vCNM601VeKpT-y2UiMtA7RgLNdlQKd1_wmN6l; TASID=8CCF83B7926F02E152642299E0989C41; PAC=AE5xnUzGLYtyEBl3ZqRMD5FUY3nsHXMddI5m9Oqpy5tGB-oNyfJXxTu3e7B-Fl4-_fFNh2pUBF532-Sc3EeE-thIlktNlHrc0tpQK2hO7n6mMdn8EN7sViFFW9rGKBn6-Q%3D%3D; SRT=TART_SYNC; _lr_sampling_rate=100; pbjs_li_nonid=%7B%7D; pbjs_li_nonid_cst=zix7LPQsHA%3D%3D; __vt=5HhgZFSP-SOu9M1wABQCjdMFtf3dS_auw5cMBDN7STDfbU6TOykaNxiFZ9T93h_HTBPcP8bAcihYp9FPkPgVsIYqDyCJ_PIezzJWZ23YI5BQ2e90D_VT3s9nyuDBF-HaIg29IHhqgrsCtsuQN37oh_7TCg; OptanonConsent=isGpcEnabled=0&datestamp=Sat+Oct+19+2024+01%3A25%3A55+GMT%2B0300+(Israel+Daylight+Time)&version=202405.2.0&isIABGlobal=false&hosts=&consentId=CACC3E8153BD94E1CD3B50C018FBD8BA&interactionCount=24&landingPath=NotLandingPage&groups=C0001%3A1%2CC0002%3A1%2CC0003%3A1%2CC0004%3A1&AwaitingReconsent=false&browserGpcFlag=0&isAnonUser=1; ab.storage.deviceId.6e55efa5-e689-47c3-a55b-e6d7515a6c5d=%7B%22g%22%3A%225e259853-1479-e243-c1ef-2917192fcb99%22%2C%22c%22%3A1718369430721%2C%22l%22%3A1729290355927%7D; ab.storage.userId.6e55efa5-e689-47c3-a55b-e6d7515a6c5d=%7B%22g%22%3A%22MTA%3ACACC3E8153BD94E1CD3B50C018FBD8BA%22%2C%22c%22%3A1720391165540%2C%22l%22%3A1729290355928%7D; __gads=ID=66a69a46b8e21b64:T=1718369436:RT=1729290357:S=ALNI_MZjmygAUKC3s81bj9XdFj5F8wfjCA; __gpi=UID=00000e3a96c5fbe2:T=1718369436:RT=1729290357:S=ALNI_MYw9d2pn0a3N4lRHQ7_Z-whAwkLXg; __eoi=ID=89724796ff128a3b:T=1718369436:RT=1729290357:S=AA-AfjY8p-1xJWCJNvn3cTJxAJ4T; ab.storage.sessionId.6e55efa5-e689-47c3-a55b-e6d7515a6c5d=%7B%22g%22%3A%22d97f3c12-9470-99f7-b6b8-2df7e36a2983%22%2C%22e%22%3A1729290375233%2C%22c%22%3A1729290355927%2C%22l%22%3A1729290360233%7D; _gcl_aw=GCL.1729290360.null; TASession=V2ID.8CCF83B7926F02E152642299E0989C41*SQ.17*LS.Restaurant_Review*HS.recommended*ES.popularity*DS.5*SAS.popularity*FPS.oldFirst*TS.CACC3E8153BD94E1CD3B50C018FBD8BA*FA.1*DF.0*TRA.true; _ga_QX0Q50ZC9P=GS1.1.1729289492.30.1.1729290361.55.0.0; datadome=hSNC7CotPCRK2Ze5~7C7ytgWbCr56kLR70o7wN9VjeknnmUbdX5PmyFiZL2EW2zXNmSv4MP7~DNV7dBt1yekKk2BWAQdfKUk_a4p~uHsFv49U1grgqJZ6pZnRFyUK85G; TAUnique=%1%enc%3AD%2Fch1%2BQ2hpeH0%2F%2BuCFHlKaolf3ScFFQaXQs0JsPcVadR7t%2FphnBsBy96c2%2FgF6t%2BNox8JbUSTxk%3D; _abck=CFCC95316C817ECEC69FF1FC649B009D~-1~YAAQnYdkX4uFwoiQAQAAnT8XjQwBLqxDq4Ai1z7w+gm5G3e6UDZk4LG3CtOedG+YaTvGdfjSAV6DKjFQIGVWZsx1bEQ5ZkwXxTCaFNxnXI9dF9AXeBt73yMaxdpodaQ+FsQIK4vqbJ2fgBrdYys7nclckPCKrRj1wUfcHMoLALqYLGM1f8NEczfpgxmUeKvCF/lRg7MICv8WjVLCrZok2u/j6xbR/mqOGNpMKmaxfnRA9nCHHtfjMmrJ6qlxT5XAFaH+Htd42adl9ip86kqzFbquCQpyidqCHgL0m0EYOEDV8/t2ETi6DSJmYwK5YT605vI+nh8eAeTQIbQzdo5Xwj5qdrBRR6MKjlV/VLGzHsZ+VloBlyAeD9j3JoTlQNJ8aLRDrw==~-1~-1~-1; datadome=C0NJKBWq2bnr8ezlFAekW1r36c_RqS2qN4USab0EXAaELcli63VCCy~sWVqHXKgiBe3kxKmfoThXbLZFsnkEo7VDEQvt6L4zDjFGrM7SIrPw18uPwFLVe12Lr~PM3hex; TADCID=6xMqF6Ov9aFOlR8PABQCrj-Ib21-TgWwDB4AzTFpg4D2j4gSnblaWjZSX4cn-rEADQ9aP3MwhaoXk8R9y7s6F1Jori2QsQfzjzc; TASameSite=1',
+                'origin': 'https://www.tripadvisor.com',
+                'priority': 'u=1, i',
+                'referer': 'https://www.tripadvisor.com/Restaurant_Review-g4481668-d8025259-Reviews-Fedrik-Modiin_Central_District.html',
+                'sec-ch-device-memory': '8',
+                'sec-ch-ua': '"Chromium";v="130", "Google Chrome";v="130", "Not?A_Brand";v="99"',
+                'sec-ch-ua-arch': '"x86"',
+                'sec-ch-ua-full-version-list': '"Chromium";v="130.0.6723.58", "Google Chrome";v="130.0.6723.58", "Not?A_Brand";v="99.0.0.0"',
+                'sec-ch-ua-mobile': '?0',
+                'sec-ch-ua-model': '""',
+                'sec-ch-ua-platform': '"macOS"',
+                'sec-fetch-dest': 'empty',
+                'sec-fetch-mode': 'same-origin',
+                'sec-fetch-site': 'same-origin',
+                'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36'
+            },
+            data : data
+        };
+
+        const response = await axios.post(`${this.baseUrl}/data/graphql/ids`, data, config);
+        const albums = response.data[2]['data']['mediaWindow']['windowPanes'][0]['albums'];
+
+        const result = {};
+        albums.forEach((album) => {
+            if (album["name"] == "כל התמונות") {
+                return;
+            }
+            result[album["name"]] = album["mediaList"].map((i) => i["photoSizes"]?.[5]["url"] ?? i["photoSizes"]?.[4]["url"] ?? i["photoSizes"]?.[3]["url"] ?? i["photoSizes"]?.[2]["url"] ?? i["photoSizes"]?.[1]["url"])
+        })
+
+        return result;
+    }
+
+    async search({ destination, page = 1 }: SearchDto, user: User, keepOnDb: boolean = true): Promise<SearchResults> {
         page = Number(page);
         const { locationId, destination: _destination } = await this.getLocationDetails(destination);
         destination = _destination;
@@ -932,7 +1097,9 @@ export class TripadvisorService implements BaseSourceService{
         let results = (response.data.map((o) => o.data?.["Result"]?.[0]?.["sections"].filter((i) => i["sectionId"] === "POI_LIST_CARD")).filter(Boolean)).flat().map((i) => this.format(destination, i))
 
         // keep on db
-        results = await this.poiService.upsertAllIds(results, user);
+        if (keepOnDb) {
+            results = await this.poiService.upsertAllIds(results, user);
+        }
 
         return {
             results,
