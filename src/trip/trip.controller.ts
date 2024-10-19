@@ -10,7 +10,7 @@ import {
   Query,
   ValidationPipe,
   UsePipes,
-  UseGuards, Req, Inject, Injectable,
+  UseGuards, Req, Inject, Injectable, UnauthorizedException,
 } from "@nestjs/common";
 import { ListTripsDto } from "./dto/list-trips-dto";
 import { TripService } from "./trip.service";
@@ -31,6 +31,7 @@ import {DuplicateTripDto} from "./dto/duplicate-trip-dto";
 import { Request } from 'express';
 import {MyWebSocketGateway} from "../websocket.gateway";
 import {ImportCalendarEventsDto} from "./dto/import-calendar-events-dto";
+import {isAdmin} from "../poi/poi.controller";
 
 @Injectable()
 @ApiBearerAuth("JWT")
@@ -42,6 +43,18 @@ export class TripController {
       @Inject(MyWebSocketGateway) private readonly myWebSocketGateway: MyWebSocketGateway,
 
   ) {}
+
+  @Get('/autofill')
+  @UseGuards(AuthGuard())
+  async autoFillPlaceData(
+      @GetUser() user: User,
+      @Query('name') name: string,
+  ): Promise<Record<string, any>> {
+    if (!isAdmin(user)) {
+      throw new UnauthorizedException();
+    }
+    return await this.tripService.autoFillData(name, user);
+  }
 
   @ApiOperation({ summary: "Get Trips", description: "Get all trips" })
   @Get()
