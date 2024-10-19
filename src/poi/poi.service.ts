@@ -176,15 +176,15 @@ export class PointOfInterestService {
         };
     }
 
-    async getSearchResults(searchKeyword: string, page: number, limit: number = 50): Promise<SearchResults> {
+    async getSearchResults(searchKeyword: string, page: number, limit: number = 50,destination = 0): Promise<SearchResults> {
         // Step 1: Count total items that match the search criteria (both recommended and non-recommended)
         const total = await this.pointOfInterestRepository.count({
             where: [
-                { name: Like(`%${searchKeyword}%`) },
-                { description: Like(`%${searchKeyword}%`) },
+                !destination && { name: Like(`%${searchKeyword}%`) },
+                !destination && { description: Like(`%${searchKeyword}%`) },
                 { destination: Like(`%${searchKeyword}%`) },
-                { source: Like(`%${searchKeyword}%`) }
-            ]
+                !destination && { source: Like(`%${searchKeyword}%`) }
+            ].filter(Boolean)
         });
 
         const totalPages = Math.ceil(total / limit);
@@ -193,11 +193,11 @@ export class PointOfInterestService {
         // Order by isSystemRecommendation first (true comes first), then apply pagination
         const pointsOfInterest = await this.pointOfInterestRepository.find({
             where: [
-                { name: ILike(`%${searchKeyword}%`) },
-                { description: ILike(`%${searchKeyword}%`) },
+                !destination && { name: ILike(`%${searchKeyword}%`) },
+                !destination && { description: ILike(`%${searchKeyword}%`) },
                 { destination: ILike(`%${searchKeyword}%`) },
-                { source: ILike(`%${searchKeyword}%`) }
-            ],
+                !destination && { source: ILike(`%${searchKeyword}%`) }
+            ].filter(Boolean),
             order: {
                 isSystemRecommendation: "DESC" // System recommendations first
             },

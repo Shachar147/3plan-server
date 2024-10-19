@@ -100,8 +100,9 @@ export class PointOfInterestController {
     }
 
     @Get('/search')
-    async getSearchResults(@Query('q') searchKeyword: string, @Query('page') page: number = 1): Promise<SearchResults> {
-        return this.pointOfInterestService.getSearchResults(searchKeyword, page);
+    async getSearchResults(
+        @Query('q') searchKeyword: string, @Query('page') page: number = 1, @Query('destination') destination: number = 0): Promise<SearchResults> {
+        return this.pointOfInterestService.getSearchResults(searchKeyword, page, undefined, destination);
     }
 
     @Get('/fix-categories')
