@@ -176,15 +176,15 @@ export class PointOfInterestService {
         };
     }
 
-    async getSearchResults(searchKeyword: string, page: number, limit: number = 50): Promise<SearchResults> {
+    async getSearchResults(searchKeyword: string, page: number, limit: number = 50, isSearchingByDestination = 0): Promise<SearchResults> {
         // Step 1: Count total items that match the search criteria (both recommended and non-recommended)
         const total = await this.pointOfInterestRepository.count({
             where: [
-                { name: Like(`%${searchKeyword}%`) },
-                { description: Like(`%${searchKeyword}%`) },
+                !isSearchingByDestination && { name: Like(`%${searchKeyword}%`) },
+                !isSearchingByDestination && { description: Like(`%${searchKeyword}%`) },
                 { destination: Like(`%${searchKeyword}%`) },
-                { source: Like(`%${searchKeyword}%`) }
-            ]
+                !isSearchingByDestination && { source: Like(`%${searchKeyword}%`) }
+            ].filter(Boolean)
         });
 
         const totalPages = Math.ceil(total / limit);
@@ -193,11 +193,11 @@ export class PointOfInterestService {
         // Order by isSystemRecommendation first (true comes first), then apply pagination
         const pointsOfInterest = await this.pointOfInterestRepository.find({
             where: [
-                { name: ILike(`%${searchKeyword}%`) },
-                { description: ILike(`%${searchKeyword}%`) },
+                !isSearchingByDestination && { name: ILike(`%${searchKeyword}%`) },
+                !isSearchingByDestination && { description: ILike(`%${searchKeyword}%`) },
                 { destination: ILike(`%${searchKeyword}%`) },
-                { source: ILike(`%${searchKeyword}%`) }
-            ],
+                !isSearchingByDestination && { source: ILike(`%${searchKeyword}%`) }
+            ].filter(Boolean),
             order: {
                 isSystemRecommendation: "DESC" // System recommendations first
             },
