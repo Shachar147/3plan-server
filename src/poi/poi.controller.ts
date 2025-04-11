@@ -160,9 +160,10 @@ export class PointOfInterestController {
     @Get('/count/by-source/:destination')
     @UseGuards(AuthGuard())
     async getCountBySourceForDestination(@Param('destination') destination: string, @GetUser() user: User): Promise<Record<string, number>> {
-        if (!isAdmin(user)) {
-            throw new UnauthorizedException();
-        }
+        // commented! otherwise users won't be able to use the feed:
+        // if (!isAdmin(user)) {
+        //     throw new UnauthorizedException();
+        // }
         return this.pointOfInterestService.getCountBySourceForDestination(destination);
     }
 
