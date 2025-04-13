@@ -130,12 +130,18 @@ export class PointOfInterestService {
     }
 
     // Custom method to get the count of rows for each source for a given destination
-    async getCountBySourceForDestination(destination: string): Promise<Record<string, number>> {
-        const query = this.pointOfInterestRepository.createQueryBuilder('poi')
+    async getCountBySourceForDestination(destination: string, isSystemRecommendation?: boolean): Promise<Record<string, number>> {
+        let query = this.pointOfInterestRepository.createQueryBuilder('poi')
             .select('poi.source')
             .addSelect('COUNT(poi.id)', 'count')
             .where('poi.destination = :destination', { destination })
-            .groupBy('poi.source');
+            ;
+
+        if (isSystemRecommendation) {
+            query = query.andWhere('poi.isSystemRecommendation = true');
+        }
+
+        query = query.groupBy('poi.source')
 
         const result = await query.getRawMany();
 
@@ -279,7 +285,7 @@ export class PointOfInterestService {
         };
     }
 
-    async getFeedItems(withoutSystemRecommendations: number, page?: number): Promise<SearchResults> {
+    async getFeedItems(withoutSystemRecommendations: number, page?: number, isSystemRecommendation?: boolean): Promise<SearchResults> {
         let query = this.pointOfInterestRepository
             .createQueryBuilder('poi')
             .where('poi.rate IS NOT NULL AND CAST(poi.rate AS jsonb) ->> \'rating\' = :rating AND CAST(poi.rate AS jsonb) ->> \'quantity\' >= :quantity', { rating: '5', quantity: 50 });
@@ -288,6 +294,10 @@ export class PointOfInterestService {
             query = query.orWhere('poi.isSystemRecommendation = true');
         } else {
             query = query.andWhere('poi.isSystemRecommendation = false');
+        }
+
+        if (isSystemRecommendation) {
+            query = query.andWhere('poi.isSystemRecommendation = true')
         }
 
         let pointsOfInterest;
