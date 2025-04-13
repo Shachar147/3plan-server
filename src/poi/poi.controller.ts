@@ -82,9 +82,10 @@ export class PointOfInterestController {
     @Get('/feed')
     async getFeedItems(
         @Query('withoutSystemRecommendations') withoutSystemRecommendations: number = 0,
+        @Query('isSystemRecommendation') isSystemRecommendation: boolean = false,
         @Query('p') page?: number,
     ): Promise<SearchResults> {
-        return this.pointOfInterestService.getFeedItems(withoutSystemRecommendations, page);
+        return this.pointOfInterestService.getFeedItems(withoutSystemRecommendations, page, isSystemRecommendation);
     }
 
     @Get('/system-recommendations')
@@ -159,12 +160,17 @@ export class PointOfInterestController {
 
     @Get('/count/by-source/:destination')
     @UseGuards(AuthGuard())
-    async getCountBySourceForDestination(@Param('destination') destination: string, @GetUser() user: User): Promise<Record<string, number>> {
+    async getCountBySourceForDestination(
+        @Param('destination') destination: string,
+        @Query('isSystemRecommendation') isSystemRecommendation: boolean = false,
+        @GetUser() user: User
+    ): Promise<Record<string, number>> {
         // commented! otherwise users won't be able to use the feed:
         // if (!isAdmin(user)) {
         //     throw new UnauthorizedException();
         // }
-        return this.pointOfInterestService.getCountBySourceForDestination(destination);
+
+        return this.pointOfInterestService.getCountBySourceForDestination(destination, isSystemRecommendation);
     }
 
     @Get('/by-category/all')
