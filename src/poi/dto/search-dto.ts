@@ -14,4 +14,7 @@ export class SearchDto {
 
     @IsOptional()
     page?: number;
+
+    @IsOptional()
+    isSystemRecommendation?: number;
 }

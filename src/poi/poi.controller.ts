@@ -75,8 +75,9 @@ export class PointOfInterestController {
     async getPointsOfInterestByDestination(
         @Query('destination') destination: string,
         @Query('page') page: number = 1,
+        @Query('isSystemRecommendation') isSystemRecommendation: number = 0
     ): Promise<SearchResults> {
-        return this.pointOfInterestService.getPointsOfInterestByDestination(destination, page);
+        return this.pointOfInterestService.getPointsOfInterestByDestination(destination, page, undefined, isSystemRecommendation);
     }
 
     @Get('/feed')

@@ -153,10 +153,17 @@ export class PointOfInterestService {
         return countBySource;
     }
 
-    async getPointsOfInterestByDestination(destination: string, page: number, limit: number = 50): Promise<SearchResults> {
+    async getPointsOfInterestByDestination(destination: string, page: number, limit: number = 50, isSystemRecommendation: number = 0): Promise<SearchResults> {
         // Fetch the points of interest based on the given destination, page, and limit
+        let where: Record<string, any> = { destination};
+        if (isSystemRecommendation){
+            where = {
+                ...where,
+                isSystemRecommendation: true
+            }
+        }
         const pointsOfInterest = await this.pointOfInterestRepository.find({
-            where: { destination },
+            where,
             order: {
                 isSystemRecommendation: "DESC" // System recommendations first
             },
