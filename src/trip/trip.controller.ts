@@ -53,7 +53,7 @@ export class TripController {
       @GetUser() user: User,
       @Req() request: Request
   ) {
-    return this.tripService.saveAsTemplate(saveAsTemplateDto.tripName, user, request);
+    return this.tripService.saveAsTemplate(saveAsTemplateDto, user, request);
   }
 
   @ApiOperation({ summary: "Get Trips", description: "Get all trips" })

@@ -5,4 +5,8 @@ export class SaveAsTemplateDto {
     @ApiProperty({ required: true })
     @IsString()
     tripName: string;
-} 
+
+    @ApiProperty({ required: true })
+    @IsString()
+    newTripName: string;
+}

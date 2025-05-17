@@ -20,6 +20,7 @@ import {PlacesPhotosService} from "../places-photos/places-photos.service";
 import {CreateDto} from "../places-photos/dto/create-dto";
 import {TEMPLATES_USER_NAME} from "../shared/const";
 import {UserService} from "../user/user.service";
+import {SaveAsTemplateDto} from "./dto/save-as-template-dto";
 
 @Injectable()
 export class TripService {
@@ -721,7 +722,9 @@ export class TripService {
     return this.tripRepository.updateTrip({ isHidden }, trip, user, request, this.backupsService);
   }
 
-  async saveAsTemplate(tripName: string, user: User, request: Request) {
+  async saveAsTemplate(dto: SaveAsTemplateDto, user: User, request: Request) {
+    const {tripName, newTripName} = dto;
+
     // Get the original trip
     const trip = await this.getTripByName(tripName, user);
     if (!trip) {
@@ -736,7 +739,7 @@ export class TripService {
 
     // Create a copy of the trip data without descriptions
     const tripData: CreateTripDto = {
-      name: trip.name,
+      name: newTripName, // trip.name,
       dateRange: trip.dateRange,
       categories: trip.categories,
       calendarEvents: JSON.parse(JSON.stringify(trip.calendarEvents)).map((event: any) => ({
@@ -760,7 +763,22 @@ export class TripService {
       }));
     });
 
+    // is trip exists?
+    const isTemplateExists = await this.tripRepository.getTripByName(tripData.name, templatesUser)
+
     // Create the template trip
-    return await this.tripRepository.createTrip(tripData, templatesUser, request, this.backupsService);
+    const updatedTrip = await this.tripRepository.upsertTrip(tripData, templatesUser, request, this.backupsService);
+
+    if (isTemplateExists) {
+      return {
+        "updated": true,
+        "trip": updatedTrip
+      }
+    } else {
+      return {
+        "created": true,
+        "trip": updatedTrip
+      }
+    }
   }
 }
