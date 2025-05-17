@@ -13,6 +13,7 @@ import {SharedTripsRepository} from "../shared-trips/shared-trips.repository";
 import {HistoryModule} from "../history/history.module";
 import {TripadvisorModule} from "../poi/sources/tripadvisor/tripadvisor.module";
 import {PlacesPhotosModule} from "../places-photos/places-photos.module";
+import {UserModule} from "../user/user.module";
 
 @Module({
   imports: [
@@ -24,7 +25,8 @@ import {PlacesPhotosModule} from "../places-photos/places-photos.module";
     BackupsModule,
     HistoryModule,
     TripadvisorModule,
-    PlacesPhotosModule
+    PlacesPhotosModule,
+    UserModule
   ],
   controllers: [TripController],
   providers: [TripService, MyWebSocketGateway],

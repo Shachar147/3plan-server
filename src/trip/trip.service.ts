@@ -18,6 +18,8 @@ import {ImportCalendarEventsDto} from "./dto/import-calendar-events-dto";
 import {TripadvisorService} from "../poi/sources/tripadvisor/tripadvisor.service";
 import {PlacesPhotosService} from "../places-photos/places-photos.service";
 import {CreateDto} from "../places-photos/dto/create-dto";
+import {TEMPLATES_USER_NAME} from "../shared/const";
+import {UserService} from "../user/user.service";
 
 @Injectable()
 export class TripService {
@@ -28,7 +30,8 @@ export class TripService {
     private backupsService: BackupsService,
     private historyService: HistoryService,
     private tripadvisorService: TripadvisorService,
-    private placesPhotosService: PlacesPhotosService
+    private placesPhotosService: PlacesPhotosService,
+    private userService: UserService
   ) {
 
   }
@@ -716,5 +719,48 @@ export class TripService {
   async toggleHideTrip(name: string, isHidden: boolean, user: User, request: Request) {
     const trip = await this.getTripByName(name, user);
     return this.tripRepository.updateTrip({ isHidden }, trip, user, request, this.backupsService);
+  }
+
+  async saveAsTemplate(tripName: string, user: User, request: Request) {
+    // Get the original trip
+    const trip = await this.getTripByName(tripName, user);
+    if (!trip) {
+      throw new NotFoundException(`Trip with name ${tripName} not found`);
+    }
+
+    // Get the templates user
+    const templatesUser = await this.userService.getUserByName(TEMPLATES_USER_NAME);
+    if (!templatesUser) {
+      throw new NotFoundException(`Templates user not found`);
+    }
+
+    // Create a copy of the trip data without descriptions
+    const tripData: CreateTripDto = {
+      name: trip.name,
+      dateRange: trip.dateRange,
+      categories: trip.categories,
+      calendarEvents: JSON.parse(JSON.stringify(trip.calendarEvents)).map((event: any) => ({
+        ...event,
+        description: '' // Remove description
+      })),
+      sidebarEvents: JSON.parse(JSON.stringify(trip.sidebarEvents)),
+      allEvents: JSON.parse(JSON.stringify(trip.allEvents)).map((event: any) => ({
+        ...event,
+        description: '' // Remove description
+      })),
+      calendarLocale: trip.calendarLocale,
+      destinations: trip.destinations
+    };
+
+    // Remove descriptions from sidebar events
+    Object.keys(tripData.sidebarEvents).forEach(key => {
+      tripData.sidebarEvents[key] = tripData.sidebarEvents[key].map((event: any) => ({
+        ...event,
+        description: '' // Remove description
+      }));
+    });
+
+    // Create the template trip
+    return await this.tripRepository.createTrip(tripData, templatesUser, request, this.backupsService);
   }
 }
