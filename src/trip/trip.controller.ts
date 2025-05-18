@@ -31,6 +31,7 @@ import {DuplicateTripDto} from "./dto/duplicate-trip-dto";
 import { Request } from 'express';
 import {MyWebSocketGateway} from "../websocket.gateway";
 import {ImportCalendarEventsDto} from "./dto/import-calendar-events-dto";
+import {SaveAsTemplateDto} from "./dto/save-as-template-dto";
 
 @Injectable()
 @ApiBearerAuth("JWT")
@@ -42,6 +43,18 @@ export class TripController {
       @Inject(MyWebSocketGateway) private readonly myWebSocketGateway: MyWebSocketGateway,
 
   ) {}
+
+  @ApiOperation({ summary: "Save Trip as Template", description: "Save a trip as a template under the templates user" })
+  @Post("/save-as-template")
+  @UsePipes(new ValidationPipe({ transform: true }))
+  @UseGuards(AuthGuard())
+  async saveAsTemplate(
+      @Body() saveAsTemplateDto: SaveAsTemplateDto,
+      @GetUser() user: User,
+      @Req() request: Request
+  ) {
+    return this.tripService.saveAsTemplate(saveAsTemplateDto, user, request);
+  }
 
   @ApiOperation({ summary: "Get Trips", description: "Get all trips" })
   @Get()
