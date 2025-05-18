@@ -744,12 +744,12 @@ export class TripService {
       categories: trip.categories,
       calendarEvents: JSON.parse(JSON.stringify(trip.calendarEvents)).map((event: any) => ({
         ...event,
-        description: '' // Remove description
+        // description: '' // Remove description
       })),
       sidebarEvents: JSON.parse(JSON.stringify(trip.sidebarEvents)),
       allEvents: JSON.parse(JSON.stringify(trip.allEvents)).map((event: any) => ({
         ...event,
-        description: '' // Remove description
+        // description: '' // Remove description
       })),
       calendarLocale: trip.calendarLocale,
       destinations: trip.destinations
