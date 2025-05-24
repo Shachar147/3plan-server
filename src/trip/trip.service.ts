@@ -723,12 +723,15 @@ export class TripService {
   }
 
   async saveAsTemplate(dto: SaveAsTemplateDto, user: User, request: Request) {
-    const {tripName, newTripName} = dto;
+    const { tripName, newTripName } = dto;
 
     // Get the original trip
-    const trip = await this.getTripByName(tripName, user);
+    let trip = await this.getTripByName(tripName, user);
     if (!trip) {
-      throw new NotFoundException(`Trip with name ${tripName} not found`);
+      trip = await this.getTripByName(tripName.replace('-',' '), user);
+      if (!trip) {
+        throw new NotFoundException(`Trip with name ${tripName} not found`);
+      }
     }
 
     // Get the templates user
@@ -764,7 +767,13 @@ export class TripService {
     });
 
     // is trip exists?
-    const isTemplateExists = await this.tripRepository.getTripByName(tripData.name, templatesUser)
+    let isTemplateExists = false;
+    try {
+      const foundTrip = await this.tripRepository.getTripByName(tripData.name, templatesUser)
+      isTemplateExists = !!foundTrip;
+    } catch {
+
+    }
 
     // Create the template trip
     const updatedTrip = await this.tripRepository.upsertTrip(tripData, templatesUser, request, this.backupsService);
