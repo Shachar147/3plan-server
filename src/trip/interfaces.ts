@@ -50,5 +50,13 @@ export interface SidebarEvent {
   // Note: Sidebar events typically don't have start/end dates initially
 }
 
+export interface TriPlanCategory {
+  id: number;
+  title: string;
+  icon: string;
+  description?: string;
+  titleKey?: string;
+}
+
 // Add any other relevant interfaces from your Trip entity here if needed,
 // to ensure type safety when accessing properties of the fetched Trip object. 
