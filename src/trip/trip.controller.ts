@@ -44,6 +44,20 @@ export class TripController {
 
   ) {}
 
+  @Post('auto-schedule')
+  @UseGuards(AuthGuard())
+  async autoScheduleTrip(@Body() body: { tripName: string }, @GetUser() user: User) {
+    const { tripName } = body;
+    console.log(`Received auto-schedule request for trip: ${tripName} by user ${user.username}`);
+    try {
+      const scheduledTrip = await this.tripService.autoSchedule(tripName, user);
+      return { success: true, message: 'Scheduling complete', scheduledTrip };
+    } catch (error) {
+      console.error('Auto-scheduling failed:', error);
+      return { success: false, message: 'Scheduling failed', error: error.message };
+    }
+  }
+
   @ApiOperation({ summary: "Save Trip as Template", description: "Save a trip as a template under the templates user" })
   @Post("/save-as-template")
   @UsePipes(new ValidationPipe({ transform: true }))
