@@ -32,13 +32,13 @@ export class AutoScheduleService {
     // Parse calendar events and sidebar events
     const rawCalendarEvents = trip.calendarEvents as any;
     const calendarEvents: CalendarEvent[] = (rawCalendarEvents)
-      ? (typeof rawCalendarEvents === 'string' ? JSON.parse(rawCalendarEvents) : rawCalendarEvents) as CalendarEvent[]
-      : [];
+        ? (typeof rawCalendarEvents === 'string' ? JSON.parse(rawCalendarEvents) : rawCalendarEvents) as CalendarEvent[]
+        : [];
 
     const rawSidebarEvents = trip.sidebarEvents as any;
     const sidebarEvents: Record<number, SidebarEvent[]> = (rawSidebarEvents)
-      ? (typeof rawSidebarEvents === 'string' ? JSON.parse(rawSidebarEvents) : rawSidebarEvents) as Record<number, SidebarEvent[]>
-      : {};
+        ? (typeof rawSidebarEvents === 'string' ? JSON.parse(rawSidebarEvents) : rawSidebarEvents) as Record<number, SidebarEvent[]>
+        : {};
 
     // Parse categories
     const rawCategories = trip.categories as any;
@@ -50,13 +50,13 @@ export class AutoScheduleService {
     // Parse date range
     const dateRange: DateRangeFormatted = { start: trip.dateRange as string, end: trip.dateRange as string };
     try {
-      const parsedDateRange = typeof trip.dateRange === 'string' ? JSON.parse(trip.dateRange) : trip.dateRange;
-      if (parsedDateRange && parsedDateRange.start && parsedDateRange.end) {
-        dateRange.start = parsedDateRange.start;
-        dateRange.end = parsedDateRange.end;
-      }
+        const parsedDateRange = typeof trip.dateRange === 'string' ? JSON.parse(trip.dateRange) : trip.dateRange;
+        if (parsedDateRange && parsedDateRange.start && parsedDateRange.end) {
+             dateRange.start = parsedDateRange.start;
+             dateRange.end = parsedDateRange.end;
+        }
     } catch (e) {
-      this.logger.error(`Failed to parse dateRange for trip ${tripName}:`, e);
+        this.logger.error(`Failed to parse dateRange for trip ${tripName}:`, e);
     }
 
     // Create a copy of scheduled events that we'll modify
@@ -123,32 +123,87 @@ export class AutoScheduleService {
       return currentSchedule;
     }
 
-    // Find hotel in sidebar
+    // Find all hotels in sidebar
     const allSidebarEvents = Object.values(sidebarEvents)
       .reduce((acc: SidebarEvent[], events) => acc.concat(events), []);
     this.logger.log(`Total sidebar events after flattening: ${allSidebarEvents.length}`);
 
-    const hotelEvent = allSidebarEvents.find(event => 
+    const hotelEvents = allSidebarEvents.filter(event => 
       event.category == hotelCategory.id
     );
 
-    if (hotelEvent) {
-      this.logger.log(`Found hotel in sidebar: id=${hotelEvent.id}, category=${hotelEvent.category}`);
-    } else {
-      this.logger.log('No hotel found in sidebar events');
+    if (hotelEvents.length === 0) {
+      this.logger.log('No hotels found in sidebar events');
       return currentSchedule;
     }
 
-    // Schedule hotel if found in sidebar
-    const scheduledHotelEvent = this.scheduleHotel(hotelEvent, flights, tripStartDate);
-    if (scheduledHotelEvent) {
-      this.logger.log('Successfully created scheduled hotel event');
-      currentSchedule.push(scheduledHotelEvent);
-    } else {
-      this.logger.log('Failed to create scheduled hotel event');
+    this.logger.log(`Found ${hotelEvents.length} hotels in sidebar`);
+
+    // Get the number of days in the trip
+    const startDate = new Date(tripStartDate);
+    const endDate = new Date(calendarEvents[calendarEvents.length - 1]?.end || tripStartDate);
+    const numberOfDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+
+    // Get the maximum ID from all events
+    const maxId = Math.max(
+      ...calendarEvents.map(e => Number(e.id)),
+      ...allSidebarEvents.map(e => Number(e.id)),
+      0
+    );
+
+    // Schedule hotels for each day
+    for (let day = 0; day < numberOfDays; day++) {
+      const currentDate = new Date(startDate);
+      currentDate.setDate(currentDate.getDate() + day);
+
+      // Get the hotel event for this day (cycle through available hotels)
+      const hotelEvent = hotelEvents[day % hotelEvents.length];
+      
+      // Create a new hotel event with a unique ID
+      const newHotelEvent = {
+        ...hotelEvent,
+        id: maxId + day + 1
+      };
+
+      // Schedule the hotel for this day
+      const scheduledHotelEvent = this.scheduleHotelForDay(newHotelEvent, currentDate);
+      if (scheduledHotelEvent) {
+        this.logger.log(`Scheduled hotel for day ${day + 1}`);
+        currentSchedule.push(scheduledHotelEvent);
+      }
     }
 
     return currentSchedule;
+  }
+
+  private scheduleHotelForDay(
+    hotelEvent: SidebarEvent,
+    date: Date
+  ): CalendarEvent | null {
+    this.logger.log(`Scheduling hotel for date: ${date.toISOString()}`);
+    
+    // Set start time to 8:00 AM
+    const hotelStartTime = new Date(date);
+    hotelStartTime.setHours(8, 0, 0, 0);
+
+    // Create hotel calendar event
+    const hotelEndTime = new Date(hotelStartTime);
+    
+    // Parse duration from format "HH:mm"
+    const [hours, minutes] = (hotelEvent.duration || '01:00').split(':').map(Number);
+    hotelEndTime.setHours(hotelStartTime.getHours() + hours);
+    hotelEndTime.setMinutes(hotelStartTime.getMinutes() + minutes);
+
+    const scheduledHotelEvent: CalendarEvent = {
+      ...hotelEvent,
+      start: hotelStartTime.toISOString(),
+      end: hotelEndTime.toISOString(),
+             allDay: false,
+      className: `priority-${hotelEvent.priority}`,
+    };
+
+    this.logger.log(`Scheduled hotel from ${hotelStartTime.toISOString()} to ${hotelEndTime.toISOString()}`);
+    return scheduledHotelEvent;
   }
 
   private roundToNearestHalfHour(date: Date): Date {
@@ -191,7 +246,7 @@ export class AutoScheduleService {
         hotelStartTime = new Date(startDate);
         hotelStartTime.setHours(9, 0, 0, 0);
       }
-    } else {
+        } else {
       this.logger.log('No flights found, scheduling hotel at 9 AM on first day');
       // No flights at all, schedule hotel at 9 AM on first day
       hotelStartTime = new Date(startDate);
