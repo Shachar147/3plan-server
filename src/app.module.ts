@@ -27,7 +27,6 @@ import { SavedCollectionsItemModule } from './saved-collections/saved-collection
 import { PlacesPhotosModule } from './places-photos/places-photos.module';
 import { TripTemplatesModule } from './trip-templates/trip-templates.module';
 import { FileUploadModule } from './file-upload/file-upload.module';
-import { AutoScheduleModule } from './auto-schedule/auto-schedule.module';
 
 @Module({
   imports: [
@@ -60,7 +59,6 @@ import { AutoScheduleModule } from './auto-schedule/auto-schedule.module';
     PlacesPhotosModule,
     TripTemplatesModule,
     FileUploadModule,
-    AutoScheduleModule,
   ],
   controllers: [AppController],
   providers: [AppService, TinderService],
