@@ -21,7 +21,6 @@ import {CreateDto} from "../places-photos/dto/create-dto";
 import {TEMPLATES_USER_NAME} from "../shared/const";
 import {UserService} from "../user/user.service";
 import {SaveAsTemplateDto} from "./dto/save-as-template-dto";
-import { Trip } from './trip.entity';
 
 @Injectable()
 export class TripService {
