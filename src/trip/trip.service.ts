@@ -25,7 +25,6 @@ import {SaveAsTemplateDto} from "./dto/save-as-template-dto";
 @Injectable()
 export class TripService {
   private logger = new Logger("TripService");
-
   constructor(
     @InjectRepository(TripRepository)
     private tripRepository: TripRepository,
@@ -34,7 +33,9 @@ export class TripService {
     private tripadvisorService: TripadvisorService,
     private placesPhotosService: PlacesPhotosService,
     private userService: UserService
-  ) {}
+  ) {
+
+  }
 
   async getTrips(filterDto: ListTripsDto, user: User) {
     return await this.tripRepository.getTrips(filterDto, user);
