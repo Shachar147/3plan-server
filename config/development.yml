@@ -2,6 +2,7 @@ db:
   host: 'localhost'
   username: 'postgres'
   password: 'postgres'
+  database: 'triplan_local'
   synchronize: true
 
 jwt:
