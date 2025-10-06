@@ -61,4 +61,12 @@ export class CreateTripDto {
   @ApiProperty({ required: false })
   @IsOptional()
   isHidden?: boolean;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  priorityColors?: object;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  priorityMapColors?: object;
 }

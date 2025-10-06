@@ -67,7 +67,9 @@ export class TripRepository extends Repository<Trip> {
       allEvents,
       calendarLocale,
       isHidden,
-      destinations = []
+      destinations = [],
+      priorityColors = undefined,
+      priorityMapColors = undefined
     } = createTripDto;
     const trip = new Trip();
     trip.name = name;
@@ -78,6 +80,9 @@ export class TripRepository extends Repository<Trip> {
     trip.allEvents = allEvents;
     trip.calendarLocale = calendarLocale;
     trip.isHidden = isHidden;
+    // optional colors
+    if (priorityColors) trip.priorityColors = priorityColors as any;
+    if (priorityMapColors) trip.priorityMapColors = priorityMapColors as any;
 
     // @ts-ignore
     try {
@@ -154,7 +159,9 @@ export class TripRepository extends Repository<Trip> {
       calendarLocale,
       isLocked,
       isHidden,
-      destinations = undefined
+      destinations = undefined,
+      priorityColors = undefined,
+      priorityMapColors = undefined
     } = updateTripDto;
 
     // backup
@@ -181,6 +188,8 @@ export class TripRepository extends Repository<Trip> {
         updates.destinations = destinations;
       }
     }
+    if (priorityColors != undefined) updates.priorityColors = priorityColors as any;
+    if (priorityMapColors != undefined) updates.priorityMapColors = priorityMapColors as any;
     console.log("trip destinations updated to :" + destinations);
     updates.lastUpdateAt = new Date();
 

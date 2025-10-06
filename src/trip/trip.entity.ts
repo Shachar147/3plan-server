@@ -77,4 +77,10 @@ export class Trip extends BaseEntity {
     default: []
   })
   destinations: 'jsonb';
+
+  @Column({ type: 'jsonb', nullable: true })
+  priorityColors: 'jsonb';
+
+  @Column({ type: 'jsonb', nullable: true })
+  priorityMapColors: 'jsonb';
 }
