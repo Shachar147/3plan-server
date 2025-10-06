@@ -75,4 +75,12 @@ export class UpdateTripDto {
     message: 'missing: destinations',
   })
   destinations: "jsonb";
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  priorityColors?: object;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  priorityMapColors?: object;
 }
