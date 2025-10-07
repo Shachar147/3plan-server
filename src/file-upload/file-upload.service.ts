@@ -129,7 +129,7 @@ export class FileUploadService {
             console.log('Upload finished successfully!');
 
             // Return the S3 URL of the uploaded file
-            return `https://${this.bucketName}.s3.${process.env.AWS_REGION}.amazonaws.com/images/event-images/${fileName}`;
+            return `https://${this.bucketName}.s3.${process.env.AWS_REGION}.amazonaws.com/images/pois/${fileName}`;
         } catch (error) {
             console.error('Error uploading file:', error);
             this.logger.error('Upload failed :(');
