@@ -17,6 +17,12 @@ export class ReleaseNote extends BaseEntity {
   @Column({ name: 'hebrew_description', type: 'text', nullable: true })
   hebrewDescription: string;
 
+  @Column({ name: 'english_how_to_use', type: 'text', nullable: true })
+  englishHowToUse: string
+
+  @Column({ name: 'hebrew_how_to_use', type: 'text', nullable: true })
+  hebrewHowToUse: string
+
   @Column({ name: 'image_urls', type: 'simple-json', nullable: true })
   imageUrls: string[];
 
