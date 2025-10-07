@@ -14,6 +14,7 @@ import {HistoryModule} from "../history/history.module";
 import {TripadvisorModule} from "../poi/sources/tripadvisor/tripadvisor.module";
 import {PlacesPhotosModule} from "../places-photos/places-photos.module";
 import {UserModule} from "../user/user.module";
+import {FileUploadModule} from "../file-upload/file-upload.module";
 
 @Module({
   imports: [
@@ -26,7 +27,8 @@ import {UserModule} from "../user/user.module";
     HistoryModule,
     TripadvisorModule,
     PlacesPhotosModule,
-    UserModule
+    UserModule,
+    FileUploadModule
   ],
   controllers: [TripController],
   providers: [TripService, MyWebSocketGateway],
