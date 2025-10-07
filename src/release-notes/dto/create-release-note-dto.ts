@@ -16,6 +16,14 @@ export class CreateReleaseNoteDto {
 
   @IsString()
   @IsOptional()
+  hebrewHowToUse?: string;
+
+  @IsString()
+  @IsOptional()
+  englishHowToUse?: string;
+
+  @IsString()
+  @IsOptional()
   hebrewDescription?: string;
 
   @IsArray()
