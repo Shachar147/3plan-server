@@ -36,10 +36,6 @@ async function bootstrap() {
       'Origin',
     ],
   });
-  
-  app.options('*', (req, res) => {
-    res.sendStatus(200);
-  });
 
   // to auto-convert page="1" to page=1
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
