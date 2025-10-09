@@ -9,13 +9,19 @@ import {ValidationPipe} from "@nestjs/common";
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+
+  app.use((req, res, next) => {
+    console.log('Incoming origin:', req.headers.origin);
+    next();
+  });
+
   // app.enableCors();
 
-//   const allowedOrigins = [
-//     'http://localhost:3000',
-//     'https://threeplan-frontend.onrender.com',
-//   ];
-const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [];
+  //   const allowedOrigins = [
+  //     'http://localhost:3000',
+  //     'https://threeplan-frontend.onrender.com',
+  //   ];
+  const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [];
   
   app.enableCors({
     origin: (origin, callback) => {
