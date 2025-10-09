@@ -5,51 +5,11 @@ import * as bodyParser from 'body-parser';
 import { Server } from 'ws';
 import {MyWebSocketGateway} from "./websocket.gateway";
 import {ValidationPipe} from "@nestjs/common";
-import * as express from 'express';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { cors: true });
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-
-  app.use((req, res, next) => {
-    console.log('Incoming origin:', req.headers.origin);
-    next();
-  });
-
-  // temp: todo see how to bring it back
-//   app.enableCors();
-
-  //   const allowedOrigins = [
-  //     'http://localhost:3000',
-  //     'https://threeplan-frontend.onrender.com',
-  //   ];
-//   const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'];
-  
-//   app.enableCors({
-//     origin: (origin, callback) => {
-//       // Allow requests with no origin (like mobile apps or curl)
-//       if (!origin || allowedOrigins.includes(origin)) {
-//         callback(null, true);
-//       } else {
-//         console.log('Blocked by CORS:', origin);
-//         // callback(new Error('Not allowed by CORS'));
-//         callback(null, false); // tell CORS middleware to reject the request
-//       }
-//     },
-//     credentials: true,
-//     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
-//     allowedHeaders: [
-//       'Content-Type',
-//       'Accept',
-//       'Authorization',
-//       'X-Requested-With',
-//       'Origin',
-//     ],
-//   });
-
-  // get underlying Express app
-  const expressApp = app.getHttpAdapter().getInstance() as express.Express;
-  expressApp.options('*', (req, res) => res.sendStatus(204));
+  app.enableCors();
 
   // to auto-convert page="1" to page=1
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
@@ -96,7 +56,6 @@ async function bootstrap() {
 
   setTimeout(() => {
     console.log('Starting server in', process.env.NODE_ENV, 'mode', `http://localhost:${process.env.PORT || 3001}`);
-    // console.log('Allowed CORS Origins: ', allowedOrigins.join(', '))
   }, 1000);
 
   // Initialize the WebSocket gateway with the http.Server instance
