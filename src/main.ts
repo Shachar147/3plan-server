@@ -24,7 +24,8 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [];
         callback(null, true);
       } else {
         console.log('Blocked by CORS:', origin);
-        callback(new Error('Not allowed by CORS'));
+        // callback(new Error('Not allowed by CORS'));
+        callback(null, false); // tell CORS middleware to reject the request
       }
     },
     credentials: true,
@@ -83,6 +84,7 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [];
 
   setTimeout(() => {
     console.log('Starting server in', process.env.NODE_ENV, 'mode', `http://localhost:${process.env.PORT || 3001}`);
+    console.log('Allowed CORS Origins: ', allowedOrigins.join(', '))
   }, 1000);
 
   // Initialize the WebSocket gateway with the http.Server instance
