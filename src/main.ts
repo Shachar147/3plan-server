@@ -16,35 +16,36 @@ async function bootstrap() {
     next();
   });
 
-  // app.enableCors();
+  // temp: todo see how to bring it back
+//   app.enableCors();
 
   //   const allowedOrigins = [
   //     'http://localhost:3000',
   //     'https://threeplan-frontend.onrender.com',
   //   ];
-  const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [];
+//   const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'];
   
-  app.enableCors({
-    origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps or curl)
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        console.log('Blocked by CORS:', origin);
-        // callback(new Error('Not allowed by CORS'));
-        callback(null, false); // tell CORS middleware to reject the request
-      }
-    },
-    credentials: true,
-    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
-    allowedHeaders: [
-      'Content-Type',
-      'Accept',
-      'Authorization',
-      'X-Requested-With',
-      'Origin',
-    ],
-  });
+//   app.enableCors({
+//     origin: (origin, callback) => {
+//       // Allow requests with no origin (like mobile apps or curl)
+//       if (!origin || allowedOrigins.includes(origin)) {
+//         callback(null, true);
+//       } else {
+//         console.log('Blocked by CORS:', origin);
+//         // callback(new Error('Not allowed by CORS'));
+//         callback(null, false); // tell CORS middleware to reject the request
+//       }
+//     },
+//     credentials: true,
+//     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
+//     allowedHeaders: [
+//       'Content-Type',
+//       'Accept',
+//       'Authorization',
+//       'X-Requested-With',
+//       'Origin',
+//     ],
+//   });
 
   // get underlying Express app
   const expressApp = app.getHttpAdapter().getInstance() as express.Express;
@@ -95,7 +96,7 @@ async function bootstrap() {
 
   setTimeout(() => {
     console.log('Starting server in', process.env.NODE_ENV, 'mode', `http://localhost:${process.env.PORT || 3001}`);
-    console.log('Allowed CORS Origins: ', allowedOrigins.join(', '))
+    // console.log('Allowed CORS Origins: ', allowedOrigins.join(', '))
   }, 1000);
 
   // Initialize the WebSocket gateway with the http.Server instance
