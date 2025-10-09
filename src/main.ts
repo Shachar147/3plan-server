@@ -5,6 +5,7 @@ import * as bodyParser from 'body-parser';
 import { Server } from 'ws';
 import {MyWebSocketGateway} from "./websocket.gateway";
 import {ValidationPipe} from "@nestjs/common";
+import * as express from 'express';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -44,6 +45,10 @@ async function bootstrap() {
       'Origin',
     ],
   });
+
+  // get underlying Express app
+  const expressApp = app.getHttpAdapter().getInstance() as express.Express;
+  expressApp.options('*', (req, res) => res.sendStatus(204));
 
   // to auto-convert page="1" to page=1
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
