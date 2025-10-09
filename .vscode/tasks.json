@@ -80,7 +80,35 @@
           "Start App Services"
         ],
         "dependsOrder": "sequence"
-      }
+      },
+      {
+        "label": "Start Frontend (prod)",
+        "type": "shell",
+        "command": "nvm use 16 && npm run start:prod",
+        "options": {
+          "cwd": "${workspaceFolder}/../frontend"
+        },
+        "problemMatcher": [],
+      },
+      {
+        "label": "Start Backend (prod)",
+        "type": "shell",
+        "command": "nvm use 16 && npm run start:prod",
+        "options": {
+          "cwd": "${workspaceFolder}"
+        },
+        "problemMatcher": [],
+      },
+      {
+        "label": "Start App Services (prod)",
+        "dependsOn": [
+          "Start Frontend (prod)",
+          "Start Backend (prod)",
+          "Terminal - Frontend",
+          "Terminal - Server"
+        ],
+        "dependsOrder": "parallel"
+      },
     ]
   } 
   

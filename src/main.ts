@@ -9,7 +9,25 @@ import {ValidationPipe} from "@nestjs/common";
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: true });
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-  app.enableCors();
+  // app.enableCors();
+
+  // Improved CORS configuration
+  const allowedOrigins = process.env.ALLOWED_ORIGINS 
+    ? process.env.ALLOWED_ORIGINS.split(',') 
+    : ['http://localhost:3000', 'https://threeplan-frontend.onrender.com'];
+    
+  app.enableCors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: true,
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    allowedHeaders: 'Content-Type, Accept, Authorization, X-Requested-With, X-HTTP-Method-Override, Origin, Access-Control-Request-Headers, Access-Control-Request-Method',
+  });
 
   // to auto-convert page="1" to page=1
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
