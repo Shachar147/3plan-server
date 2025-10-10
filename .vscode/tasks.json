@@ -1,0 +1,114 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "Start Frontend",
+        "type": "shell",
+        "command": "nvm use 16 && npm run start:dev",
+        "options": {
+          "cwd": "${workspaceFolder}/../frontend"
+        },
+        "problemMatcher": [],
+      },
+      {
+        "label": "Build Frontend",
+        "type": "shell",
+        "command": "nvm use 16 && rm -rf node_modules && npm i --force",
+        "options": {
+          "cwd": "${workspaceFolder}/../frontend"
+        },
+        "problemMatcher": [],
+        "group": "build"
+      },
+      {
+        "label": "Start Backend",
+        "type": "shell",
+        "command": "nvm use 16 && npm run start:dev",
+        "options": {
+          "cwd": "${workspaceFolder}"
+        },
+        "problemMatcher": [],
+      },
+      {
+        "label": "Build Backend",
+        "type": "shell",
+        "command": "nvm use 16 && rm -rf node_modules && npm i --force",
+        "options": {
+          "cwd": "${workspaceFolder}"
+        },
+        "problemMatcher": [],
+        "group": "build"
+      },
+      {
+        "label": "Terminal - Frontend",
+        "type": "shell",
+        "command": "nvm use 16 && bash",
+        "options": {
+          "cwd": "${workspaceFolder}/../frontend"
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "Terminal - Server",
+        "type": "shell",
+        "command": "nvm use 16 && bash",
+        "options": {
+          "cwd": "${workspaceFolder}"
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "Start App Services",
+        "dependsOn": [
+          "Start Frontend",
+          "Start Backend",
+          "Terminal - Frontend",
+          "Terminal - Server"
+        ],
+        "dependsOrder": "parallel"
+      },
+      {
+        "label": "Start docker",
+        "type": "shell",
+        "command": "docker-compose up -d",
+        "problemMatcher": []
+      },
+      {
+        "label": "Start App Services with Docker",
+        "dependsOn": [
+          "Start docker",
+          "Start App Services"
+        ],
+        "dependsOrder": "sequence"
+      },
+      {
+        "label": "Start Frontend (prod)",
+        "type": "shell",
+        "command": "nvm use 16 && npm run start:prod",
+        "options": {
+          "cwd": "${workspaceFolder}/../frontend"
+        },
+        "problemMatcher": [],
+      },
+      {
+        "label": "Start Backend (prod)",
+        "type": "shell",
+        "command": "nvm use 16 && npm run start:prod",
+        "options": {
+          "cwd": "${workspaceFolder}"
+        },
+        "problemMatcher": [],
+      },
+      {
+        "label": "Start App Services (prod)",
+        "dependsOn": [
+          "Start Frontend (prod)",
+          "Start Backend (prod)",
+          "Terminal - Frontend",
+          "Terminal - Server"
+        ],
+        "dependsOrder": "parallel"
+      },
+    ]
+  } 
+  

@@ -13,6 +13,8 @@ import { User } from "../user/user.entity";
 import {DuplicateTripDto} from "./dto/duplicate-trip-dto";
 import {BackupsService} from "../backups/backups.service";
 import { Request } from 'express';
+import axios from 'axios';
+import { FileUploadService } from '../file-upload/file-upload.service';
 import {HistoryService} from "../history/history.service";
 import {ImportCalendarEventsDto} from "./dto/import-calendar-events-dto";
 import {TripadvisorService} from "../poi/sources/tripadvisor/tripadvisor.service";
@@ -25,7 +27,6 @@ import {SaveAsTemplateDto} from "./dto/save-as-template-dto";
 @Injectable()
 export class TripService {
   private logger = new Logger("TripService");
-
   constructor(
     @InjectRepository(TripRepository)
     private tripRepository: TripRepository,
@@ -33,8 +34,11 @@ export class TripService {
     private historyService: HistoryService,
     private tripadvisorService: TripadvisorService,
     private placesPhotosService: PlacesPhotosService,
-    private userService: UserService
-  ) {}
+    private userService: UserService,
+    private fileUploadService: FileUploadService
+  ) {
+
+  }
 
   async getTrips(filterDto: ListTripsDto, user: User) {
     return await this.tripRepository.getTrips(filterDto, user);
@@ -178,6 +182,9 @@ export class TripService {
 
   async createTrip(createTripDto: CreateTripDto, user: User, request: Request, raiseError: boolean = true, autoFill = false) {
 
+    // Rewrite images to locally hosted copies when possible
+    createTripDto = await this.rewriteImagesToLocal(createTripDto);
+
     let autoFillData;
     if (autoFill) {
       this.logger.log("Performing auto fill for trip...");
@@ -212,7 +219,9 @@ export class TripService {
       throw new BadRequestException("name : missing");
     }
 
-    return await this.tripRepository.upsertTrip(createTripDto, user, request, this.backupsService);
+    // Rewrite images to locally hosted copies when possible
+    const rewritten = await this.rewriteImagesToLocal(createTripDto);
+    return await this.tripRepository.upsertTrip(rewritten, user, request, this.backupsService);
   }
 
   async updateTrip(id: number, updateTripDto: UpdateTripDto, user: User, request: Request) {
@@ -227,7 +236,92 @@ export class TripService {
     //   throw new NotFoundException(`You have to pass fields to update`);
     // }
 
-    return this.tripRepository.updateTrip(updateTripDto, trip, user, request, this.backupsService);
+    // Rewrite images to locally hosted copies when possible
+    const rewritten = await this.rewriteImagesToLocal(updateTripDto);
+    return this.tripRepository.updateTrip(rewritten, trip, user, request, this.backupsService);
+  }
+
+  private async rewriteImagesToLocal(dto: UpdateTripDto|CreateTripDto): Promise<UpdateTripDto|CreateTripDto> {
+    try {
+      const processEvent = async (e: any) => {
+        if (!e || !e.images) return e;
+        const imagesString: string = e.images;
+        const urls = (imagesString || '')
+          .split('\n')
+          .map((s) => s.trim())
+          .filter((s) => !!s);
+
+        // only process first 3 images
+        const limited = urls.slice(0, 3);
+
+        const safeTitle = (e.title || 'poi').toString().replace(/[^a-zA-Z0-9.-]/g, '-');
+        const coordPart = e?.location?.latitude
+          ? `${e.location.latitude}_${e.location.longitude}`
+          : undefined;
+
+        const rewrittenUrls = await Promise.all(
+          limited.map(async (url: string, i: number) => {
+            const shouldDownload = /maps\.googleapis\.com|googleusercontent\.com|google\.com\/maps/i.test(url);
+            if (!shouldDownload) {
+              return url;
+            }
+
+            try {
+              const response = await axios.get(url, { responseType: 'arraybuffer' });
+              const contentType = response.headers['content-type'] as string | undefined;
+              const extension = (contentType && contentType.split('/')[1]) || 'jpg';
+
+              // build deterministic key so future uploads reuse the same object
+              const base = coordPart ? `${coordPart}-${safeTitle}` : safeTitle;
+              const key = `images/event-images/${base}-${i}.${extension}`;
+
+              const s3Url = await this.fileUploadService.uploadBufferIfNotExists(Buffer.from(response.data), key, contentType);
+              return s3Url;
+            } catch (err) {
+              this.logger.warn(`Failed to download/upload image for event '${e.title}': ${url}`);
+              return url;
+            }
+          })
+        );
+
+        e.images = rewrittenUrls.join('\n');
+        return e;
+      };
+
+      if (dto && (dto as any).calendarEvents && Array.isArray((dto as any).calendarEvents)) {
+        // @ts-ignore
+        for (let idx = 0; idx < (dto as any).calendarEvents.length; idx++) {
+          // @ts-ignore
+          (dto as any).calendarEvents[idx] = await processEvent((dto as any).calendarEvents[idx]);
+        }
+      }
+
+      if (dto && (dto as any).allEvents && Array.isArray((dto as any).allEvents)) {
+        // @ts-ignore
+        for (let idx = 0; idx < (dto as any).allEvents.length; idx++) {
+          // @ts-ignore
+          (dto as any).allEvents[idx] = await processEvent((dto as any).allEvents[idx]);
+        }
+      }
+
+      // sidebarEvents is an object keyed by categoryId -> array of events
+      if (dto && (dto as any).sidebarEvents && typeof (dto as any).sidebarEvents === 'object') {
+        const sidebar = (dto as any).sidebarEvents as Record<string, any[]>;
+        for (const key of Object.keys(sidebar)) {
+          const arr = sidebar[key];
+          if (Array.isArray(arr)) {
+            for (let idx = 0; idx < arr.length; idx++) {
+              arr[idx] = await processEvent(arr[idx]);
+            }
+          }
+        }
+      }
+
+      return dto;
+    } catch (error) {
+      this.logger.error('rewriteImagesToLocal failed', error as any);
+      return dto;
+    }
   }
 
   async importCalendarEvents(name: string, importCalendarEvents: ImportCalendarEventsDto, user: User, request: Request) {
@@ -276,7 +370,10 @@ export class TripService {
     //   throw new NotFoundException(`You have to pass fields to update`);
     // }
 
-    return this.tripRepository.updateTrip(updateTripDto, trip, user, request, this.backupsService);
+    // Rewrite images to locally hosted copies when possible
+    const rewritten = await this.rewriteImagesToLocal(updateTripDto);
+    console.log("rewritten", JSON.stringify(rewritten));
+    return this.tripRepository.updateTrip(rewritten, trip, user, request, this.backupsService);
   }
 
   async deleteTrip(id: number, user: User, request: Request) {

@@ -40,6 +40,66 @@ export class FileUploadService {
         this.s3 = new AWS.S3();
     }
 
+    async uploadBuffer(buffer: Buffer, fileName: string, contentType?: string): Promise<string> {
+        const sanitized = this.sanitizeFileName(fileName);
+        const fileExtension = path.extname(sanitized);
+        const mimeType = contentType || (fileExtension ? mime.lookup(fileExtension) || undefined : undefined);
+
+        const key = `images/event-images/${sanitized}`;
+        const uploadParams = {
+            Bucket: this.bucketName,
+            Key: key,
+            Body: buffer,
+            ContentType: mimeType || 'application/octet-stream',
+        } as AWS.S3.PutObjectRequest;
+
+        try {
+            const data = await this.s3.upload(uploadParams).promise();
+            return this.getPublicUrlForKey(key);
+        } catch (error) {
+            this.logger.error('uploadBuffer failed', error as any);
+            throw new Error('File upload failed');
+        }
+    }
+
+    async uploadBufferWithKey(buffer: Buffer, key: string, contentType?: string): Promise<string> {
+        const uploadParams = {
+            Bucket: this.bucketName,
+            Key: key,
+            Body: buffer,
+            ContentType: contentType || 'application/octet-stream',
+        } as AWS.S3.PutObjectRequest;
+
+        try {
+            const data = await this.s3.upload(uploadParams).promise();
+            return this.getPublicUrlForKey(key);
+        } catch (error) {
+            this.logger.error('uploadBufferWithKey failed', error as any);
+            throw new Error('File upload failed');
+        }
+    }
+
+    async exists(key: string): Promise<boolean> {
+        try {
+            await this.s3.headObject({ Bucket: this.bucketName!, Key: key }).promise();
+            return true;
+        } catch (e) {
+            return false;
+        }
+    }
+
+    async uploadBufferIfNotExists(buffer: Buffer, key: string, contentType?: string): Promise<string> {
+        const alreadyExists = await this.exists(key);
+        if (alreadyExists) {
+            return this.getPublicUrlForKey(key);
+        }
+        return this.uploadBufferWithKey(buffer, key, contentType);
+    }
+
+    getPublicUrlForKey(key: string): string {
+        return `https://${this.bucketName}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
+    }
+
     async uploadFile(file): Promise<string> {
         console.log('Reached FileUploadService::uploadFile');
         const fileName = this.sanitizeFileName(file.originalname);
