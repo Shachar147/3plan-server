@@ -40,10 +40,18 @@ async function bootstrap() {
 
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const fs = require('fs');
-  fs.writeFileSync(
-    './swagger.json',
-    JSON.stringify(document).replace('"openapi":"3.0.0"', '"swagger":"2.0"'),
-  );
+  
+  // Only write swagger.json in development (not in Vercel's read-only environment)
+  if (process.env.NODE_ENV !== 'production') {
+    try {
+      fs.writeFileSync(
+        './swagger.json',
+        JSON.stringify(document).replace('"openapi":"3.0.0"', '"swagger":"2.0"'),
+      );
+    } catch (error) {
+      console.warn('Could not write swagger.json file:', error.message);
+    }
+  }
 
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   // const Swagger2Postman = require('swagger2-postman-generator');
