@@ -7,7 +7,7 @@ import {MyWebSocketGateway} from "./websocket.gateway";
 import {ValidationPipe} from "@nestjs/common";
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { cors: true });
+  const app = await NestFactory.create(AppModule);
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
   app.enableCors({
     origin: [
