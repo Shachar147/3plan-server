@@ -9,7 +9,15 @@ import {ValidationPipe} from "@nestjs/common";
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: true });
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-  app.enableCors();
+  app.enableCors({
+    origin: [
+      'http://localhost:3000',                 // local frontend
+      'https://threeplan-frontend.onrender.com', // deployed frontend
+      'https://3plan-frontend.vercel.app',
+    ],
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true,
+  });
 
   // to auto-convert page="1" to page=1
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
