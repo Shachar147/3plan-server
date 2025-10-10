@@ -1,0 +1,75 @@
+db:
+  host: 'db.gwewfommgauuuvlgegzo.supabase.co'
+  port: 5432
+  username: 'postgres'
+  password: '[YOUR-PASSWORD]'
+  database: 'postgres'
+  synchronize: true
+  extra:
+    ssl:
+      rejectUnauthorized: false
+      require: true
+      mode: require
+
+jwt:
+  secret: 'topSecret21'
+
+
+# db:
+#   host: 'ep-divine-base-ag78ufz5-pooler.c-2.eu-central-1.aws.neon.tech'
+#   port: 5432
+#   username: 'neondb_owner'
+#   password: 'npg_W7CMqZIuhvP3'
+#   database: 'neondb'
+#   synchronize: true
+#   extra:
+#     ssl:
+#       rejectUnauthorized: false
+#       require: true
+#       mode: require
+
+# jwt:
+#   secret: 'topSecret21'
+
+
+# db:
+#   host: 'ec2-54-82-103-223.compute-1.amazonaws.com'
+#   username: 'uas9bbjc084te'
+#   password: 'p83033241adf38d781f30d4cc3e6fd53db3cdf834a5634c241737b9d7b6bb44c0'
+#   port: 5432,
+#   database: 'de0t053q74dmaj'
+#   synchronize: true
+#   extra:
+#     ssl:
+#       rejectUnauthorized: false
+
+# jwt:
+#   secret: 'topSecret21'
+
+# db:
+#   host: 'ec2-54-82-103-223.compute-1.amazonaws.com'
+#   username: 'uas9bbjc084te'
+#   password: 'p83033241adf38d781f30d4cc3e6fd53db3cdf834a5634c241737b9d7b6bb44c0'
+#   port: 5432,
+#   database: 'de0t053q74dmaj'
+#   synchronize: true
+#   extra:
+#     ssl:
+#       rejectUnauthorized: false
+
+# jwt:
+#   secret: 'topSecret21'
+
+# db:
+#   host: 'ce4o834ee7h752.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com'
+#   username: 'u385lmged6ajti'
+#   password: 'p992b3c04046c65df342949c7255453fc4a349132cf3c647cdfc5785c442901db'
+#   port: 5432,
+#   database: 'd8bhe55suunicg'
+#   synchronize: true
+#   extra:
+#     ssl:
+#       rejectUnauthorized: false
+
+# jwt:
+#   secret: 'topSecret21'
