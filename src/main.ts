@@ -6,12 +6,7 @@ import { Server } from 'ws';
 import {MyWebSocketGateway} from "./websocket.gateway";
 import {ValidationPipe} from "@nestjs/common";
 
-import * as fs from 'fs';
-
-async function bootstrap(fsProp: any) {
-
-  console.warn('dist/config-env exists?', fsProp.existsSync('dist/config-env'));
-  console.warn('files:', fsProp.readdirSync('dist/config-env'));
+async function bootstrap() {
 
   const app = await NestFactory.create(AppModule);
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
@@ -83,7 +78,7 @@ async function bootstrap(fsProp: any) {
     });
   });
 }
-bootstrap(fs);
+bootstrap();
 
 /*
 London 32 backup:
