@@ -9,6 +9,7 @@
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "NODE_CONFIG_DIR=src/config-env nest start",
+    "start:vercel": "NODE_CONFIG_DIR=dist/config-env node --max-old-space-size=1024 dist/main.js",
     "start:dev:win": "SET PORT=3001 && nest start --watch",
     "start:dev": "NODE_CONFIG_DIR=src/config-env PORT=3001 NODE_ENV=development nest start --watch",
     "start:debug": "PORT=3001 nest start --debug --watch",
