@@ -78,7 +78,14 @@ async function bootstrap() {
     });
   });
 }
-bootstrap();
+
+// For Vercel deployment
+export default bootstrap;
+
+// For local development
+if (process.env.NODE_ENV !== 'production') {
+  bootstrap();
+}
 
 /*
 London 32 backup:
