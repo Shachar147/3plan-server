@@ -23,8 +23,8 @@ import {
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 
-import * as config from 'config';
-const jwtConfig = config.get('jwt');
+import { getJwtConfig } from '../config/app.config';
+const jwtConfig = getJwtConfig();
 
 @ApiTags('Authentication')
 @Controller('auth')

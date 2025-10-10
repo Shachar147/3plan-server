@@ -6,9 +6,9 @@ import { UserRepository } from '../user/user.repository';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './jwt.strategy';
-import * as config from 'config';
+import { getJwtConfig } from '../config/app.config';
 
-const jwtConfig = config.get('jwt');
+const jwtConfig = getJwtConfig();
 
 @Module({
   imports: [
