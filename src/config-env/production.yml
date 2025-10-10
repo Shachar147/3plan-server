@@ -2,7 +2,7 @@ db:
   host: 'db.gwewfommgauuuvlgegzo.supabase.co'
   port: 5432
   username: 'postgres'
-  password: 'Aa6336263!!'
+  password: 'npg_W7CMqZIuhvP3'
   database: 'postgres'
   synchronize: true
   extra:
