@@ -4,8 +4,8 @@
   "compilerOptions": {
     "assets": [
       {
-        "include": "src/config-env/**/*",
-        "outDir": "dist/config-env"
+        "include": "config-env/**/*",
+        "outDir": "dist/"
       }
     ],
     "watchAssets": true
