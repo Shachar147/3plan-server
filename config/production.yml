@@ -1,9 +1,9 @@
 db:
-  host: 'ep-divine-base-ag78ufz5-pooler.c-2.eu-central-1.aws.neon.tech'
+  host: 'db.gwewfommgauuuvlgegzo.supabase.co'
   port: 5432
-  username: 'neondb_owner'
-  password: 'npg_W7CMqZIuhvP3'
-  database: 'neondb'
+  username: 'postgres'
+  password: '[YOUR-PASSWORD]'
+  database: 'postgres'
   synchronize: true
   extra:
     ssl:
@@ -13,6 +13,23 @@ db:
 
 jwt:
   secret: 'topSecret21'
+
+
+# db:
+#   host: 'ep-divine-base-ag78ufz5-pooler.c-2.eu-central-1.aws.neon.tech'
+#   port: 5432
+#   username: 'neondb_owner'
+#   password: 'npg_W7CMqZIuhvP3'
+#   database: 'neondb'
+#   synchronize: true
+#   extra:
+#     ssl:
+#       rejectUnauthorized: false
+#       require: true
+#       mode: require
+
+# jwt:
+#   secret: 'topSecret21'
 
 
 # db:

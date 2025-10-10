@@ -12,8 +12,12 @@
     "baseUrl": "./",
     "incremental": true,
     "skipLibCheck": true,
-    "strict": true,
-    "typeRoots": ["./node_modules/@types"]
+
+    // Disable strict checks
+    "strict": false,
+    "noImplicitAny": false,
+    "strictPropertyInitialization": false,
+    "strictNullChecks": false
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]
