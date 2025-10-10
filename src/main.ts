@@ -82,10 +82,8 @@ async function bootstrap() {
 // For Vercel deployment
 export default bootstrap;
 
-// For local development
-if (process.env.NODE_ENV !== 'production') {
-  bootstrap();
-}
+// Always call bootstrap to start the application
+bootstrap();
 
 /*
 London 32 backup:
