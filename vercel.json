@@ -1,0 +1,9 @@
+{
+    "functions": {
+      "src/main.ts": {
+        "runtime": "nodejs22.x",
+        "includeFiles": ["config/**/*"]
+      }
+    }
+  }
+  
