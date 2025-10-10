@@ -7,6 +7,6 @@
     "strictPropertyInitialization": false,
     "strictNullChecks": false
   },
-  "include": ["src/**/*", "config/**/*"],
+  "include": ["src/**/*", "src/config-env/**/*"],
   "exclude": ["node_modules", "dist", "test", "**/*spec.ts"]
 }
