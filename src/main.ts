@@ -6,7 +6,12 @@ import { Server } from 'ws';
 import {MyWebSocketGateway} from "./websocket.gateway";
 import {ValidationPipe} from "@nestjs/common";
 
+import * as fs from 'fs';
+console.log('dist/config-env exists?', fs.existsSync('dist/config-env'));
+console.log('files:', fs.readdirSync('dist/config-env'));
+
 async function bootstrap() {
+
   const app = await NestFactory.create(AppModule);
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
   app.enableCors({
