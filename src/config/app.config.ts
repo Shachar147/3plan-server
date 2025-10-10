@@ -42,7 +42,7 @@ class AppConfig {
       port: parseInt(process.env.DB_PORT || process.env.RDS_PORT || '5432'),
       username: process.env.DB_USERNAME || process.env.RDS_USERNAME || 'postgres',
       password: process.env.DB_PASSWORD || process.env.RDS_PASSWORD || 'postgres',
-      database: process.env.DB_NAME || process.env.RDS_DB_NAME || 'triplan',
+      database: process.env.DB_NAME || process.env.RDS_DB_NAME || 'triplan_local',
       synchronize: process.env.TYPEORM_SYNC === 'true' || 
                   process.env.NODE_ENV === 'development' || 
                   false,
