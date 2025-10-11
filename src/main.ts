@@ -7,8 +7,11 @@ import {MyWebSocketGateway} from "./websocket/websocket.gateway";
 import {ValidationPipe} from "@nestjs/common";
 
 async function bootstrap() {
-
+  console.log("starting boostrap");
   const app = await NestFactory.create(AppModule);
+
+  console.log("created app");
+
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
   app.enableCors({
     origin: [
@@ -19,6 +22,8 @@ async function bootstrap() {
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
+
+  console.log("after cors");
 
   // to auto-convert page="1" to page=1
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
@@ -33,6 +38,8 @@ async function bootstrap() {
     )
     .build();
   const document = SwaggerModule.createDocument(app, swaggerConfig);
+
+  console.log("after swagger");
 
   // to create a swagger documentation page on /api :
   // not sure if it's a smart Idea tho, since it'll expose the whole API to attackers
@@ -61,30 +68,34 @@ async function bootstrap() {
     customCss: 'input { max-width: unset !important; }',
   });
 
+  console.log("after swagger doc");
+
 
   app.use(bodyParser.json({limit: '50mb'}));
   app.use(bodyParser.urlencoded({limit: '50mb', extended: true}));
 
-//   // Create WebSocket server instance
-//   const server = new Server({ noServer: true });
+  // Create WebSocket server instance
+  const server = new Server({ noServer: true });
 
   // console.log("heroku port: ", process.env.PORT);
   await app.listen(process.env.PORT || 3001);
 
-//   setTimeout(() => {
-//     console.log('Starting server in', process.env.NODE_ENV, 'mode', `http://localhost:${process.env.PORT || 3001}`);
-//   }, 1000);
+  setTimeout(() => {
+    console.log('Starting server in', process.env.NODE_ENV, 'mode', `http://localhost:${process.env.PORT || 3001}`);
+  }, 1000);
 
-//   // Initialize the WebSocket gateway with the http.Server instance
-//   const webSocketGateway = app.get(MyWebSocketGateway);
-//   webSocketGateway.init(server);
+  // Initialize the WebSocket gateway with the http.Server instance
+  const webSocketGateway = app.get(MyWebSocketGateway);
+  webSocketGateway.init(server);
 
-//   // Attach WebSocket server to the HTTP server
-//   app.getHttpServer().on('upgrade', (req, socket, head) => {
-//     server.handleUpgrade(req, socket, head, (ws) => {
-//       server.emit('connection', ws, req);
-//     });
-//   });
+  // Attach WebSocket server to the HTTP server
+  app.getHttpServer().on('upgrade', (req, socket, head) => {
+    server.handleUpgrade(req, socket, head, (ws) => {
+      server.emit('connection', ws, req);
+    });
+  });
+
+  console.log("after sockets");
 }
 
 // For Vercel deployment
