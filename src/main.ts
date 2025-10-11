@@ -3,7 +3,7 @@ import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import * as bodyParser from 'body-parser';
 import { Server } from 'ws';
-import {MyWebSocketGateway} from "./websocket.gateway";
+import {MyWebSocketGateway} from "./websocket/websocket.gateway";
 import {ValidationPipe} from "@nestjs/common";
 
 async function bootstrap() {
@@ -66,7 +66,7 @@ async function bootstrap() {
   app.use(bodyParser.urlencoded({limit: '50mb', extended: true}));
 
   // Create WebSocket server instance
-  const server = app.getHttpServer() || new Server({ noServer: true });
+  const server = new Server({ noServer: true });
 
   // console.log("heroku port: ", process.env.PORT);
   await app.listen(process.env.PORT || 3001);

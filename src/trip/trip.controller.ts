@@ -29,7 +29,7 @@ import { GetUser } from "../auth/get-user.decorator";
 import { User } from "../user/user.entity";
 import {DuplicateTripDto} from "./dto/duplicate-trip-dto";
 import { Request } from 'express';
-import {MyWebSocketGateway} from "../websocket.gateway";
+import {MyWebSocketGateway} from "../websocket/websocket.gateway";
 import {ImportCalendarEventsDto} from "./dto/import-calendar-events-dto";
 import {SaveAsTemplateDto} from "./dto/save-as-template-dto";
 
