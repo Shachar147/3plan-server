@@ -5,7 +5,7 @@ import * as bodyParser from 'body-parser';
 import { Server } from 'ws';
 import {MyWebSocketGateway} from "./websocket/websocket.gateway";
 import {ValidationPipe} from "@nestjs/common";
-import * as express from 'express';
+const express = require('express');
 import { ExpressAdapter } from '@nestjs/platform-express';
 
 import { createServer, proxy } from 'aws-serverless-express';
