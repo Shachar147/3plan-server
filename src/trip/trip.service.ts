@@ -899,8 +899,8 @@ export class TripService {
   
       // 1️⃣ Get remote token
       res = await axios.post(remoteServerAddress + signIn, {
-        username: 'Shachar',
-        password: 'Aa123456',
+        username: process.env.ADMIN_USERNAME,
+        password: process.env.ADMIN_PASSWORD,
       }, {
         headers: { 'Content-Type': 'application/json' }
       });
