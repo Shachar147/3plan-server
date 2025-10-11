@@ -12,6 +12,7 @@ export interface DatabaseConfig {
   database: string;
   synchronize: boolean;
   extra: any;
+  url?: string;
 }
 
 export interface JwtConfig {
@@ -45,8 +46,12 @@ class AppConfig {
         database: 'postgres'
     }
 
+    const PROD_DB_URL = 'postgresql://postgres.gwewfommgauuuvlgegzo:npg_W7CMqZIuhvP3@aws-1-eu-west-1.pooler.supabase.com:6543/postgres';
+    const DEV_DB_URL = 'postgresql://postgres:postgres@localhost:5432/buysearch';
+
     return {
       type: process.env.DB_TYPE || 'postgres',
+      url: PROD_DB_URL,
       host: supaBase['dbHost'] || process.env.DB_HOST || process.env.RDS_HOSTNAME || 'localhost',
       port: supaBase['port'] || parseInt(process.env.DB_PORT || process.env.RDS_PORT || '5432'),
       username: supaBase['dbUser'] || process.env.DB_USERNAME || process.env.RDS_USERNAME || 'postgres',

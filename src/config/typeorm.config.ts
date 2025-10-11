@@ -3,7 +3,15 @@ import { getDatabaseConfig } from './app.config';
 
 const dbConfig = getDatabaseConfig();
 
-export const typeOrmConfig: TypeOrmModuleOptions = {
+const url = dbConfig.url;
+
+export const typeOrmConfig: TypeOrmModuleOptions = url ? {
+  type: dbConfig.type as any,
+  url,
+  entities: [__dirname + '/../**/*.entity.{js,ts}'],
+  synchronize: dbConfig.synchronize,
+  extra: dbConfig.extra,
+} : {
   type: dbConfig.type as any,
   host: dbConfig.host,
   port: dbConfig.port,
