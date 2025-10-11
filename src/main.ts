@@ -3,7 +3,7 @@ import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
 import { ExpressAdapter } from '@nestjs/platform-express';
-import * as express from 'express';
+const express = require('express');
 import serverlessExpress from '@vendia/serverless-express';
 import * as bodyParser from 'body-parser';
 
