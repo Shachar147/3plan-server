@@ -5,10 +5,18 @@ import * as bodyParser from 'body-parser';
 import { Server } from 'ws';
 import {MyWebSocketGateway} from "./websocket/websocket.gateway";
 import {ValidationPipe} from "@nestjs/common";
+import * as express from 'express';
+import { ExpressAdapter } from '@nestjs/platform-express';
+
+import { createServer, proxy } from 'aws-serverless-express';
+const expressApp = express();
+const adapter = new ExpressAdapter(expressApp);
 
 async function bootstrap() {
   console.log("starting boostrap");
-  const app = await NestFactory.create(AppModule);
+  // const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, adapter);
+
 
   console.log("created app");
 
@@ -100,8 +108,9 @@ async function bootstrap() {
   console.log("after sockets");
 }
 
-// For Vercel deployment
-export default bootstrap;
-
 // Always call bootstrap to start the application
 bootstrap();
+
+export const handler = (req, res) => {
+   proxy(createServer(expressApp), req, res);
+};
