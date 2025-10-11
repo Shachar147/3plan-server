@@ -1,19 +1,17 @@
 // src/index.ts
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-import { ValidationPipe } from '@nestjs/common';
 import { ExpressAdapter } from '@nestjs/platform-express';
 import express from 'express';
 import serverlessExpress from '@vendia/serverless-express';
 import bodyParser from 'body-parser';
+import { ValidationPipe } from '@nestjs/common';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
 const expressApp = express();
 const adapter = new ExpressAdapter(expressApp);
 
 async function bootstrap() {
-  console.log('Starting NestJS bootstrap');
-
   const app = await NestFactory.create(AppModule, adapter);
 
   // CORS
@@ -29,30 +27,25 @@ async function bootstrap() {
     credentials: true,
   });
 
-  // Validation pipe
+  // Validation
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
   // Swagger
   const swaggerConfig = new DocumentBuilder()
-    .setTitle('Triplan API Documentation')
-    .setDescription('Official documentation of Triplan.')
+    .setTitle('Triplan API')
+    .setDescription('API documentation')
     .setVersion('1.0')
     .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, 'JWT')
     .build();
-
   const document = SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup('/api/doc', app, document, {
-    customCss: 'input { max-width: unset !important; }',
-  });
+  SwaggerModule.setup('/api/doc', app, document);
 
   // Body parser
   app.use(bodyParser.json({ limit: '50mb' }));
   app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
-
-  console.log('NestJS app initialized');
 }
 
-// Bootstrap NestJS
+// Bootstrap once
 bootstrap();
 
 // Export serverless handler for Vercel
