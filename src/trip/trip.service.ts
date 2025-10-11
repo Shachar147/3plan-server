@@ -888,7 +888,7 @@ export class TripService {
   }
 
   async syncTrip(name: string, tripData: CreateTripDto, syncTo: 'remote' | 'local') {
-    const remoteServerAddress = syncTo == 'remote' ? 'https://3plan-server.vercel.app' : 'http://192.168.1.248:3001';
+    const remoteServerAddress = syncTo == 'remote' ? 'https://3plan-server.vercel.app' : 'https://nonvolubly-superceremonious-maeve.ngrok-free.dev';
     const signIn = '/auth/signin';
     const getTripByName = `/trip/name/${name}`;
     const updateTripByName = `/trip/name/${name}`;
