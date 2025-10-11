@@ -39,9 +39,9 @@ class AppConfig {
 
     const supaBase = {
         dbHost: 'aws-1-eu-west-1.pooler.supabase.com',
-        port: 5432,
+        port: 6543,
         dbUser: 'postgres.gwewfommgauuuvlgegzo',
-        // dbPassword: '',
+        // dbPassword: 'Aa6336263!!',
         database: 'postgres'
     }
 
