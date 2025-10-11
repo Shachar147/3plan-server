@@ -1,22 +1,22 @@
+// src/index.ts
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
 import { ExpressAdapter } from '@nestjs/platform-express';
-const express = require('express');
+import express from 'express';
 import serverlessExpress from '@vendia/serverless-express';
-import * as bodyParser from 'body-parser';
+import bodyParser from 'body-parser';
 
 const expressApp = express();
 const adapter = new ExpressAdapter(expressApp);
 
 async function bootstrap() {
-  console.log('starting bootstrap');
+  console.log('Starting NestJS bootstrap');
+
   const app = await NestFactory.create(AppModule, adapter);
 
-  process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-
-  // Enable CORS
+  // CORS
   app.enableCors({
     origin: [
       'http://localhost:3000',
@@ -32,15 +32,15 @@ async function bootstrap() {
   // Validation pipe
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
-  // Swagger docs
+  // Swagger
   const swaggerConfig = new DocumentBuilder()
     .setTitle('Triplan API Documentation')
     .setDescription('Official documentation of Triplan.')
     .setVersion('1.0')
     .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, 'JWT')
     .build();
-  const document = SwaggerModule.createDocument(app, swaggerConfig);
 
+  const document = SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup('/api/doc', app, document, {
     customCss: 'input { max-width: unset !important; }',
   });
@@ -52,7 +52,8 @@ async function bootstrap() {
   console.log('NestJS app initialized');
 }
 
-// Only bootstrap NestJS once
+// Bootstrap NestJS
 bootstrap();
 
+// Export serverless handler for Vercel
 export default serverlessExpress({ app: expressApp });
