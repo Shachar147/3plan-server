@@ -82,10 +82,12 @@ async function bootstrap() {
   app.use(bodyParser.json({limit: '50mb'}));
   app.use(bodyParser.urlencoded({limit: '50mb', extended: true}));
 
-  // console.log("heroku port: ", process.env.PORT);
-  await app.listen(process.env.PORT || 3001);
+  if (process.env.NODE_ENV !== 'production') {
+    // console.log("heroku port: ", process.env.PORT);
+    await app.listen(process.env.PORT || 3001);
 
-  console.log("after app listen, port:", process.env.PORT || 3001);
+    console.log("after app listen, port:", process.env.PORT || 3001);
+  }
 
   // Create WebSocket server instance
   const server = new Server({ noServer: true });
