@@ -11,7 +11,10 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 const expressApp = express();
 const adapter = new ExpressAdapter(expressApp);
 
-async function bootstrap() {
+// Create a promise that resolves when NestJS is ready
+let serverlessHandler: ReturnType<typeof serverlessExpress> | null = null;
+
+async function initNest() {
   const app = await NestFactory.create(AppModule, adapter);
 
   // CORS
@@ -43,10 +46,22 @@ async function bootstrap() {
   // Body parser
   app.use(bodyParser.json({ limit: '50mb' }));
   app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
+
+  // Now create the serverless handler
+  serverlessHandler = serverlessExpress({ app: expressApp });
 }
 
-// Bootstrap once
-bootstrap();
+// Initialize Nest immediately
+initNest().catch((err) => {
+  console.error('Failed to initialize NestJS', err);
+});
 
-// Export serverless handler for Vercel
-export default serverlessExpress({ app: expressApp });
+// Vercel handler — wait until serverlessHandler is ready
+export default async function handler(req: any, res: any) {
+  if (!serverlessHandler) {
+    // If Nest is still bootstrapping, wait
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    return handler(req, res);
+  }
+  return serverlessHandler(req, res);
+}
