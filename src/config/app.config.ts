@@ -36,13 +36,22 @@ class AppConfig {
   }
 
   public getDatabaseConfig(): DatabaseConfig {
+
+    const supaBase = {
+        dbHost: 'aws-1-eu-west-1.pooler.supabase.com',
+        port: 6543,
+        dbUser: 'postgres.gwewfommgauuuvlgegzo',
+        dbPassword: 'Aa6336263!!',
+        database: 'postgres'
+    }
+
     return {
       type: process.env.DB_TYPE || 'postgres',
-      host: process.env.DB_HOST || process.env.RDS_HOSTNAME || 'localhost',
-      port: parseInt(process.env.DB_PORT || process.env.RDS_PORT || '5432'),
-      username: process.env.DB_USERNAME || process.env.RDS_USERNAME || 'postgres',
-      password: process.env.DB_PASSWORD || process.env.RDS_PASSWORD || 'postgres',
-      database: process.env.DB_NAME || process.env.RDS_DB_NAME || 'triplan_local',
+      host: supaBase['dbHost'] || process.env.DB_HOST || process.env.RDS_HOSTNAME || 'localhost',
+      port: supaBase['port'] || parseInt(process.env.DB_PORT || process.env.RDS_PORT || '5432'),
+      username: supaBase['dbUser'] || process.env.DB_USERNAME || process.env.RDS_USERNAME || 'postgres',
+      password: supaBase['dbPassword'] || process.env.DB_PASSWORD || process.env.RDS_PASSWORD || 'postgres',
+      database: supaBase['database'] || process.env.DB_NAME || process.env.RDS_DB_NAME || 'triplan_local',
       synchronize: process.env.TYPEORM_SYNC === 'true' || 
                   process.env.NODE_ENV === 'development' || 
                   false,
