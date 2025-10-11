@@ -367,8 +367,8 @@ export class TripController {
   }
 
   @ApiOperation({
-    summary: "Sync Trip By Name",
-    description: "Sync trip by name",
+    summary: "Sync Trip From Local To Remote By Name",
+    description: "Sync Trip From Local To Remote By Name",
   })
   @ApiParam({
     name: "name",
@@ -382,6 +382,25 @@ export class TripController {
       @GetUser() user: User,
       @Req() request: Request
   ) {
-    return this.tripService.syncTrip(name, createTripDto, user, request);
+    return this.tripService.syncTrip(name, createTripDto, 'remote');
+  }
+
+  @ApiOperation({
+    summary: "Sync Trip From Remote To Local By Name",
+    description: "Sync Trip From Remote To Local By Name",
+  })
+  @ApiParam({
+    name: "name",
+    description: "trip name",
+  })
+  @UseGuards(AuthGuard())
+  @Post("/syncToLocal/name/:name")
+  async syncTripToLocal(
+      @Param("name") name,
+      @Body() createTripDto: CreateTripDto, 
+      @GetUser() user: User,
+      @Req() request: Request
+  ) {
+    return this.tripService.syncTrip(name, createTripDto, 'local');
   }
 }
