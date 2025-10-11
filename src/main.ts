@@ -113,6 +113,9 @@ async function bootstrap() {
 // Always call bootstrap to start the application
 bootstrap();
 
-export const handler = (req, res) => {
-   proxy(createServer(expressApp), req, res);
+
+// Export handler for Vercel
+export default (req, res) => {
+  const server = createServer(expressApp);
+  proxy(server, req, res);
 };
