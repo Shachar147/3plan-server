@@ -23,7 +23,7 @@ export class TinderService {
         return this.httpService
             .post(`${getTinderServerAddress()}/item/${route}`, data, {
                 headers: {
-                    'Access-Control-Allow-Origin': '*',
+                    // 'Access-Control-Allow-Origin': '*',
                     'Authorization': `Bearer ${token}`
                 }
             })
