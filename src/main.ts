@@ -8,7 +8,7 @@ import {ValidationPipe} from "@nestjs/common";
 const express = require('express');
 import { ExpressAdapter } from '@nestjs/platform-express';
 
-import { createServer, proxy } from 'aws-serverless-express';
+import serverlessExpress from '@vendia/serverless-express';
 const expressApp = express();
 const adapter = new ExpressAdapter(expressApp);
 
@@ -26,6 +26,8 @@ async function bootstrap() {
       'http://localhost:3000',                 // local frontend
       'https://threeplan-frontend.onrender.com', // deployed frontend
       'https://3plan-frontend.vercel.app',
+      'http://triplan.live',
+      'https://triplan.live'
     ],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
@@ -115,7 +117,4 @@ bootstrap();
 
 
 // Export handler for Vercel
-export default (req, res) => {
-  const server = createServer(expressApp);
-  proxy(server, req, res);
-};
+export default serverlessExpress({ app: expressApp });

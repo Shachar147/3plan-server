@@ -39,6 +39,7 @@
     "@testing-library/react": "^13.4.0",
     "@types/cookie": "^0.5.1",
     "@types/cors": "^2.8.13",
+    "@vendia/serverless-express": "^4.12.6",
     "aws-sdk": "^2.1691.0",
     "aws-serverless-express": "^3.4.0",
     "bcrypt": "^5.1.1",
