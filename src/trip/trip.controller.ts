@@ -365,4 +365,23 @@ export class TripController {
     // this.myWebSocketGateway.send(JSON.stringify(result), `t${result.id}`, request.headers.cid?.toString() ?? "");
     return result;
   }
+
+  @ApiOperation({
+    summary: "Sync Trip By Name",
+    description: "Sync trip by name",
+  })
+  @ApiParam({
+    name: "name",
+    description: "trip name",
+  })
+  @UseGuards(AuthGuard())
+  @Post("/sync/name/:name")
+  async syncTrip(
+      @Param("name") name,
+      @Body() createTripDto: CreateTripDto, 
+      @GetUser() user: User,
+      @Req() request: Request
+  ) {
+    return this.tripService.syncTrip(name, createTripDto, user, request);
+  }
 }
