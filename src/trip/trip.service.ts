@@ -886,4 +886,73 @@ export class TripService {
       }
     }
   }
+
+  async syncTrip(name: string, tripData: CreateTripDto, user: User, request: Request) {
+    const remoteServerAddress = 'https://3plan-server.vercel.app';
+    const signIn = '/auth/signin';
+    const getTripByName = `/trip/name/${name}`;
+    const updateTripByName = `/trip/name/${name}`;
+    const createTrip = '/trip';
+  
+    try {
+      let res, data;
+  
+      // 1️⃣ Get remote token
+      res = await axios.post(remoteServerAddress + signIn, {
+        username: process.env.ADMIN_USERNAME,
+        password: process.env.ADMIN_PASSWORD,
+      }, {
+        headers: { 'Content-Type': 'application/json' }
+      });
+  
+      data = res.data;
+      const remoteToken = data.accessToken;
+      console.log("thereee", remoteToken);
+  
+      // 2️⃣ Check if trip exists remotely
+      let tripExists: any = null;
+      try {
+        res = await axios.get(remoteServerAddress + getTripByName, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${remoteToken}`
+          },
+        });
+        tripExists = res.data;
+      } catch (err) {
+        if (err.response && err.response.status === 404) {
+          console.log("trip does not exist remotely");
+        } else {
+          throw err;
+        }
+      }
+      console.log("trip exist?", !!tripExists);
+  
+      // 3️⃣ Upsert trip
+      if (tripExists) {
+        res = await axios.put(remoteServerAddress + updateTripByName, tripData, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${remoteToken}`
+          },
+        });
+        data = res.data;
+        console.log("upsert result", data);
+      } else {
+        res = await axios.post(remoteServerAddress + createTrip, tripData, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${remoteToken}`
+          },
+        });
+        data = res.data;
+        console.log("create result", data);
+      }
+  
+      return data;
+    } catch (e) {
+      console.error("Sync failed:", e);
+      throw e;
+    }
+  }
 }
