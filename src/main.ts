@@ -66,7 +66,7 @@ async function bootstrap() {
   app.use(bodyParser.urlencoded({limit: '50mb', extended: true}));
 
   // Create WebSocket server instance
-  const server = new Server({ noServer: true });
+  const server = app.getHttpServer() || new Server({ noServer: true });
 
   // console.log("heroku port: ", process.env.PORT);
   await app.listen(process.env.PORT || 3001);

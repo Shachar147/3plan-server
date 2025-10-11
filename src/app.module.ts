@@ -1,4 +1,4 @@
-import {HttpModule, HttpService, Module} from '@nestjs/common';
+import {HttpModule, Module} from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -28,6 +28,7 @@ import { PlacesPhotosModule } from './places-photos/places-photos.module';
 import { TripTemplatesModule } from './trip-templates/trip-templates.module';
 import { FileUploadModule } from './file-upload/file-upload.module';
 import { ReleaseNotesModule } from './release-notes/release-notes.module';
+import { WebSocketModule } from './websocket.module';
 
 @Module({
   imports: [
@@ -61,6 +62,7 @@ import { ReleaseNotesModule } from './release-notes/release-notes.module';
     TripTemplatesModule,
     FileUploadModule,
     ReleaseNotesModule,
+    WebSocketModule
   ],
   controllers: [AppController],
   providers: [AppService, TinderService],
