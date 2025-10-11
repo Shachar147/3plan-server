@@ -8,6 +8,7 @@ const url = dbConfig.url;
 export const typeOrmConfig: TypeOrmModuleOptions = url ? {
   type: dbConfig.type as any,
   url,
+  autoLoadEntities: true, // ✅ easiest way
   entities: [__dirname + '/../**/*.entity.{js,ts}'],
   synchronize: dbConfig.synchronize,
   extra: dbConfig.extra,
