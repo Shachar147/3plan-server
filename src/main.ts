@@ -20,9 +20,11 @@ const serverPromise = (async () => {
       'https://3plan-frontend.vercel.app',
       'http://triplan.live',
       'https://triplan.live',
+      'https://www.triplan.live', // added
     ],
     credentials: true,
   });
+  
 
   // Validation
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
