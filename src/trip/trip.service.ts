@@ -357,7 +357,8 @@ export class TripService {
     name: string,
     updateTripDto: UpdateTripDto,
     user: User,
-    request: Request
+    request: Request,
+    rewriteImages: boolean = true
   ) {
     const trip = await this.getTripByName(name, user);
 
@@ -371,8 +372,8 @@ export class TripService {
     // }
 
     // Rewrite images to locally hosted copies when possible
-    const rewritten = await this.rewriteImagesToLocal(updateTripDto);
-    console.log("rewritten", JSON.stringify(rewritten));
+    const rewritten = rewriteImages ? await this.rewriteImagesToLocal(updateTripDto) : updateTripDto;
+    if (rewriteImages) console.log("rewritten", JSON.stringify(rewritten));
     return this.tripRepository.updateTrip(rewritten, trip, user, request, this.backupsService);
   }
 

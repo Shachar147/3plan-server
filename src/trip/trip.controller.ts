@@ -236,6 +236,31 @@ export class TripController {
     return result;
   }
 
+  @ApiOperation({
+    summary: "Update Trip By Name",
+    description: "Update trip by name",
+  })
+  @ApiParam({
+    name: "name",
+    description: "trip name",
+    required: true,
+    type: "string",
+  })
+  @Put("/name/:name/no-rewrite-images")
+  @UsePipes(new ValidationPipe({ transform: true }))
+  @UseGuards(AuthGuard())
+  async updateTripByNameNoRewriteImages(
+    @Param("name") name,
+    @Body() updateTripDto: UpdateTripDto,
+    @GetUser() user: User,
+    @Req() request: Request
+  ) {
+    const result = await this.tripService.updateTripByName(name, updateTripDto, user, request, false);
+    // this.myWebSocketGateway.send(JSON.stringify(result), user.id, request.headers.cid?.toString() ?? "");
+    this.myWebSocketGateway.send(JSON.stringify(result), `t${result.id}`, request.headers.cid?.toString() ?? "");
+    return result;
+  }
+
   @ApiOperation({ summary: "Update Trip", description: "Update trip by id" })
   @ApiParam({
     name: "id",
