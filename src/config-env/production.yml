@@ -1,8 +1,9 @@
+# new supabase from vercel
 db:
-  host: 'db.gwewfommgauuuvlgegzo.supabase.co'
+  host: 'db.becvkzskjkwnzomqmpuc.supabase.co'
   port: 5432
   username: 'postgres'
-  password: 'npg_W7CMqZIuhvP3'
+  password: 'U8pCcrbl3EMPVcIz'
   database: 'postgres'
   synchronize: true
   extra:
@@ -13,6 +14,23 @@ db:
 
 jwt:
   secret: 'topSecret21'
+
+# supabase
+# db:
+#   host: 'db.gwewfommgauuuvlgegzo.supabase.co'
+#   port: 5432
+#   username: 'postgres'
+#   password: 'npg_W7CMqZIuhvP3'
+#   database: 'postgres'
+#   synchronize: true
+#   extra:
+#     ssl:
+#       rejectUnauthorized: false
+#       require: true
+#       mode: require
+
+# jwt:
+#   secret: 'topSecret21'
 
 
 # db:
