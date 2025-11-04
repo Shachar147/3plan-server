@@ -358,7 +358,7 @@ export class TripService {
     updateTripDto: UpdateTripDto,
     user: User,
     request: Request,
-    rewriteImages: boolean = true
+    rewriteImages: boolean = false
   ) {
     const trip = await this.getTripByName(name, user);
 

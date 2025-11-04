@@ -230,6 +230,7 @@ export class TripController {
     @GetUser() user: User,
     @Req() request: Request
   ) {
+    // todo complete: allow the users to pass some kind of parameter indicating we SHOULD rewrite images, and pass it here.
     const result = await this.tripService.updateTripByName(name, updateTripDto, user, request);
     // this.myWebSocketGateway.send(JSON.stringify(result), user.id, request.headers.cid?.toString() ?? "");
     this.myWebSocketGateway.send(JSON.stringify(result), `t${result.id}`, request.headers.cid?.toString() ?? "");
