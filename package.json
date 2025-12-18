@@ -9,7 +9,6 @@
     "build": "tsc -p tsconfig.build.json",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "npx nest start",
-    "vercel-build": "rm -rf node_modules package-lock.json && npm install && nest build",
     "start:dev:win": "SET PORT=3001 && npx nest start --watch",
     "start:dev": "PORT=3001 NODE_ENV=development npx nest start --watch",
     "start:debug": "PORT=3001 npx nest start --debug --watch",
