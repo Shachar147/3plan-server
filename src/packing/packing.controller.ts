@@ -80,7 +80,7 @@ export class PackingController {
     @Get("item/:tripId")
     @UseGuards(AuthGuard())
     async getItemsByTripId(
-        @Param("tripId") tripId: number,
+        @Param("tripId", ParseIntPipe) tripId: number,
         @GetUser() user: User
     ) {
         const data = await this.packingService.getItemsByTripId(tripId, user)
@@ -171,7 +171,7 @@ export class PackingController {
     @Get("category/:tripId")
     @UseGuards(AuthGuard())
     async getCategoriesByTripId(
-        @Param("tripId") tripId: number,
+        @Param("tripId", ParseIntPipe) tripId: number,
         @GetUser() user: User
     ) {
         const data = await this.packingService.getCategoriesByTripId(tripId, user)
