@@ -1,3 +1,9 @@
+// 🔥 TEMPORARY HOTFIX for Node 18+/24 compatibility
+import * as util from 'util';
+
+(util as any).isNullOrUndefined =
+  (value: any) => value === null || value === undefined;
+
 // src/index.ts
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
