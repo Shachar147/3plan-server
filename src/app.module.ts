@@ -28,6 +28,7 @@ import { PlacesPhotosModule } from './places-photos/places-photos.module';
 import { TripTemplatesModule } from './trip-templates/trip-templates.module';
 import { FileUploadModule } from './file-upload/file-upload.module';
 import { ReleaseNotesModule } from './release-notes/release-notes.module';
+import { PackingModule } from './packing/packing.module';
 
 @Module({
   imports: [
@@ -61,6 +62,7 @@ import { ReleaseNotesModule } from './release-notes/release-notes.module';
     TripTemplatesModule,
     FileUploadModule,
     ReleaseNotesModule,
+    PackingModule,
   ],
   controllers: [AppController],
   providers: [AppService, TinderService],

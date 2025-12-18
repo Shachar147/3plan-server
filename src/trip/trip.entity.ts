@@ -8,6 +8,8 @@ import {
 import {User} from "../user/user.entity";
 import {Task} from "../task/task.entity";
 import {TodolistTask} from "../todolist/todolist.entity";
+import {PackingItem} from "../packing/packing-item.entity";
+import {PackingCategory} from "../packing/packing-category.entity";
 
 @Unique(['name', 'userId'])
 @Entity()
@@ -83,4 +85,12 @@ export class Trip extends BaseEntity {
 
   @Column({ type: 'jsonb', nullable: true })
   priorityMapColors: 'jsonb';
+
+  // packing items
+  @OneToMany((type) => PackingItem, (item) => item.trip, { eager: true })
+  packing_items: PackingItem[];
+
+  // packing categories
+  @OneToMany((type) => PackingCategory, (category) => category.trip, { eager: true })
+  packing_categories: PackingCategory[];
 }
