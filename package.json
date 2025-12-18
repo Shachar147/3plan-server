@@ -6,7 +6,7 @@
   "license": "MIT",
   "scripts": {
     "prebuild": "rimraf dist",
-    "build": "npx nest build",
+    "build": "tsc -p tsconfig.build.json",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "npx nest start",
     "start:dev:win": "SET PORT=3001 && npx nest start --watch",
@@ -65,7 +65,8 @@
     "rxjs": "^6.6.3",
     "swagger-ui-express": "^4.1.6",
     "typeorm": "^0.2.29",
-    "ws": "^8.13.0"
+    "ws": "^8.13.0",
+    "typescript": "^3.9.9"
   },
   "devDependencies": {
     "@nestjs/cli": "^7.5.1",
@@ -90,8 +91,7 @@
     "ts-jest": "^26.4.3",
     "ts-loader": "^8.0.8",
     "ts-node": "^9.0.0",
-    "tsconfig-paths": "^3.9.0",
-    "typescript": "^3.9.9"
+    "tsconfig-paths": "^3.9.0"
   },
   "jest": {
     "moduleFileExtensions": [
