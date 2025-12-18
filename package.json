@@ -60,6 +60,7 @@
     "lodash": "^4.17.21",
     "minimist": "^1.2.8",
     "nba": "^4.13.0",
+    "node-compat": "^0.3.1",
     "node-fetch": "^2.6.9",
     "nodemailer": "^6.9.1",
     "passport": "^0.4.1",
