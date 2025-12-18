@@ -28,7 +28,7 @@ import { PlacesPhotosModule } from './places-photos/places-photos.module';
 import { TripTemplatesModule } from './trip-templates/trip-templates.module';
 import { FileUploadModule } from './file-upload/file-upload.module';
 import { ReleaseNotesModule } from './release-notes/release-notes.module';
-import { WebSocketModule } from './websocket/websocket.module';
+import { PackingModule } from './packing/packing.module';
 
 @Module({
   imports: [
@@ -62,7 +62,7 @@ import { WebSocketModule } from './websocket/websocket.module';
     TripTemplatesModule,
     FileUploadModule,
     ReleaseNotesModule,
-    WebSocketModule
+    PackingModule,
   ],
   controllers: [AppController],
   providers: [AppService, TinderService],
