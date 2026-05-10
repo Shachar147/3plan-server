@@ -1,10 +1,5 @@
-// 🔥 TEMPORARY HOTFIX for Node 18+/24 compatibility
-import * as util from 'util';
+import './polyfills';
 
-(util as any).isNullOrUndefined =
-  (value: any) => value === null || value === undefined;
-
-// src/index.ts
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ExpressAdapter } from '@nestjs/platform-express';
