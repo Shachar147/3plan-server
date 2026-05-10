@@ -37,8 +37,8 @@ class AppConfig {
   }
 
   public getDatabaseConfig(): DatabaseConfig {
-
-    const supaBase = {
+ 
+    const supaBaseOld = {
         dbHost: 'aws-1-eu-west-1.pooler.supabase.com',
         port: 6543,
         dbUser: 'postgres.gwewfommgauuuvlgegzo',
@@ -46,7 +46,16 @@ class AppConfig {
         database: 'postgres'
     }
 
-    const PROD_DB_URL = 'postgresql://postgres.gwewfommgauuuvlgegzo:npg_W7CMqZIuhvP3@aws-1-eu-west-1.pooler.supabase.com:6543/postgres';
+    // psql -d postgresql://postgres.uxywbluboptfvodyragj:npg_W7CMqZIuhvP3@aws-1-ap-northeast-1.pooler.supabase.com:5432/postgres -f 
+    const supaBase = {
+      dbHost: 'aws-1-ap-northeast-1.pooler.supabase.com',
+      port: 6543,
+      dbUser: 'postgres.uxywbluboptfvodyragj',
+      // dbPassword: 'Aa6336263!!',
+      database: 'postgres'
+  }
+
+    const PROD_DB_URL = 'postgresql://postgres.uxywbluboptfvodyragj:npg_W7CMqZIuhvP3@aws-1-ap-northeast-1.pooler.supabase.com:6543/postgres';
     const DEV_DB_URL = 'postgresql://postgres:postgres@localhost:5432/buysearch';
 
     return {
